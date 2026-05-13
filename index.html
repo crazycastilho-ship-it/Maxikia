@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maxikia — Rápido como tú lo necesitas</title>
+  <meta name="description" content="Entregas express en menos de 6 horas. Cualquier persona puede ser cliente o repartidor en Maxikia.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="/" class="logo">Maxi<span>⋊</span>ia</a>
+      <div class="nav-links">
+        <a href="#como-funciona">Cómo funciona</a>
+        <a href="#para-repartidores">Gana dinero</a>
+        <a href="pages/login.html" class="btn-nav-ghost">Entrar</a>
+        <a href="pages/register.html" class="btn-nav">Crear cuenta</a>
+      </div>
+      <button class="nav-burger" id="burger" aria-label="Menú">
+        <i class="ti ti-menu-2"></i>
+      </button>
+    </div>
+    <div class="nav-mobile" id="nav-mobile">
+      <a href="#como-funciona">Cómo funciona</a>
+      <a href="#para-repartidores">Gana dinero</a>
+      <a href="pages/login.html">Entrar</a>
+      <a href="pages/register.html" class="btn-nav" style="margin-top:8px;display:block;text-align:center;">Crear cuenta gratis</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <i class="ti ti-bolt"></i>
+          Entregas express · menos de 6 horas
+        </div>
+        <h1>Rápido como<br><em>tú lo necesitas.</em></h1>
+        <p class="hero-sub">La plataforma donde cualquiera puede enviar o repartir. Sin flota propia, sin intermediarios — solo personas reales cumpliendo en tu ciudad.</p>
+        <div class="hero-ctas">
+          <a href="pages/register.html" class="btn-primary">
+            <i class="ti ti-package"></i> Enviar ahora
+          </a>
+          <a href="pages/register.html?rol=repartidor" class="btn-secondary">
+            <i class="ti ti-motorbike"></i> Quiero repartir y ganar
+          </a>
+        </div>
+        <div class="hero-trust">
+          <span><i class="ti ti-shield-check"></i> Identidad verificada</span>
+          <span><i class="ti ti-fingerprint"></i> Acceso por huella</span>
+          <span><i class="ti ti-coin"></i> Pago inmediato</span>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-card">
+          <div class="hc-top">
+            <span class="hc-badge live"><span class="dot"></span> En camino</span>
+            <span class="hc-eta">ETA: 28 min</span>
+          </div>
+          <div class="hc-route">
+            <div class="hc-point">
+              <div class="point-dot origin"></div>
+              <div>
+                <div class="point-label">Recogida</div>
+                <div class="point-addr">Pizza Napoli, Chapinero</div>
+              </div>
+            </div>
+            <div class="hc-line"></div>
+            <div class="hc-point">
+              <div class="point-dot dest"></div>
+              <div>
+                <div class="point-label">Entrega</div>
+                <div class="point-addr">Cra 15 #93-10, Usaquén</div>
+              </div>
+            </div>
+          </div>
+          <div class="hc-repartidor">
+            <div class="rep-avatar">JM</div>
+            <div>
+              <div class="rep-name">Julián M.</div>
+              <div class="rep-rating"><i class="ti ti-star-filled"></i> 4.9 · 340 entregas</div>
+            </div>
+            <div class="rep-price">$18.000</div>
+          </div>
+        </div>
+        <div class="hero-sym">⋊</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="stats-section">
+    <div class="stats-inner">
+      <div class="stat"><span class="stat-n">6h</span><span class="stat-l">Tiempo máximo de entrega</span></div>
+      <div class="stat"><span class="stat-n">$0</span><span class="stat-l">Sin costo para registrarse</span></div>
+      <div class="stat"><span class="stat-n">24/7</span><span class="stat-l">Disponible siempre</span></div>
+      <div class="stat"><span class="stat-n">100%</span><span class="stat-l">Usuarios verificados</span></div>
+    </div>
+  </section>
+
+  <!-- CÓMO FUNCIONA -->
+  <section class="section" id="como-funciona">
+    <div class="container">
+      <div class="section-label">Cómo funciona</div>
+      <h2>En 3 pasos, tu paquete viaja</h2>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-num">01</div>
+          <div class="step-icon"><i class="ti ti-map-pin"></i></div>
+          <h3>Publica tu envío</h3>
+          <p>Indica de dónde recoger, a dónde entregar y qué es el paquete. El precio se calcula automáticamente.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">02</div>
+          <div class="step-icon"><i class="ti ti-user-check"></i></div>
+          <h3>Un repartidor lo acepta</h3>
+          <p>Repartidores verificados cerca de ti toman el pedido. Ves su nombre, foto y calificación antes de confirmar.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">03</div>
+          <div class="step-icon"><i class="ti ti-circle-check"></i></div>
+          <h3>Entrega confirmada</h3>
+          <p>El destinatario confirma con código o huella. El repartidor recibe su pago al instante.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PARA REPARTIDORES -->
+  <section class="section section-dark" id="para-repartidores">
+    <div class="container">
+      <div class="section-label light">Para repartidores</div>
+      <h2 class="light">Gana dinero con lo que ya tienes</h2>
+      <div class="earn-grid">
+        <div class="earn-item">
+          <i class="ti ti-clock-hour-3"></i>
+          <div>
+            <h4>Tus horarios</h4>
+            <p>Conecta cuando quieras. No hay turnos fijos ni jefes. Tú decides cuándo y cuánto trabajar.</p>
+          </div>
+        </div>
+        <div class="earn-item">
+          <i class="ti ti-motorbike"></i>
+          <div>
+            <h4>Cualquier vehículo</h4>
+            <p>Moto, bici, carro o a pie para distancias cortas. Lo que tengas funciona.</p>
+          </div>
+        </div>
+        <div class="earn-item">
+          <i class="ti ti-coin"></i>
+          <div>
+            <h4>Pago inmediato</h4>
+            <p>Al confirmar la entrega, el dinero llega a tu billetera Maxikia. Sin esperar semanas.</p>
+          </div>
+        </div>
+        <div class="earn-item">
+          <i class="ti ti-shield-check"></i>
+          <div>
+            <h4>Comunidad segura</h4>
+            <p>Todos los usuarios están verificados con documento e identificación biométrica.</p>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:2.5rem;">
+        <a href="pages/register.html?rol=repartidor" class="btn-primary">Quiero ser repartidor</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section class="section cta-section">
+    <div class="container" style="text-align:center;">
+      <h2>¿Listo para empezar?</h2>
+      <p style="color:var(--muted);margin-bottom:2rem;font-size:1.1rem;">Regístrate gratis en menos de 3 minutos. Hoy mismo puedes hacer tu primer envío — o tu primera entrega.</p>
+      <a href="pages/register.html" class="btn-primary btn-lg">
+        <i class="ti ti-user-plus"></i> Crear cuenta gratis
+      </a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="logo" style="color:white;">Maxi<span>⋊</span>ia</div>
+      <div class="footer-links">
+        <a href="#">Términos</a>
+        <a href="#">Privacidad</a>
+        <a href="#">Contacto</a>
+      </div>
+      <div class="footer-copy">© 2025 Maxikia. Todos los derechos reservados.</div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
