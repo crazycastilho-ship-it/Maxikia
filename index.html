@@ -22,8 +22,6 @@
     html { scroll-behavior: smooth; }
     body { font-family: var(--font-body); background: var(--surface); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; }
     .page { display: none; } .page.active { display: block; }
-
-    /* NAV */
     .nav { position: sticky; top: 0; z-index: 100; background: rgba(14,13,13,0.97); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
     .nav-inner { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 62px; }
     .logo { font-family: var(--font-head); font-weight: 800; font-size: 22px; color: white; text-decoration: none; letter-spacing: -0.5px; cursor: pointer; }
@@ -37,8 +35,6 @@
     .nav-mobile { display: none; padding: 1rem 1.5rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.06); flex-direction: column; }
     .nav-mobile.open { display: flex; }
     .nav-mobile a { color: rgba(255,255,255,0.7); text-decoration: none; padding: 10px 0; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
-
-    /* HERO */
     .hero { background: var(--dark); padding: 5rem 1.5rem 4rem; position: relative; overflow: hidden; }
     .hero::before { content: ''; position: absolute; top: -100px; right: -100px; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(212,0,26,0.15) 0%, transparent 70%); pointer-events: none; }
     .hero-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
@@ -70,16 +66,12 @@
     .rep-name { font-size: 14px; color: white; font-weight: 500; }
     .rep-rating { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 1px; }
     .rep-price { margin-left: auto; font-family: var(--font-head); font-weight: 700; font-size: 18px; color: white; }
-
-    /* STATS */
     .stats-section { background: #1A1818; border-top: 1px solid rgba(255,255,255,0.04); }
     .stats-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(4,1fr); }
     .stat { display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; text-align: center; border-right: 1px solid rgba(255,255,255,0.05); }
     .stat:last-child { border-right: none; }
     .stat-n { font-family: var(--font-head); font-weight: 700; font-size: 2rem; color: var(--mx2); }
     .stat-l { font-size: 13px; color: rgba(255,255,255,0.35); margin-top: 4px; }
-
-    /* SECTIONS */
     .section { padding: 5rem 1.5rem; }
     .section-dark { background: var(--dark); }
     .section-label { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--mx); margin-bottom: 0.75rem; }
@@ -100,26 +92,20 @@
     .earn-item > i { font-size: 24px; color: var(--mx2); flex-shrink: 0; margin-top: 2px; }
     .earn-item h4 { font-weight: 500; font-size: 15px; color: white; margin-bottom: 4px; }
     .earn-item p { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.6; }
-
-    /* BUTTONS */
     .btn-primary { display: inline-flex; align-items: center; gap: 8px; background: var(--mx); color: white; border: none; font-family: var(--font-body); font-size: 15px; font-weight: 500; padding: 13px 24px; border-radius: var(--radius-sm); cursor: pointer; text-decoration: none; transition: background 0.15s, transform 0.1s; }
     .btn-primary:hover { background: var(--mx-dark); transform: translateY(-1px); }
     .btn-primary.lg { padding: 16px 32px; font-size: 16px; border-radius: var(--radius); }
-    .btn-primary:disabled { opacity: 0.6; pointer-events: none; }
+    .btn-primary:disabled { opacity: 0.5; pointer-events: none; }
     .btn-secondary { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,0.2); font-family: var(--font-body); font-size: 15px; padding: 13px 24px; border-radius: var(--radius-sm); cursor: pointer; text-decoration: none; transition: all 0.15s; }
     .btn-secondary:hover { background: rgba(255,255,255,0.06); color: white; }
     .btn-full { width: 100%; justify-content: center; }
-    .btn-outline { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: white; font-size: 14px; font-family: var(--font-body); cursor: pointer; color: var(--text); transition: all 0.15s; }
+    .btn-outline { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: white; font-size: 14px; font-family: var(--font-body); cursor: pointer; color: var(--text); transition: all 0.15s; margin-top: 10px; }
     .btn-outline:hover { border-color: var(--mx); color: var(--mx); }
-
-    /* FOOTER */
     .footer { background: var(--dark); border-top: 1px solid rgba(255,255,255,0.05); padding: 2rem 1.5rem; }
     .footer-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
     .footer-links { display: flex; gap: 1.5rem; }
     .footer-links a { color: rgba(255,255,255,0.35); text-decoration: none; font-size: 13px; }
     .footer-copy { font-size: 12px; color: rgba(255,255,255,0.2); }
-
-    /* AUTH */
     .auth-wrap { min-height: calc(100vh - 62px); background: var(--dark); display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; }
     .auth-box { background: var(--surface); border-radius: var(--radius-lg); width: 100%; max-width: 440px; overflow: hidden; }
     .auth-head { background: #1A1818; padding: 1.75rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
@@ -166,11 +152,9 @@
     .divider { display: flex; align-items: center; gap: 12px; margin: 1rem 0; }
     .divider::before,.divider::after { content:''; flex:1; height:1px; background:var(--border); }
     .divider span { font-size: 12px; color: var(--muted); }
-    .alert { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 1rem; display: none; }
-    .alert.error { background: #FFF0F2; border: 1px solid rgba(212,0,26,0.2); color: var(--mx-dark); display: block; }
-    .alert.success { background: var(--green-light); border: 1px solid rgba(29,158,117,0.2); color: #0F6E56; display: block; }
-
-    /* DASHBOARD */
+    .alert { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 1rem; }
+    .alert.error { background: #FFF0F2; border: 1px solid rgba(212,0,26,0.2); color: var(--mx-dark); }
+    .alert.success { background: var(--green-light); border: 1px solid rgba(29,158,117,0.2); color: #0F6E56; }
     .app-shell { min-height: calc(100vh - 62px); display: flex; flex-direction: column; background: var(--surface); }
     .app-header { background: var(--dark); padding: 1.25rem 1.5rem; }
     .app-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
@@ -182,18 +166,18 @@
     .balance-card { background: var(--mx); border-radius: var(--radius); padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
     .bal-label { font-size: 12px; color: rgba(255,255,255,0.65); margin-bottom: 3px; }
     .bal-amount { font-family: var(--font-head); font-weight: 700; font-size: 28px; color: white; }
-    .withdraw-btn { background: rgba(255,255,255,0.18); border: none; color: white; font-family: var(--font-body); font-size: 13px; padding: 8px 14px; border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .withdraw-btn { background: rgba(255,255,255,0.18); border: none; color: white; font-family: var(--font-body); font-size: 13px; padding: 8px 14px; border-radius: var(--radius-sm); cursor: pointer; }
     .abody { flex: 1; padding: 1.25rem 1.5rem; max-width: 700px; margin: 0 auto; width: 100%; }
     .dp { display: none; } .dp.active { display: block; }
     .qa-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 1.5rem; }
-    .qa-item { display: flex; flex-direction: column; align-items: center; padding: 12px 6px; background: white; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; gap: 6px; }
+    .qa-item { display: flex; flex-direction: column; align-items: center; padding: 12px 6px; background: white; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; gap: 6px; transition: border-color 0.15s; }
     .qa-item:hover { border-color: var(--mx); }
     .qa-item i { font-size: 22px; color: var(--mx); }
     .qa-item span { font-size: 11px; color: var(--muted); font-weight: 500; text-align: center; }
     .sec-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: .75rem; }
     .sec-t { font-family: var(--font-head); font-weight: 700; font-size: 15px; }
     .see-all { background: none; border: none; font-size: 13px; color: var(--mx); cursor: pointer; }
-    .orow { display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; cursor: pointer; }
+    .orow { display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s; }
     .orow:hover { border-color: rgba(212,0,26,0.2); }
     .oico { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .oico.food { background: var(--mx-light); } .oico.food i { color: var(--mx); font-size: 18px; }
@@ -203,11 +187,11 @@
     .or { text-align: right; flex-shrink: 0; } .op { font-weight: 500; font-size: 14px; }
     .pill { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 500; margin-top: 3px; display: inline-block; }
     .pa { background: #E1F5EE; color: var(--green); } .pp { background: var(--mx-light); color: var(--mx); } .pd { background: #F1EFE8; color: var(--muted); }
-    .map-mock { height: 130px; background: #E0EAF0; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; position: relative; overflow: hidden; }
-    .map-mock::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(45deg,transparent,transparent 12px,rgba(0,0,0,.02) 12px,rgba(0,0,0,.02) 13px); }
-    .map-mock i { font-size: 36px; color: var(--mx); position: relative; }
+    #map-envio { height: 220px; border-radius: var(--radius); margin-bottom: 1rem; background: #E0EAF0; }
     .price-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--mx-light); border-radius: var(--radius-sm); margin-bottom: 1rem; }
-    .price-lbl { font-size: 13px; color: var(--muted); } .price-val { font-family: var(--font-head); font-weight: 700; font-size: 22px; color: var(--mx); }
+    .price-lbl { font-size: 13px; color: var(--muted); }
+    .price-val { font-family: var(--font-head); font-weight: 700; font-size: 22px; color: var(--mx); }
+    .price-detail { font-size: 11px; color: var(--muted); margin-top: 2px; }
     .rep-toggle { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: white; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 1rem; }
     .tsw { width: 44px; height: 24px; background: var(--border); border-radius: 20px; position: relative; cursor: pointer; transition: background .2s; }
     .tsw.on { background: var(--green); }
@@ -230,8 +214,15 @@
     .bitem i { font-size: 22px; color: var(--muted); } .bitem span { font-size: 10px; color: var(--muted); }
     .bitem.active i { color: var(--mx); } .bitem.active span { color: var(--mx); font-weight: 500; }
     .logout-btn { background: none; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.6); font-family: var(--font-body); font-size: 12px; padding: 5px 12px; border-radius: var(--radius-sm); cursor: pointer; }
-    .logout-btn:hover { color: white; border-color: rgba(255,255,255,0.3); }
-
+    .peso-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 1rem; }
+    .peso-btn { padding: 10px 6px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: white; font-size: 12px; font-family: var(--font-body); cursor: pointer; text-align: center; transition: all 0.15s; }
+    .peso-btn.sel { border-color: var(--mx); background: var(--mx-light); color: var(--mx); font-weight: 500; }
+    .repartidor-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border: 1px solid var(--green); border-radius: var(--radius); margin-bottom: 8px; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+    .rep-badge { width: 42px; height: 42px; border-radius: 50%; background: var(--green-light); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: var(--green); flex-shrink: 0; }
+    .buscando-anim { text-align: center; padding: 1.5rem; }
+    .buscando-anim i { font-size: 36px; color: var(--mx); animation: spin 1.5s linear infinite; display: block; margin-bottom: 8px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
     @media (max-width: 768px) {
       .nav-links { display: none; }
       .nav-burger { display: flex; align-items: center; justify-content: center; }
@@ -285,10 +276,7 @@
       <div class="hero-visual">
         <div class="hero-sym">⋊</div>
         <div class="hero-card">
-          <div class="hc-top">
-            <span class="hc-badge live"><span class="dot"></span> En camino</span>
-            <span class="hc-eta">ETA: 28 min</span>
-          </div>
+          <div class="hc-top"><span class="hc-badge live"><span class="dot"></span> En camino</span><span class="hc-eta">ETA: 28 min</span></div>
           <div class="hc-route">
             <div class="hc-point"><div class="point-dot origin"></div><div><div class="point-label">Recogida</div><div class="point-addr">Pizza Napoli, Chapinero</div></div></div>
             <div class="hc-line"></div>
@@ -305,8 +293,8 @@
   </section>
   <section class="stats-section">
     <div class="stats-inner">
-      <div class="stat"><span class="stat-n">6h</span><span class="stat-l">Tiempo máximo</span></div>
-      <div class="stat"><span class="stat-n">$0</span><span class="stat-l">Sin costo inicial</span></div>
+      <div class="stat"><span class="stat-n">3km</span><span class="stat-l">Radio de búsqueda</span></div>
+      <div class="stat"><span class="stat-n">$6k</span><span class="stat-l">Precio mínimo</span></div>
       <div class="stat"><span class="stat-n">24/7</span><span class="stat-l">Disponible siempre</span></div>
       <div class="stat"><span class="stat-n">100%</span><span class="stat-l">Usuarios verificados</span></div>
     </div>
@@ -316,9 +304,9 @@
       <div class="section-label">Cómo funciona</div>
       <h2>En 3 pasos, tu paquete viaja</h2>
       <div class="steps-grid">
-        <div class="step-card"><div class="step-num">01</div><div class="step-icon"><i class="ti ti-map-pin"></i></div><h3>Publica tu envío</h3><p>Indica de dónde recoger, a dónde entregar y qué es el paquete. El precio se calcula automáticamente.</p></div>
-        <div class="step-card"><div class="step-num">02</div><div class="step-icon"><i class="ti ti-user-check"></i></div><h3>Un repartidor lo acepta</h3><p>Repartidores verificados cerca de ti toman el pedido. Ves su nombre, foto y calificación.</p></div>
-        <div class="step-card"><div class="step-num">03</div><div class="step-icon"><i class="ti ti-circle-check"></i></div><h3>Entrega confirmada</h3><p>El destinatario confirma con código. El repartidor recibe su pago al instante.</p></div>
+        <div class="step-card"><div class="step-num">01</div><div class="step-icon"><i class="ti ti-map-pin"></i></div><h3>Publica tu envío</h3><p>Indica origen y destino. Calculamos el precio según distancia, peso y tipo de paquete automáticamente.</p></div>
+        <div class="step-card"><div class="step-num">02</div><div class="step-icon"><i class="ti ti-user-check"></i></div><h3>Un repartidor lo acepta</h3><p>Buscamos repartidores verificados en un radio de hasta 3km. Ves su nombre y calificación.</p></div>
+        <div class="step-card"><div class="step-num">03</div><div class="step-icon"><i class="ti ti-circle-check"></i></div><h3>Entrega confirmada</h3><p>El destinatario confirma la entrega. El repartidor recibe su pago al instante en su billetera.</p></div>
       </div>
     </div>
   </section>
@@ -329,8 +317,8 @@
       <div class="earn-grid">
         <div class="earn-item"><i class="ti ti-clock-hour-3"></i><div><h4>Tus horarios</h4><p>Conecta cuando quieras. No hay turnos fijos ni jefes.</p></div></div>
         <div class="earn-item"><i class="ti ti-motorbike"></i><div><h4>Cualquier vehículo</h4><p>Moto, bici, carro o a pie para distancias cortas.</p></div></div>
-        <div class="earn-item"><i class="ti ti-coin"></i><div><h4>Pago inmediato</h4><p>Al confirmar la entrega, el dinero llega a tu billetera Maxikia al instante.</p></div></div>
-        <div class="earn-item"><i class="ti ti-shield-check"></i><div><h4>Comunidad segura</h4><p>Todos los usuarios verificados con documento y biometría.</p></div></div>
+        <div class="earn-item"><i class="ti ti-coin"></i><div><h4>Pago inmediato</h4><p>Al confirmar la entrega el dinero llega a tu billetera Maxikia.</p></div></div>
+        <div class="earn-item"><i class="ti ti-map-pin"></i><div><h4>Radio de 3km</h4><p>Solo recibes pedidos cerca de donde estás. Sin viajes largos innecesarios.</p></div></div>
       </div>
       <div style="text-align:center;margin-top:2.5rem"><button class="btn-primary" onclick="goPage('register')">Quiero ser repartidor</button></div>
     </div>
@@ -365,7 +353,7 @@
           <div class="sdot" id="sd2">2</div><div class="sline" id="sl2"></div>
           <div class="sdot" id="sd3">3</div>
         </div>
-        <div id="reg-alert" class="alert"></div>
+        <div id="reg-alert"></div>
         <div class="sp active" id="sp1">
           <div class="step-h">Tus datos básicos</div><div class="step-s">Paso 1 de 3</div>
           <div style="margin-bottom:.85rem;font-size:13px;font-weight:500">¿Cómo usarás Maxikia?</div>
@@ -377,52 +365,32 @@
           <div class="field-group"><label class="field-label">Correo electrónico</label><input type="email" class="field-input" id="reg-email" placeholder="tu@correo.com"></div>
           <div class="field-group"><label class="field-label">Teléfono</label><input type="tel" class="field-input" id="reg-phone" placeholder="+57 300 000 0000"></div>
           <div class="field-group"><label class="field-label">Contraseña</label><input type="password" class="field-input" id="reg-pass" placeholder="Mínimo 8 caracteres"></div>
-          <button class="btn-primary btn-full" id="reg-btn1" onclick="doRegister()">Continuar <i class="ti ti-arrow-right"></i></button>
+          <button class="btn-primary btn-full" id="reg-btn1" onclick="doRegister()" style="margin-top:.5rem">Continuar <i class="ti ti-arrow-right"></i></button>
           <div class="alink">¿Ya tienes cuenta? <span onclick="goPage('login')">Iniciar sesión</span></div>
         </div>
         <div class="sp" id="sp2">
-          <div class="step-h">Verificar identidad</div>
-          <div class="step-s">Debes subir los 3 documentos para continuar.</div>
-
-          <!-- Frente cédula -->
-          <div class="uz" id="uz1" onclick="document.getElementById('file-frente').click()">
-            <i class="ti ti-id" id="uz1-icon"></i>
-            <p id="uz1-txt">Toca para subir el <strong>frente</strong> de tu cédula</p>
-          </div>
-          <input type="file" id="file-frente" accept="image/*" style="display:none" onchange="archivoSeleccionado(this,'uz1','uz1-icon','uz1-txt','Frente subido ✓')">
-
-          <!-- Reverso cédula -->
-          <div class="uz" id="uz2" onclick="document.getElementById('file-reverso').click()">
-            <i class="ti ti-id" id="uz2-icon"></i>
-            <p id="uz2-txt">Toca para subir el <strong>reverso</strong> de tu cédula</p>
-          </div>
-          <input type="file" id="file-reverso" accept="image/*" style="display:none" onchange="archivoSeleccionado(this,'uz2','uz2-icon','uz2-txt','Reverso subido ✓')">
-
-          <!-- Selfie -->
-          <div class="uz" id="uz3" onclick="document.getElementById('file-selfie').click()">
-            <i class="ti ti-camera-selfie" id="uz3-icon"></i>
-            <p id="uz3-txt"><strong>Selfie</strong> sosteniendo el documento</p>
-          </div>
-          <input type="file" id="file-selfie" accept="image/*" capture="user" style="display:none" onchange="archivoSeleccionado(this,'uz3','uz3-icon','uz3-txt','Selfie subida ✓')">
-
-          <div id="id-alert" class="alert" style="display:none"></div>
-          <div class="ibox" style="margin-top:.5rem"><i class="ti ti-lock"></i><span>Tus documentos se usan solo para verificación. No los compartimos.</span></div>
-          <button class="btn-primary btn-full" id="btn-continuar-id" onclick="validarDocumentos()">Continuar <i class="ti ti-arrow-right"></i></button>
+          <div class="step-h">Verificar identidad</div><div class="step-s">Sube los 3 documentos para continuar.</div>
+          <div class="uz" id="uz1" onclick="document.getElementById('f-frente').click()"><i class="ti ti-id" id="uz1-i"></i><p id="uz1-t">Toca para subir el <strong>frente</strong> de tu cédula</p></div>
+          <input type="file" id="f-frente" accept="image/*" style="display:none" onchange="fileOk(this,'uz1','uz1-i','uz1-t','frente','Frente subido ✓')">
+          <div class="uz" id="uz2" onclick="document.getElementById('f-reverso').click()"><i class="ti ti-id" id="uz2-i"></i><p id="uz2-t">Toca para subir el <strong>reverso</strong> de tu cédula</p></div>
+          <input type="file" id="f-reverso" accept="image/*" style="display:none" onchange="fileOk(this,'uz2','uz2-i','uz2-t','reverso','Reverso subido ✓')">
+          <div class="uz" id="uz3" onclick="document.getElementById('f-selfie').click()"><i class="ti ti-camera-selfie" id="uz3-i"></i><p id="uz3-t"><strong>Selfie</strong> sosteniendo el documento</p></div>
+          <input type="file" id="f-selfie" accept="image/*" capture="user" style="display:none" onchange="fileOk(this,'uz3','uz3-i','uz3-t','selfie','Selfie subida ✓')">
+          <div id="id-alert" style="margin-top:.5rem"></div>
+          <div class="ibox"><i class="ti ti-lock"></i><span>Tus documentos se usan solo para verificación.</span></div>
+          <button class="btn-primary btn-full" id="btn-id" onclick="subirDocs()">Continuar <i class="ti ti-arrow-right"></i></button>
         </div>
         <div class="sp" id="sp3">
-          <div class="step-h">Seguridad biométrica</div>
-          <div class="step-s">Registra tu huella o Face ID para confirmar entregas y acceder a tu cuenta.</div>
+          <div class="step-h">Seguridad biométrica</div><div class="step-s">Registra tu huella o Face ID para acceder.</div>
           <div class="fp-wrap">
-            <div class="fp-btn" id="fpb" onclick="registrarHuella()">
-              <i class="ti ti-fingerprint" id="fpi"></i>
-            </div>
+            <div class="fp-btn" id="fpb" onclick="registrarHuella()"><i class="ti ti-fingerprint" id="fpi"></i></div>
             <div class="fp-hint" id="fph">Toca para registrar tu huella o Face ID</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:6px" id="fp-sub">Tu dispositivo pedirá confirmación biométrica</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:6px" id="fp-sub">Tu dispositivo pedirá confirmación</div>
           </div>
-          <div id="fp-alert" class="alert" style="display:none"></div>
-          <div class="ibox"><i class="ti ti-shield-check"></i><span>Tu huella solo se guarda en tu dispositivo. Maxikia nunca la almacena en servidores.</span></div>
-          <button class="btn-primary btn-full" id="fpc" style="opacity:.4" disabled onclick="showDashboard()">Entrar a Maxikia <i class="ti ti-arrow-right"></i></button>
-          <button class="btn-outline" style="margin-top:10px" onclick="saltarHuella()">Omitir por ahora — usar solo contraseña</button>
+          <div id="fp-alert" style="margin-bottom:1rem"></div>
+          <div class="ibox"><i class="ti ti-shield-check"></i><span>Tu huella solo se guarda en tu dispositivo. Nunca en servidores.</span></div>
+          <button class="btn-primary btn-full" id="fpc" disabled style="opacity:.4" onclick="showDashboard()">Entrar a Maxikia <i class="ti ti-arrow-right"></i></button>
+          <button class="btn-outline" onclick="showDashboard()">Omitir — usar solo contraseña</button>
         </div>
       </div>
     </div>
@@ -438,11 +406,11 @@
         <h2>Bienvenido de vuelta</h2><p>Rápido como tú lo necesitas</p>
       </div>
       <div class="auth-body2">
-        <div id="login-alert" class="alert"></div>
+        <div id="login-alert"></div>
         <div class="field-group"><label class="field-label">Correo electrónico</label><input type="email" class="field-input" id="login-email" placeholder="tu@correo.com"></div>
         <div class="field-group"><label class="field-label">Contraseña</label><input type="password" class="field-input" id="login-pass" placeholder="••••••••"></div>
         <div style="text-align:right;margin-bottom:1rem"><a href="#" style="font-size:13px;color:var(--mx);text-decoration:none">¿Olvidaste tu contraseña?</a></div>
-        <button class="btn-primary btn-full" id="login-btn" style="margin-bottom:10px" onclick="doLogin()">Entrar a mi cuenta</button>
+        <button class="btn-primary btn-full" id="login-btn" onclick="doLogin()">Entrar a mi cuenta</button>
         <div class="divider"><span>o</span></div>
         <button class="btn-outline" onclick="doLogin()"><i class="ti ti-fingerprint" style="font-size:20px;color:var(--mx)"></i> Entrar con huella digital</button>
         <div class="alink">¿No tienes cuenta? <span onclick="goPage('register')">Regístrate gratis</span></div>
@@ -465,108 +433,120 @@
       <div class="greeting">Bienvenido,</div>
       <div class="user-name" id="dash-username">Usuario 👋</div>
       <div class="balance-card">
-        <div><div class="bal-label">Saldo disponible</div><div class="bal-amount">$0</div></div>
-        <button class="withdraw-btn"><i class="ti ti-cash"></i> Retirar</button>
+        <div><div class="bal-label">Saldo disponible</div><div class="bal-amount" id="dash-saldo">$0</div></div>
+        <button class="withdraw-btn" onclick="dTab('billetera')"><i class="ti ti-cash"></i> Retirar</button>
       </div>
     </div>
     <div class="abody">
+      <!-- HOME -->
       <div class="dp active" id="dp-home">
         <div class="qa-grid">
           <div class="qa-item" onclick="dTab('envio')"><i class="ti ti-plus-circle"></i><span>Nuevo envío</span></div>
           <div class="qa-item" onclick="dTab('repartir')"><i class="ti ti-motorbike"></i><span>Repartir</span></div>
-          <div class="qa-item"><i class="ti ti-map-2"></i><span>Rastrear</span></div>
+          <div class="qa-item" onclick="dTab('rastrear')"><i class="ti ti-map-2"></i><span>Rastrear</span></div>
           <div class="qa-item" onclick="dTab('billetera')"><i class="ti ti-wallet"></i><span>Billetera</span></div>
         </div>
-        <div style="background:var(--green-light);border:1px solid rgba(29,158,117,0.2);border-radius:var(--radius);padding:14px 16px;margin-bottom:1.25rem;display:flex;gap:10px;align-items:flex-start">
-          <i class="ti ti-circle-check" style="color:var(--green);font-size:20px;flex-shrink:0;margin-top:1px"></i>
-          <div><div style="font-weight:500;font-size:14px;color:#0F6E56">¡Cuenta verificada!</div><div style="font-size:13px;color:#0F6E56;margin-top:2px">Ya puedes enviar y recibir pedidos en Maxikia.</div></div>
-        </div>
-        <div class="sec-row"><div class="sec-t">Pedidos activos</div><button class="see-all">Ver todos</button></div>
-        <div style="text-align:center;padding:2rem;color:var(--muted);font-size:14px;background:white;border:1px solid var(--border);border-radius:var(--radius)">
-          <i class="ti ti-package" style="font-size:32px;display:block;margin-bottom:8px;opacity:.4"></i>
-          Aún no tienes pedidos activos.<br>¡Crea tu primer envío!
-        </div>
+        <div class="sec-row"><div class="sec-t">Mis pedidos</div><button class="see-all" onclick="dTab('historial')">Ver todos</button></div>
+        <div id="home-pedidos"><div style="text-align:center;padding:2rem;color:var(--muted);font-size:14px;background:white;border:1px solid var(--border);border-radius:var(--radius)"><i class="ti ti-package" style="font-size:32px;display:block;margin-bottom:8px;opacity:.4"></i>Aún no tienes pedidos.<br>¡Crea tu primer envío!</div></div>
       </div>
+
+      <!-- NUEVO ENVÍO -->
       <div class="dp" id="dp-envio">
         <div class="br"><button onclick="dTab('home')"><i class="ti ti-arrow-left" style="font-size:22px;color:var(--text)"></i></button><h3>Nuevo envío</h3></div>
-        <div class="map-mock"><i class="ti ti-map-pin"></i></div>
-        <div class="field-group"><label class="field-label">Dirección de recogida</label><input type="text" class="field-input" id="env-origen" placeholder="¿Dónde lo recogemos?"></div>
-        <div class="field-group"><label class="field-label">Dirección de entrega</label><input type="text" class="field-input" id="env-destino" placeholder="¿A dónde lo llevamos?"></div>
-        <div class="field-group"><label class="field-label">¿Qué es el paquete?</label><input type="text" class="field-input" id="env-desc" placeholder="Comida, documentos, medicamentos..."></div>
-        <div class="field-group"><label class="field-label">Instrucciones (opcional)</label><input type="text" class="field-input" placeholder="Frágil, llamar al llegar..."></div>
-        <div class="price-row"><div><div class="price-lbl">Precio estimado</div><div style="font-size:12px;color:var(--muted)">Entrega en menos de 3h</div></div><div class="price-val">$22.000</div></div>
-        <button class="btn-primary btn-full" onclick="crearPedido()">Buscar repartidor <i class="ti ti-motorbike"></i></button>
+        <div id="map-envio"></div>
+        <div class="field-group">
+          <label class="field-label">Dirección de recogida</label>
+          <input type="text" class="field-input" id="env-origen" placeholder="Escribe la dirección de recogida" oninput="geocodeDebounce('origen')">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Dirección de entrega</label>
+          <input type="text" class="field-input" id="env-destino" placeholder="Escribe la dirección de entrega" oninput="geocodeDebounce('destino')">
+        </div>
+        <div class="field-group">
+          <label class="field-label">¿Qué es el paquete?</label>
+          <input type="text" class="field-input" id="env-desc" placeholder="Comida, documentos, ropa, medicamentos...">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Peso aproximado</label>
+          <div class="peso-grid">
+            <div class="peso-btn sel" id="p0" onclick="selPeso(0,this)">Liviano<br><span style="font-size:10px;color:var(--muted)">Menos de 1kg</span></div>
+            <div class="peso-btn" id="p1" onclick="selPeso(1,this)">Mediano<br><span style="font-size:10px;color:var(--muted)">1 a 5kg</span></div>
+            <div class="peso-btn" id="p2" onclick="selPeso(2,this)">Pesado<br><span style="font-size:10px;color:var(--muted)">Más de 5kg</span></div>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Instrucciones (opcional)</label>
+          <input type="text" class="field-input" id="env-notas" placeholder="Frágil, llamar al llegar, código de acceso...">
+        </div>
+        <div class="price-row" id="price-row">
+          <div>
+            <div class="price-lbl">Precio estimado</div>
+            <div class="price-detail" id="price-detail">Ingresa origen y destino</div>
+          </div>
+          <div class="price-val" id="price-val">—</div>
+        </div>
+        <div id="envio-alert" style="margin-bottom:1rem"></div>
+        <button class="btn-primary btn-full" id="btn-buscar" onclick="buscarRepartidor()">Buscar repartidor <i class="ti ti-motorbike"></i></button>
+        <div id="resultado-busqueda" style="margin-top:1rem"></div>
       </div>
+
+      <!-- REPARTIR -->
       <div class="dp" id="dp-repartir">
         <div class="br"><button onclick="dTab('home')"><i class="ti ti-arrow-left" style="font-size:22px;color:var(--text)"></i></button><h3>Modo repartidor</h3></div>
-        <div class="rep-toggle"><div><div style="font-weight:500;font-size:14px">Estoy disponible</div><div style="font-size:12px;color:var(--muted)">Recibirás pedidos cercanos</div></div><div class="tsw" id="tsw" onclick="this.classList.toggle('on')"></div></div>
-        <div class="sec-row"><div class="sec-t">Pedidos disponibles</div></div>
-        <div style="text-align:center;padding:2rem;color:var(--muted);font-size:14px;background:white;border:1px solid var(--border);border-radius:var(--radius)">
-          <i class="ti ti-motorbike" style="font-size:32px;display:block;margin-bottom:8px;opacity:.4"></i>
-          Activa el interruptor para ver pedidos cerca de ti.
+        <div class="rep-toggle">
+          <div><div style="font-weight:500;font-size:14px">Estoy disponible</div><div style="font-size:12px;color:var(--muted)" id="rep-status-txt">Activa para recibir pedidos cercanos</div></div>
+          <div class="tsw" id="tsw" onclick="toggleDisponible()"></div>
+        </div>
+        <div id="map-repartir" style="height:200px;border-radius:var(--radius);margin-bottom:1rem;background:#E0EAF0"></div>
+        <div class="sec-row"><div class="sec-t">Pedidos disponibles cerca</div><button class="see-all" onclick="cargarPedidosCercanos()"><i class="ti ti-refresh"></i></button></div>
+        <div id="pedidos-cercanos"><div style="text-align:center;padding:2rem;color:var(--muted);font-size:14px;background:white;border:1px solid var(--border);border-radius:var(--radius)"><i class="ti ti-motorbike" style="font-size:32px;display:block;margin-bottom:8px;opacity:.4"></i>Activa el interruptor para ver pedidos.</div></div>
+      </div>
+
+      <!-- RASTREAR -->
+      <div class="dp" id="dp-rastrear">
+        <div class="br"><button onclick="dTab('home')"><i class="ti ti-arrow-left" style="font-size:22px;color:var(--text)"></i></button><h3>Rastrear pedido</h3></div>
+        <div id="map-rastrear" style="height:300px;border-radius:var(--radius);margin-bottom:1rem;background:#E0EAF0"></div>
+        <div id="rastrear-info" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:14px;background:white;border:1px solid var(--border);border-radius:var(--radius)">
+          <i class="ti ti-map-search" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>Selecciona un pedido activo para rastrearlo.
         </div>
       </div>
+
+      <!-- HISTORIAL -->
       <div class="dp" id="dp-historial">
         <div class="br"><button onclick="dTab('home')"><i class="ti ti-arrow-left" style="font-size:22px;color:var(--text)"></i></button><h3>Historial</h3></div>
-        <div id="historial-list" style="text-align:center;padding:2rem;color:var(--muted);font-size:14px;background:white;border:1px solid var(--border);border-radius:var(--radius)">
-          <i class="ti ti-history" style="font-size:32px;display:block;margin-bottom:8px;opacity:.4"></i>
-          Tu historial aparecerá aquí.
-        </div>
+        <div id="historial-list"><div style="text-align:center;padding:2rem;color:var(--muted);font-size:14px;background:white;border:1px solid var(--border);border-radius:var(--radius)"><i class="ti ti-history" style="font-size:32px;display:block;margin-bottom:8px;opacity:.4"></i>Tu historial aparecerá aquí.</div></div>
       </div>
-    </div>
+
+      <!-- BILLETERA -->
       <div class="dp" id="dp-billetera">
         <div class="br"><button onclick="dTab('home')"><i class="ti ti-arrow-left" style="font-size:22px;color:var(--text)"></i></button><h3>Mi billetera</h3></div>
-        <!-- Saldo -->
         <div style="background:var(--dark);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1rem;position:relative;overflow:hidden">
           <div style="position:absolute;top:-20px;right:-20px;font-size:100px;color:rgba(212,0,26,0.1);font-family:var(--font-head);font-weight:800;line-height:1">⋊</div>
           <div style="font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:6px">Saldo disponible</div>
           <div style="font-family:var(--font-head);font-weight:800;font-size:36px;color:white" id="wallet-saldo">$0</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:4px" id="wallet-user-num">Cargando...</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:4px" id="wallet-email"></div>
         </div>
-        <!-- Recargar -->
         <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1rem">
-          <div style="font-family:var(--font-head);font-weight:700;font-size:15px;margin-bottom:1rem">Recargar saldo</div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:1rem">Transfiere a cualquiera de estos métodos y envía el comprobante por WhatsApp para acreditar tu saldo.</div>
-          <!-- Nequi -->
-          <div style="border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:10px">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-              <div style="width:36px;height:36px;border-radius:8px;background:#8B1A8B;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                <span style="color:white;font-weight:800;font-size:13px">N</span>
-              </div>
-              <div>
-                <div style="font-weight:500;font-size:14px">Nequi</div>
-                <div style="font-size:13px;color:var(--muted)">3243334302</div>
-              </div>
-              <button onclick="copiar('3243334302','nequi-copy')" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--muted)" id="nequi-copy"><i class="ti ti-copy"></i> Copiar</button>
-            </div>
+          <div style="font-family:var(--font-head);font-weight:700;font-size:15px;margin-bottom:.75rem">Recargar saldo</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:1rem">Transfiere y envía el comprobante por WhatsApp para acreditar tu saldo en minutos.</div>
+          <div style="border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:10px;display:flex;align-items:center;gap:10px">
+            <div style="width:36px;height:36px;border-radius:8px;background:#8B1A8B;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="color:white;font-weight:800;font-size:13px">N</span></div>
+            <div><div style="font-weight:500;font-size:14px">Nequi</div><div style="font-size:13px;color:var(--muted)">3243334302</div></div>
+            <button onclick="copiar('3243334302','nc')" id="nc" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--muted)"><i class="ti ti-copy"></i> Copiar</button>
           </div>
-          <!-- Daviplata -->
-          <div style="border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:1rem">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-              <div style="width:36px;height:36px;border-radius:8px;background:#E8001C;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                <span style="color:white;font-weight:800;font-size:13px">D</span>
-              </div>
-              <div>
-                <div style="font-weight:500;font-size:14px">Daviplata</div>
-                <div style="font-size:13px;color:var(--muted)">3243334302</div>
-              </div>
-              <button onclick="copiar('3243334302','daviplata-copy')" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--muted)" id="daviplata-copy"><i class="ti ti-copy"></i> Copiar</button>
-            </div>
+          <div style="border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;display:flex;align-items:center;gap:10px">
+            <div style="width:36px;height:36px;border-radius:8px;background:#E8001C;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="color:white;font-weight:800;font-size:13px">D</span></div>
+            <div><div style="font-weight:500;font-size:14px">Daviplata</div><div style="font-size:13px;color:var(--muted)">3243334302</div></div>
+            <button onclick="copiar('3243334302','dc')" id="dc" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--muted)"><i class="ti ti-copy"></i> Copiar</button>
           </div>
-          <!-- WhatsApp -->
-          <a href="https://wa.me/573243334302?text=Hola%2C%20quiero%20recargar%20mi%20billetera%20Maxikia.%20Adjunto%20el%20comprobante." target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:white;border:none;font-family:var(--font-body);font-size:14px;font-weight:500;padding:12px;border-radius:var(--radius-sm);cursor:pointer;text-decoration:none">
-            <i class="ti ti-brand-whatsapp" style="font-size:18px"></i> Enviar comprobante por WhatsApp
-          </a>
+          <a href="https://wa.me/573243334302?text=Hola%2C%20quiero%20recargar%20mi%20billetera%20Maxikia.%20Adjunto%20el%20comprobante." target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:white;border:none;font-family:var(--font-body);font-size:14px;font-weight:500;padding:12px;border-radius:var(--radius-sm);cursor:pointer;text-decoration:none"><i class="ti ti-brand-whatsapp" style="font-size:18px"></i> Enviar comprobante por WhatsApp</a>
         </div>
-        <!-- Historial de movimientos -->
         <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem">
           <div style="font-family:var(--font-head);font-weight:700;font-size:15px;margin-bottom:1rem">Movimientos</div>
-          <div id="wallet-movimientos" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:13px">
-            <i class="ti ti-receipt" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>
-            Tus recargas y pagos aparecerán aquí.
-          </div>
+          <div id="wallet-movimientos" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:13px"><i class="ti ti-receipt" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>Tus recargas y pagos aparecerán aquí.</div>
         </div>
       </div>
+    </div>
     <div class="bbar">
       <button class="bitem active" id="bn-home" onclick="dTab('home')"><i class="ti ti-home"></i><span>Inicio</span></button>
       <button class="bitem" id="bn-envio" onclick="dTab('envio')"><i class="ti ti-package"></i><span>Envíos</span></button>
@@ -577,27 +557,333 @@
 </div>
 
 <script>
-  // ── SUPABASE INIT ──
-  const { createClient } = supabase;
-  const sb = createClient(
-    'https://dovqezmhdiauhlpichdn.supabase.co',
-    'sb_publishable_z_KMYtrQ0zxbTWhAa5GUTg___LLx-hk'
-  );
+  // ── CONFIG ──
+  const GMAPS_KEY = 'AIzaSyBmER4jevJGf0R3GoFozoAArccFdklUNIo';
+  const SB_URL = 'https://dovqezmhdiauhlpichdn.supabase.co';
+  const SB_KEY = 'sb_publishable_z_KMYtrQ0zxbTWhAa5GUTg___LLx-hk';
+  const PRECIO_BASE = 6000;
+  const PRECIO_KM = 800;
+  const PRECIO_PESO = [0, 2000, 5000];
+  const RADIO_REPARTIDOR_KM = 3;
+  const WHATSAPP = '573243334302';
 
-  // ── STATE ──
+  const { createClient } = supabase;
+  const sb = createClient(SB_URL, SB_KEY);
+
   let currentUser = null;
   let selectedRole = 'both';
   let regStep = 1;
-  let fpCount = 0;
+  let docsSubidos = { frente: false, reverso: false, selfie: false };
+  let pesoSel = 0;
+  let mapEnvio = null, mapRepartir = null, mapRastrear = null;
+  let markerOrigen = null, markerDestino = null;
+  let coordOrigen = null, coordDestino = null;
+  let geocodeTimer = null;
+  let ubicacionActual = null;
+  let disponibleComoRepartidor = false;
 
-  // ── INIT: check session ──
+  // ── INIT ──
   (async () => {
     const { data: { session } } = await sb.auth.getSession();
-    if (session) {
-      currentUser = session.user;
-      showDashboard();
-    }
+    if (session) { currentUser = session.user; showDashboard(); }
   })();
+
+  // ── GOOGLE MAPS LOADER ──
+  function loadGoogleMaps(cb) {
+    if (window.google && window.google.maps) { cb(); return; }
+    const s = document.createElement('script');
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${GMAPS_KEY}&libraries=places&language=es&region=CO`;
+    s.onload = cb;
+    document.head.appendChild(s);
+  }
+
+  function initMapEnvio() {
+    loadGoogleMaps(() => {
+      if (mapEnvio) return;
+      const center = { lat: 4.711, lng: -74.0721 };
+      mapEnvio = new google.maps.Map(document.getElementById('map-envio'), {
+        zoom: 12, center,
+        disableDefaultUI: true, zoomControl: true,
+        styles: [{ featureType: 'poi', stylers: [{ visibility: 'off' }] }]
+      });
+      const oInput = document.getElementById('env-origen');
+      const dInput = document.getElementById('env-destino');
+      new google.maps.places.Autocomplete(oInput, { componentRestrictions: { country: 'co' } })
+        .addListener('place_changed', () => setTimeout(() => geocodeAddress('origen'), 100));
+      new google.maps.places.Autocomplete(dInput, { componentRestrictions: { country: 'co' } })
+        .addListener('place_changed', () => setTimeout(() => geocodeAddress('destino'), 100));
+    });
+  }
+
+  function initMapRepartir() {
+    loadGoogleMaps(() => {
+      if (mapRepartir) return;
+      navigator.geolocation.getCurrentPosition(pos => {
+        ubicacionActual = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        mapRepartir = new google.maps.Map(document.getElementById('map-repartir'), {
+          zoom: 14, center: ubicacionActual,
+          disableDefaultUI: true, zoomControl: true
+        });
+        new google.maps.Marker({ position: ubicacionActual, map: mapRepartir,
+          icon: { path: google.maps.SymbolPath.CIRCLE, scale: 10, fillColor: '#D4001A', fillOpacity: 1, strokeColor: 'white', strokeWeight: 2 }
+        });
+        new google.maps.Circle({ map: mapRepartir, center: ubicacionActual,
+          radius: RADIO_REPARTIDOR_KM * 1000, fillColor: '#D4001A', fillOpacity: 0.07,
+          strokeColor: '#D4001A', strokeOpacity: 0.3, strokeWeight: 1 });
+      }, () => {
+        mapRepartir = new google.maps.Map(document.getElementById('map-repartir'), {
+          zoom: 12, center: { lat: 4.711, lng: -74.0721 }, disableDefaultUI: true
+        });
+      });
+    });
+  }
+
+  // ── GEOCODE ──
+  function geocodeDebounce(tipo) {
+    clearTimeout(geocodeTimer);
+    geocodeTimer = setTimeout(() => geocodeAddress(tipo), 800);
+  }
+
+  function geocodeAddress(tipo) {
+    if (!window.google) return;
+    const val = document.getElementById(tipo === 'origen' ? 'env-origen' : 'env-destino').value;
+    if (val.length < 5) return;
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ address: val + ', Colombia', componentRestrictions: { country: 'co' } }, (res, status) => {
+      if (status !== 'OK' || !res[0]) return;
+      const loc = res[0].geometry.location;
+      const coords = { lat: loc.lat(), lng: loc.lng() };
+      if (tipo === 'origen') {
+        coordOrigen = coords;
+        if (markerOrigen) markerOrigen.setMap(null);
+        markerOrigen = new google.maps.Marker({ position: coords, map: mapEnvio,
+          icon: { path: google.maps.SymbolPath.CIRCLE, scale: 9, fillColor: '#FF1F38', fillOpacity: 1, strokeColor: 'white', strokeWeight: 2 },
+          title: 'Recogida'
+        });
+      } else {
+        coordDestino = coords;
+        if (markerDestino) markerDestino.setMap(null);
+        markerDestino = new google.maps.Marker({ position: coords, map: mapEnvio,
+          icon: { path: google.maps.SymbolPath.CIRCLE, scale: 9, fillColor: '#1D9E75', fillOpacity: 1, strokeColor: 'white', strokeWeight: 2 },
+          title: 'Entrega'
+        });
+      }
+      if (coordOrigen && coordDestino) calcularPrecio();
+      if (mapEnvio) {
+        const bounds = new google.maps.LatLngBounds();
+        if (coordOrigen) bounds.extend(coordOrigen);
+        if (coordDestino) bounds.extend(coordDestino);
+        mapEnvio.fitBounds(bounds);
+        if (!coordDestino || !coordOrigen) mapEnvio.setZoom(15);
+      }
+    });
+  }
+
+  // ── PRECIO ──
+  function calcularPrecio() {
+    if (!coordOrigen || !coordDestino || !window.google) return;
+    const svc = new google.maps.DistanceMatrixService();
+    svc.getDistanceMatrix({
+      origins: [coordOrigen], destinations: [coordDestino],
+      travelMode: google.maps.TravelMode.DRIVING,
+      unitSystem: google.maps.UnitSystem.METRIC
+    }, (res, status) => {
+      if (status !== 'OK') return;
+      const elem = res.rows[0].elements[0];
+      if (elem.status !== 'OK') return;
+      const distKm = elem.distance.value / 1000;
+      const durMin = Math.ceil(elem.duration.value / 60);
+      let precio = PRECIO_BASE + Math.ceil(distKm) * PRECIO_KM + PRECIO_PESO[pesoSel];
+      if (distKm > 10) precio += 2000;
+      precio = Math.max(precio, PRECIO_BASE);
+      precio = Math.ceil(precio / 500) * 500;
+      document.getElementById('price-val').textContent = '$' + precio.toLocaleString('es-CO');
+      document.getElementById('price-detail').textContent =
+        distKm.toFixed(1) + ' km · ~' + durMin + ' min · ' +
+        ['Liviano', 'Mediano', 'Pesado'][pesoSel];
+      window._precioCalculado = precio;
+      window._distanciaKm = distKm;
+    });
+  }
+
+  function selPeso(idx, el) {
+    pesoSel = idx;
+    document.querySelectorAll('.peso-btn').forEach(b => b.classList.remove('sel'));
+    el.classList.add('sel');
+    if (coordOrigen && coordDestino) calcularPrecio();
+  }
+
+  // ── BUSCAR REPARTIDOR ──
+  async function buscarRepartidor() {
+    const origen = document.getElementById('env-origen').value.trim();
+    const destino = document.getElementById('env-destino').value.trim();
+    const desc = document.getElementById('env-desc').value.trim();
+    const alerta = document.getElementById('envio-alert');
+
+    if (!origen || !destino) {
+      alerta.innerHTML = '<div class="alert error">Ingresa la dirección de recogida y entrega.</div>';
+      return;
+    }
+    if (!desc) {
+      alerta.innerHTML = '<div class="alert error">Describe qué es el paquete.</div>';
+      return;
+    }
+    if (!coordOrigen || !coordDestino) {
+      alerta.innerHTML = '<div class="alert error">Espera a que se calculen las distancias o escribe direcciones más completas.</div>';
+      return;
+    }
+    if (!currentUser) { goPage('login'); return; }
+
+    const precio = window._precioCalculado || PRECIO_BASE;
+    const distancia = window._distanciaKm || 0;
+
+    if (distancia > 20) {
+      alerta.innerHTML = '<div class="alert error">La distancia supera los 20km. Solo hacemos envíos dentro de la ciudad.</div>';
+      return;
+    }
+
+    const btn = document.getElementById('btn-buscar');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Publicando pedido...';
+    alerta.innerHTML = '';
+
+    const { data: pedido, error } = await sb.from('pedidos').insert({
+      usuario_id: currentUser.id,
+      origen, destino, descripcion: desc,
+      lat_origen: coordOrigen.lat, lng_origen: coordOrigen.lng,
+      lat_destino: coordDestino.lat, lng_destino: coordDestino.lng,
+      distancia_km: distancia,
+      peso: ['liviano','mediano','pesado'][pesoSel],
+      precio, estado: 'buscando',
+      notas: document.getElementById('env-notas').value,
+      created_at: new Date().toISOString()
+    }).select().single();
+
+    btn.disabled = false;
+    btn.innerHTML = 'Buscar repartidor <i class="ti ti-motorbike"></i>';
+
+    if (error) {
+      alerta.innerHTML = '<div class="alert error">Error al publicar: ' + error.message + '</div>';
+      return;
+    }
+
+    document.getElementById('resultado-busqueda').innerHTML = `
+      <div style="background:var(--green-light);border:1px solid rgba(29,158,117,0.2);border-radius:var(--radius);padding:1.25rem">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <i class="ti ti-circle-check" style="color:var(--green);font-size:22px"></i>
+          <div style="font-weight:600;color:#0F6E56">¡Pedido publicado!</div>
+        </div>
+        <div style="font-size:13px;color:#0F6E56;margin-bottom:10px">Buscando repartidores en un radio de ${RADIO_REPARTIDOR_KM}km de la dirección de recogida...</div>
+        <div style="font-size:13px;color:var(--muted)">📦 ${desc}<br>📍 ${origen}<br>🏁 ${destino}<br>💰 $${precio.toLocaleString('es-CO')}</div>
+        <a href="https://wa.me/${WHATSAPP}?text=Hola%20Maxikia%2C%20hice%20un%20pedido%20y%20necesito%20seguimiento.%20ID%3A%20${pedido.id}" target="_blank"
+          style="display:flex;align-items:center;gap:6px;margin-top:12px;background:#25D366;color:white;padding:10px;border-radius:var(--radius-sm);text-decoration:none;font-size:13px;font-weight:500;justify-content:center">
+          <i class="ti ti-brand-whatsapp"></i> Seguimiento por WhatsApp
+        </a>
+      </div>`;
+    cargarPedidosHome();
+  }
+
+  // ── REPARTIDOR DISPONIBLE ──
+  async function toggleDisponible() {
+    disponibleComoRepartidor = !disponibleComoRepartidor;
+    const tsw = document.getElementById('tsw');
+    const txt = document.getElementById('rep-status-txt');
+    tsw.classList.toggle('on', disponibleComoRepartidor);
+
+    if (disponibleComoRepartidor) {
+      txt.textContent = 'Estás disponible — buscando pedidos cercanos';
+      navigator.geolocation.getCurrentPosition(async pos => {
+        ubicacionActual = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        await sb.from('perfiles').upsert({
+          id: currentUser.id, disponible: true,
+          lat: ubicacionActual.lat, lng: ubicacionActual.lng,
+          updated_at: new Date().toISOString()
+        });
+        initMapRepartir();
+        cargarPedidosCercanos();
+      }, () => {
+        txt.textContent = 'Activa la ubicación para ver pedidos';
+        tsw.classList.remove('on');
+        disponibleComoRepartidor = false;
+      });
+    } else {
+      txt.textContent = 'Activa para recibir pedidos cercanos';
+      if (currentUser) await sb.from('perfiles').upsert({ id: currentUser.id, disponible: false });
+    }
+  }
+
+  async function cargarPedidosCercanos() {
+    if (!disponibleComoRepartidor || !ubicacionActual) return;
+    const { data: pedidos } = await sb.from('pedidos')
+      .select('*').eq('estado', 'buscando').order('created_at', { ascending: false }).limit(10);
+
+    const cont = document.getElementById('pedidos-cercanos');
+    if (!pedidos || pedidos.length === 0) {
+      cont.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:14px;background:white;border:1px solid var(--border);border-radius:var(--radius)"><i class="ti ti-mood-smile" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>No hay pedidos disponibles ahora. Espera un momento.</div>';
+      return;
+    }
+
+    const cercanos = pedidos.filter(p => {
+      if (!p.lat_origen) return true;
+      const d = distanciaEntrePuntos(ubicacionActual.lat, ubicacionActual.lng, p.lat_origen, p.lng_origen);
+      return d <= RADIO_REPARTIDOR_KM;
+    });
+
+    if (cercanos.length === 0) {
+      cont.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:14px;background:white;border:1px solid var(--border);border-radius:var(--radius)">No hay pedidos en un radio de ' + RADIO_REPARTIDOR_KM + 'km. Espera o muévete a otra zona.</div>';
+      return;
+    }
+
+    cont.innerHTML = cercanos.map(p => {
+      const dist = p.lat_origen ? distanciaEntrePuntos(ubicacionActual.lat, ubicacionActual.lng, p.lat_origen, p.lng_origen).toFixed(1) : '?';
+      return `<div class="ao">
+        <div class="aor"><div class="aod o"></div><div class="aoi"><strong>${p.descripcion}</strong></div></div>
+        <div class="aor"><div class="aod o" style="background:var(--mx2)"></div><div class="aoi">${p.origen}</div></div>
+        <div class="aor"><div class="aod d"></div><div class="aoi">${p.destino}</div></div>
+        <div class="aof">
+          <div><div class="aoe">$${p.precio.toLocaleString('es-CO')}</div><div class="aodist">${dist} km de ti · ${p.distancia_km?.toFixed(1) || '?'} km envío · ${p.peso}</div></div>
+          <button class="bacc" onclick="aceptarPedido('${p.id}','${p.usuario_id}')">Aceptar</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function aceptarPedido(pedidoId, clienteId) {
+    const { error } = await sb.from('pedidos').update({
+      estado: 'en_camino', repartidor_id: currentUser.id, aceptado_at: new Date().toISOString()
+    }).eq('id', pedidoId).eq('estado', 'buscando');
+
+    if (error) { alert('No se pudo aceptar — alguien más lo tomó primero.'); cargarPedidosCercanos(); return; }
+    alert('¡Pedido aceptado! Ve a recoger en la dirección indicada.');
+    cargarPedidosCercanos();
+  }
+
+  // ── PEDIDOS HOME ──
+  async function cargarPedidosHome() {
+    if (!currentUser) return;
+    const { data } = await sb.from('pedidos').select('*')
+      .eq('usuario_id', currentUser.id).order('created_at', { ascending: false }).limit(5);
+    const cont = document.getElementById('home-pedidos');
+    if (!data || data.length === 0) return;
+    const estados = { buscando: ['pp','Buscando rep.'], en_camino: ['pa','En camino'], entregado: ['pd','Entregado'], cancelado: ['pd','Cancelado'] };
+    cont.innerHTML = data.map(p => {
+      const [cls, label] = estados[p.estado] || ['pd', p.estado];
+      return `<div class="orow">
+        <div class="oico pkg"><i class="ti ti-package"></i></div>
+        <div class="oi"><div class="on">${p.descripcion}</div><div class="om">${p.origen} → ${p.destino}</div></div>
+        <div class="or"><div class="op">$${p.precio.toLocaleString('es-CO')}</div><span class="pill ${cls}">${label}</span></div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── DISTANCIA HAVERSINE ──
+  function distanciaEntrePuntos(lat1, lng1, lat2, lng2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
 
   // ── NAV ──
   function goPage(id) {
@@ -606,9 +892,21 @@
     window.scrollTo(0, 0);
   }
   function closeMob() { document.getElementById('nav-mobile').classList.remove('open'); }
-  document.getElementById('burger').addEventListener('click', () => {
-    document.getElementById('nav-mobile').classList.toggle('open');
-  });
+  document.getElementById('burger').addEventListener('click', () => document.getElementById('nav-mobile').classList.toggle('open'));
+
+  // ── DASHBOARD TABS ──
+  function dTab(t) {
+    document.querySelectorAll('.dp').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.bitem').forEach(b => b.classList.remove('active'));
+    document.getElementById('dp-' + t).classList.add('active');
+    const bn = document.getElementById('bn-' + t);
+    if (bn) bn.classList.add('active');
+    else document.getElementById('bn-home').classList.add('active');
+    if (t === 'envio') initMapEnvio();
+    if (t === 'repartir') initMapRepartir();
+    if (t === 'historial') cargarHistorial();
+    if (t === 'billetera') cargarWallet();
+  }
 
   // ── REGISTER ──
   function selR(r) {
@@ -622,45 +920,28 @@
     const email = document.getElementById('reg-email').value.trim();
     const phone = document.getElementById('reg-phone').value.trim();
     const pass = document.getElementById('reg-pass').value;
-    const alert = document.getElementById('reg-alert');
+    const alertEl = document.getElementById('reg-alert');
     const btn = document.getElementById('reg-btn1');
 
-    if (!name || !email || !pass) {
-      alert.className = 'alert error';
-      alert.textContent = 'Por favor completa todos los campos obligatorios.';
-      return;
-    }
-    if (pass.length < 8) {
-      alert.className = 'alert error';
-      alert.textContent = 'La contraseña debe tener al menos 8 caracteres.';
-      return;
-    }
+    if (!name || !email || !pass) { alertEl.innerHTML = '<div class="alert error">Completa nombre, correo y contraseña.</div>'; return; }
+    if (pass.length < 8) { alertEl.innerHTML = '<div class="alert error">La contraseña debe tener mínimo 8 caracteres.</div>'; return; }
 
-    btn.disabled = true;
-    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Creando cuenta...';
+    btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Creando cuenta...';
 
     const { data, error } = await sb.auth.signUp({
-      email,
-      password: pass,
-      options: {
-        data: { full_name: name, phone, role: selectedRole }
-      }
+      email, password: pass,
+      options: { data: { full_name: name, phone, role: selectedRole, display_name: name } }
     });
 
     if (error) {
-      alert.className = 'alert error';
-      alert.textContent = error.message === 'User already registered'
-        ? 'Este correo ya tiene una cuenta. ¿Quieres iniciar sesión?'
-        : error.message;
-      btn.disabled = false;
-      btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
-      return;
+      alertEl.innerHTML = '<div class="alert error">' + (error.message === 'User already registered' ? 'Este correo ya tiene cuenta. <span style="color:var(--mx);cursor:pointer" onclick="goPage(\'login\')">Inicia sesión</span>' : error.message) + '</div>';
+      btn.disabled = false; btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>'; return;
     }
 
-    alert.className = 'alert success';
-    alert.textContent = '¡Cuenta creada! Revisa tu correo para confirmar.';
     currentUser = data.user;
-    setTimeout(() => { alert.style.display = 'none'; rStep(2); }, 1500);
+    await sb.from('perfiles').upsert({ id: currentUser.id, nombre: name, telefono: phone, rol: selectedRole, email, disponible: false });
+    alertEl.innerHTML = '<div class="alert success">¡Cuenta creada! Continuando...</div>';
+    setTimeout(() => { alertEl.innerHTML = ''; rStep(2); }, 1200);
   }
 
   function rStep(n) {
@@ -674,147 +955,75 @@
     document.getElementById('sd' + n).classList.add('active');
   }
 
-  function mUp(id, msg) {
-    const el = document.getElementById(id);
-    el.classList.add('done');
-    el.innerHTML = '<i class="ti ti-circle-check"></i><p>' + msg + '</p>';
-  }
-
-  // ── DOCUMENT UPLOAD (archivos reales) ──
-  const archivosSubidos = { frente: false, reverso: false, selfie: false };
-
-  function archivoSeleccionado(input, zonaId, iconId, txtId, msg) {
+  function fileOk(input, zonaId, iconId, txtId, tipo, msg) {
     if (!input.files || !input.files[0]) return;
     const file = input.files[0];
-    if (file.size > 10 * 1024 * 1024) {
-      alert('Archivo muy grande. Máximo 10MB.');
-      return;
-    }
-    const zona = document.getElementById(zonaId);
-    zona.classList.add('done');
+    if (file.size > 10 * 1024 * 1024) { alert('Archivo muy grande. Máximo 10MB.'); return; }
+    document.getElementById(zonaId).classList.add('done');
     document.getElementById(iconId).className = 'ti ti-circle-check';
-    document.getElementById(txtId).innerHTML = msg + ' <span style="color:var(--green);font-size:11px">(' + (file.size/1024).toFixed(0) + ' KB)</span>';
-    if (zonaId === 'uz1') archivosSubidos.frente = true;
-    if (zonaId === 'uz2') archivosSubidos.reverso = true;
-    if (zonaId === 'uz3') archivosSubidos.selfie = true;
+    document.getElementById(txtId).innerHTML = msg + ' <span style="color:var(--green);font-size:11px">(' + (file.size/1024).toFixed(0) + 'KB)</span>';
+    docsSubidos[tipo] = true;
   }
 
-  async function validarDocumentos() {
-    const alertEl = document.getElementById('id-alert');
+  async function subirDocs() {
+    const alerta = document.getElementById('id-alert');
     const faltantes = [];
-    if (!archivosSubidos.frente) faltantes.push('frente de la cédula');
-    if (!archivosSubidos.reverso) faltantes.push('reverso de la cédula');
-    if (!archivosSubidos.selfie) faltantes.push('selfie con el documento');
-
+    if (!docsSubidos.frente) faltantes.push('frente de la cédula');
+    if (!docsSubidos.reverso) faltantes.push('reverso de la cédula');
+    if (!docsSubidos.selfie) faltantes.push('selfie con el documento');
     if (faltantes.length > 0) {
-      alertEl.className = 'alert error';
-      alertEl.style.display = 'block';
-      alertEl.textContent = '⚠ Faltan: ' + faltantes.join(', ') + '.';
-      return;
+      alerta.innerHTML = '<div class="alert error">Faltan: ' + faltantes.join(', ') + '.</div>'; return;
     }
-
-    alertEl.style.display = 'none';
-    const btn = document.getElementById('btn-continuar-id');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Subiendo documentos...';
-
+    alerta.innerHTML = '';
+    const btn = document.getElementById('btn-id');
+    btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Subiendo...';
     try {
-      const uid = currentUser?.id || 'anonimo-' + Date.now();
+      const uid = currentUser?.id || 'anon';
       const archivos = [
-        { el: 'file-frente', nombre: 'frente' },
-        { el: 'file-reverso', nombre: 'reverso' },
-        { el: 'file-selfie', nombre: 'selfie' }
+        { id: 'f-frente', nombre: 'frente' }, { id: 'f-reverso', nombre: 'reverso' }, { id: 'f-selfie', nombre: 'selfie' }
       ];
       for (const a of archivos) {
-        const file = document.getElementById(a.el).files[0];
+        const file = document.getElementById(a.id).files[0];
         const ext = file.name.split('.').pop();
         await sb.storage.from('documentos').upload(uid + '/' + a.nombre + '.' + ext, file, { upsert: true });
       }
-      alertEl.className = 'alert success';
-      alertEl.style.display = 'block';
-      alertEl.textContent = '✓ Documentos enviados. Continuando...';
-      setTimeout(() => { alertEl.style.display = 'none'; rStep(3); }, 1200);
-    } catch (e) {
-      // Si no existe el bucket de storage, igual avanzamos
-      rStep(3);
-    }
+      await sb.from('perfiles').upsert({ id: uid, docs_enviados: true, docs_estado: 'en_revision' });
+    } catch(e) {}
+    btn.disabled = false; btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
+    alerta.innerHTML = '<div class="alert success">Documentos enviados. En revisión en menos de 24h.</div>';
+    setTimeout(() => { alerta.innerHTML = ''; rStep(3); }, 1500);
   }
 
   // ── HUELLA REAL (WebAuthn) ──
   async function registrarHuella() {
-    const btn = document.getElementById('fpb');
-    const hint = document.getElementById('fph');
-    const sub = document.getElementById('fp-sub');
-    const alertEl = document.getElementById('fp-alert');
-    const cont = document.getElementById('fpc');
-
+    const btn = document.getElementById('fpb'), hint = document.getElementById('fph');
+    const sub = document.getElementById('fp-sub'), alertEl = document.getElementById('fp-alert'), cont = document.getElementById('fpc');
     if (!window.PublicKeyCredential) {
-      alertEl.className = 'alert error';
-      alertEl.style.display = 'block';
-      alertEl.textContent = 'Tu dispositivo no soporta biometría. Usa el botón "Omitir".';
-      return;
+      alertEl.innerHTML = '<div class="alert error">Tu dispositivo no soporta biometría. Usa "Omitir".</div>'; return;
     }
-
-    btn.classList.add('scanning');
-    hint.textContent = 'Esperando tu biometría...';
-    sub.textContent = 'Apoya el dedo o mira la cámara';
-
+    btn.classList.add('scanning'); hint.textContent = 'Esperando biometría...'; sub.textContent = 'Apoya el dedo o mira la cámara';
     try {
-      const userId = currentUser?.id || 'usuario-' + Date.now();
       const encoder = new TextEncoder();
-
-      const credential = await navigator.credentials.create({
-        publicKey: {
-          challenge: encoder.encode('maxikia-reg-' + Date.now()),
-          rp: { name: 'Maxikia', id: location.hostname === 'localhost' ? 'localhost' : 'maxikia.com' },
-          user: {
-            id: encoder.encode(userId),
-            name: currentUser?.email || 'usuario@maxikia.com',
-            displayName: currentUser?.user_metadata?.full_name || 'Usuario Maxikia'
-          },
-          pubKeyCredParams: [{ alg: -7, type: 'public-key' }, { alg: -257, type: 'public-key' }],
-          authenticatorSelection: {
-            authenticatorAttachment: 'platform',
-            userVerification: 'required'
-          },
-          timeout: 60000
-        }
-      });
-
-      if (credential) {
-        btn.classList.remove('scanning');
-        btn.classList.add('done');
-        document.getElementById('fpi').className = 'ti ti-check';
-        hint.textContent = '¡Biometría registrada correctamente!';
-        sub.textContent = 'Ya puedes entrar con tu huella o Face ID';
-        alertEl.style.display = 'none';
-        cont.style.opacity = '1';
-        cont.disabled = false;
-        localStorage.setItem('mx_cred_id', btoa(String.fromCharCode(...new Uint8Array(credential.rawId))));
-      }
-    } catch (err) {
+      const uid = currentUser?.id || 'user-' + Date.now();
+      const cred = await navigator.credentials.create({ publicKey: {
+        challenge: encoder.encode('mx-' + Date.now()),
+        rp: { name: 'Maxikia', id: location.hostname.includes('localhost') ? 'localhost' : 'maxikia.com' },
+        user: { id: encoder.encode(uid.slice(0,64)), name: currentUser?.email || 'user', displayName: currentUser?.user_metadata?.full_name || 'Usuario' },
+        pubKeyCredParams: [{ alg: -7, type: 'public-key' }, { alg: -257, type: 'public-key' }],
+        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
+        timeout: 60000
+      }});
+      btn.classList.remove('scanning'); btn.classList.add('done');
+      document.getElementById('fpi').className = 'ti ti-check';
+      hint.textContent = '¡Biometría registrada!'; sub.textContent = 'Puedes entrar con huella o Face ID';
+      alertEl.innerHTML = ''; cont.style.opacity = '1'; cont.disabled = false;
+      localStorage.setItem('mx_cred', btoa(String.fromCharCode(...new Uint8Array(cred.rawId))));
+    } catch(err) {
       btn.classList.remove('scanning');
-      if (err.name === 'NotAllowedError') {
-        alertEl.className = 'alert error';
-        alertEl.style.display = 'block';
-        alertEl.textContent = 'Cancelaste la biometría. Intenta de nuevo o usa "Omitir".';
-      } else if (err.name === 'InvalidStateError') {
-        alertEl.className = 'alert error';
-        alertEl.style.display = 'block';
-        alertEl.textContent = 'Esta biometría ya está registrada. Puedes continuar.';
-        cont.style.opacity = '1';
-        cont.disabled = false;
-      } else {
-        alertEl.className = 'alert error';
-        alertEl.style.display = 'block';
-        alertEl.textContent = 'Error: ' + err.message + '. Usa "Omitir" para continuar.';
-      }
+      if (err.name === 'InvalidStateError') { cont.style.opacity='1'; cont.disabled=false; alertEl.innerHTML='<div class="alert success">Biometría ya registrada. Puedes continuar.</div>'; }
+      else alertEl.innerHTML = '<div class="alert error">' + (err.name === 'NotAllowedError' ? 'Cancelaste. Intenta de nuevo o usa "Omitir".' : 'Error: ' + err.message) + '</div>';
       hint.textContent = 'Toca para intentar de nuevo';
     }
-  }
-
-  function saltarHuella() {
-    showDashboard();
   }
 
   // ── LOGIN ──
@@ -823,110 +1032,62 @@
     const pass = document.getElementById('login-pass').value;
     const alertEl = document.getElementById('login-alert');
     const btn = document.getElementById('login-btn');
-
-    if (!email || !pass) {
-      alertEl.className = 'alert error';
-      alertEl.textContent = 'Ingresa tu correo y contraseña.';
-      return;
-    }
-
-    btn.disabled = true;
-    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Entrando...';
-
+    if (!email || !pass) { alertEl.innerHTML = '<div class="alert error">Ingresa correo y contraseña.</div>'; return; }
+    btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Entrando...';
     const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-
     if (error) {
-      alertEl.className = 'alert error';
-      alertEl.textContent = 'Correo o contraseña incorrectos.';
-      btn.disabled = false;
-      btn.innerHTML = 'Entrar a mi cuenta';
-      return;
+      alertEl.innerHTML = '<div class="alert error">Correo o contraseña incorrectos.</div>';
+      btn.disabled = false; btn.innerHTML = 'Entrar a mi cuenta'; return;
     }
-
-    currentUser = data.user;
-    showDashboard();
+    currentUser = data.user; showDashboard();
   }
 
-  // ── LOGOUT ──
   async function doLogout() {
-    await sb.auth.signOut();
-    currentUser = null;
-    goPage('landing');
+    await sb.auth.signOut(); currentUser = null; goPage('landing');
   }
 
-  // ── SHOW DASHBOARD ──
   function showDashboard() {
     const meta = currentUser?.user_metadata;
-    const name = meta?.full_name || currentUser?.email?.split('@')[0] || 'Usuario';
+    const name = meta?.full_name || meta?.name || meta?.display_name || currentUser?.email?.split('@')[0] || 'Usuario';
     document.getElementById('dash-username').textContent = name + ' 👋';
     goPage('dashboard');
+    cargarPedidosHome();
   }
 
-  // ── CREAR PEDIDO ──
-  async function crearPedido() {
-    const origen = document.getElementById('env-origen').value.trim();
-    const destino = document.getElementById('env-destino').value.trim();
-    const desc = document.getElementById('env-desc').value.trim();
-
-    if (!origen || !destino || !desc) {
-      alert('Por favor completa origen, destino y descripción del paquete.');
-      return;
-    }
-
-    if (!currentUser) { goPage('login'); return; }
-
-    const { error } = await sb.from('pedidos').insert({
-      usuario_id: currentUser.id,
-      origen, destino,
-      descripcion: desc,
-      estado: 'buscando',
-      precio: 22000,
-      created_at: new Date().toISOString()
-    });
-
-    if (error) {
-      alert('No se pudo crear el pedido. Intenta de nuevo.');
-      return;
-    }
-
-    alert('¡Pedido publicado! Buscando repartidor cerca de ti...');
-    dTab('home');
-  }
-
-  // ── DASHBOARD TABS ──
-  function dTab(t) {
-    document.querySelectorAll('.dp').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.bitem').forEach(b => b.classList.remove('active'));
-    document.getElementById('dp-' + t).classList.add('active');
-    const bn = document.getElementById('bn-' + t);
-    if (bn) bn.classList.add('active');
-    else document.getElementById('bn-home').classList.add('active');
-    if (t === 'billetera') cargarWallet();
+  // ── HISTORIAL ──
+  async function cargarHistorial() {
+    if (!currentUser) return;
+    const { data } = await sb.from('pedidos').select('*')
+      .or(`usuario_id.eq.${currentUser.id},repartidor_id.eq.${currentUser.id}`)
+      .order('created_at', { ascending: false }).limit(20);
+    const cont = document.getElementById('historial-list');
+    if (!data || data.length === 0) return;
+    const estados = { buscando: ['pp','Buscando'], en_camino: ['pa','En camino'], entregado: ['pd','Entregado'], cancelado: ['pd','Cancelado'] };
+    cont.innerHTML = data.map(p => {
+      const [cls, label] = estados[p.estado] || ['pd', p.estado];
+      const esRepartidor = p.repartidor_id === currentUser.id;
+      return `<div class="orow">
+        <div class="oico ${esRepartidor ? 'store' : 'pkg'}"><i class="ti ti-${esRepartidor ? 'motorbike' : 'package'}"></i></div>
+        <div class="oi"><div class="on">${p.descripcion}</div><div class="om">${p.origen} → ${p.destino}</div></div>
+        <div class="or"><div class="op" style="${esRepartidor ? 'color:var(--green)' : ''}">$${p.precio.toLocaleString('es-CO')}</div><span class="pill ${cls}">${label}</span></div>
+      </div>`;
+    }).join('');
   }
 
   // ── WALLET ──
+  function cargarWallet() {
+    if (!currentUser) return;
+    document.getElementById('wallet-email').textContent = currentUser.email;
+  }
+
   function copiar(texto, btnId) {
     navigator.clipboard.writeText(texto).then(() => {
       const btn = document.getElementById(btnId);
       btn.innerHTML = '<i class="ti ti-check"></i> Copiado';
-      btn.style.color = 'var(--green)';
-      btn.style.borderColor = 'var(--green)';
-      setTimeout(() => {
-        btn.innerHTML = '<i class="ti ti-copy"></i> Copiar';
-        btn.style.color = 'var(--muted)';
-        btn.style.borderColor = 'var(--border)';
-      }, 2000);
+      btn.style.color = 'var(--green)'; btn.style.borderColor = 'var(--green)';
+      setTimeout(() => { btn.innerHTML = '<i class="ti ti-copy"></i> Copiar'; btn.style.color=''; btn.style.borderColor=''; }, 2000);
     });
   }
-
-  function cargarWallet() {
-    if (!currentUser) return;
-    const meta = currentUser?.user_metadata;
-    const name = meta?.full_name || currentUser?.email?.split('@')[0] || 'Usuario';
-    const el = document.getElementById('wallet-user-num');
-    if (el) el.textContent = currentUser.email;
-  }
-
 
   const style = document.createElement('style');
   style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
