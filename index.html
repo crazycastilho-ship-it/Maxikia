@@ -8,448 +8,121 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap');
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --mx: #D4001A;
-  --mx2: #FF1F38;
-  --mx-dark: #A0001A;
-  --mx-light: #FFF0F2;
-  --mx-mid: rgba(212,0,26,0.12);
-  --dark: #0E0D0D;
-  --dark2: #1A1818;
-  --surface: #FAFAF8;
-  --white: #FFFFFF;
-  --border: rgba(0,0,0,0.08);
-  --border-dark: rgba(255,255,255,0.08);
-  --text: #1A1212;
-  --muted: #8A7F7F;
-  --green: #1D9E75;
-  --green-light: #E1F5EE;
-  --font-head: 'Syne', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
-  --radius: 12px;
-  --radius-sm: 8px;
-  --radius-lg: 16px;
-}
-
-html { scroll-behavior: smooth; }
-
-body {
-  font-family: var(--font-body);
-  background: var(--surface);
-  color: var(--text);
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* ── UTILS ── */
-.container { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
-
-/* ── NAV ── */
-.nav {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(14,13,13,0.96);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-}
-.nav-inner {
-  max-width: 1100px; margin: 0 auto; padding: 0 1.5rem;
-  display: flex; align-items: center; justify-content: space-between;
-  height: 62px;
-}
-.logo {
-  font-family: var(--font-head); font-weight: 800; font-size: 22px;
-  color: white; text-decoration: none; letter-spacing: -0.5px;
-}
-.logo span { color: var(--mx2); }
-.nav-links { display: flex; align-items: center; gap: 1.5rem; }
-.nav-links a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px; transition: color 0.15s; }
-.nav-links a:hover { color: white; }
-.btn-nav-ghost {
-  border: 1px solid rgba(255,255,255,0.2) !important;
-  color: rgba(255,255,255,0.8) !important;
-  padding: 8px 16px; border-radius: var(--radius-sm);
-  transition: all 0.15s !important;
-}
-.btn-nav-ghost:hover { background: rgba(255,255,255,0.08) !important; color: white !important; }
-.btn-nav {
-  background: var(--mx) !important; color: white !important;
-  padding: 8px 16px; border-radius: var(--radius-sm);
-  font-weight: 500; transition: background 0.15s !important;
-}
-.btn-nav:hover { background: var(--mx-dark) !important; }
-.nav-burger { display: none; background: none; border: none; color: white; font-size: 22px; cursor: pointer; }
-.nav-mobile { display: none; padding: 1rem 1.5rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.06); }
-.nav-mobile a { display: block; color: rgba(255,255,255,0.7); text-decoration: none; padding: 10px 0; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.nav-mobile a:last-child { border-bottom: none; }
-
-/* ── HERO ── */
-.hero {
-  background: var(--dark);
-  padding: 5rem 1.5rem 4rem;
-  position: relative; overflow: hidden;
-}
-.hero::before {
-  content: ''; position: absolute;
-  top: -100px; right: -100px;
-  width: 500px; height: 500px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(212,0,26,0.15) 0%, transparent 70%);
-  pointer-events: none;
-}
-.hero-inner {
-  max-width: 1100px; margin: 0 auto;
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 4rem; align-items: center;
-}
-.hero-badge {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(212,0,26,0.2); color: #FF8C9A;
-  font-size: 12px; font-weight: 500;
-  padding: 5px 12px; border-radius: 20px;
-  text-transform: uppercase; letter-spacing: 0.5px;
-  margin-bottom: 1.25rem;
-}
-.hero h1 {
-  font-family: var(--font-head); font-weight: 800;
-  font-size: clamp(2.5rem, 5vw, 3.75rem);
-  color: white; line-height: 1.05; margin-bottom: 1rem;
-}
-.hero h1 em { color: var(--mx2); font-style: normal; }
-.hero-sub { color: rgba(255,255,255,0.5); font-size: 1.05rem; line-height: 1.7; margin-bottom: 2rem; }
-.hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 1.75rem; }
-.hero-trust { display: flex; gap: 1.25rem; flex-wrap: wrap; }
-.hero-trust span { color: rgba(255,255,255,0.4); font-size: 13px; display: flex; align-items: center; gap: 5px; }
-.hero-trust i { color: var(--mx2); font-size: 15px; }
-
-/* Hero card */
-.hero-visual { position: relative; }
-.hero-sym {
-  position: absolute; top: -30px; right: -20px;
-  font-size: 180px; color: rgba(212,0,26,0.1); font-family: var(--font-head);
-  font-weight: 900; line-height: 1; pointer-events: none;
-  z-index: 0;
-}
-.hero-card {
-  background: #1A1818; border: 1px solid rgba(255,255,255,0.08);
-  border-radius: var(--radius-lg); padding: 1.5rem;
-  position: relative; z-index: 1;
-}
-.hc-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
-.hc-badge { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 20px; }
-.hc-badge.live { background: rgba(29,158,117,0.2); color: #4ECFA0; }
-.hc-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
-.hc-eta { font-size: 13px; color: rgba(255,255,255,0.5); }
-.hc-route { margin-bottom: 1.25rem; }
-.hc-point { display: flex; align-items: flex-start; gap: 12px; }
-.hc-line { width: 2px; height: 24px; background: rgba(255,255,255,0.1); margin-left: 7px; margin: 6px 0 6px 7px; }
-.point-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
-.point-dot.origin { background: var(--mx2); }
-.point-dot.dest { background: var(--green); }
-.point-label { font-size: 11px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.5px; }
-.point-addr { font-size: 14px; color: white; font-weight: 400; margin-top: 1px; }
-.hc-repartidor {
-  display: flex; align-items: center; gap: 12px;
-  padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.07);
-}
-.rep-avatar {
-  width: 38px; height: 38px; border-radius: 50%;
-  background: var(--mx-mid); border: 1.5px solid var(--mx2);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700; color: var(--mx2); flex-shrink: 0;
-}
-.rep-name { font-size: 14px; color: white; font-weight: 500; }
-.rep-rating { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 1px; }
-.rep-rating i { color: #F5C842; font-size: 11px; }
-.rep-price { margin-left: auto; font-family: var(--font-head); font-weight: 700; font-size: 18px; color: white; }
-
-/* ── STATS ── */
-.stats-section { background: var(--dark2); border-top: 1px solid rgba(255,255,255,0.04); }
-.stats-inner {
-  max-width: 1100px; margin: 0 auto;
-  display: grid; grid-template-columns: repeat(4,1fr);
-}
-.stat {
-  display: flex; flex-direction: column; align-items: center;
-  padding: 2rem 1rem; text-align: center;
-  border-right: 1px solid rgba(255,255,255,0.05);
-}
-.stat:last-child { border-right: none; }
-.stat-n { font-family: var(--font-head); font-weight: 700; font-size: 2rem; color: var(--mx2); }
-.stat-l { font-size: 13px; color: rgba(255,255,255,0.35); margin-top: 4px; }
-
-/* ── SECTIONS ── */
-.section { padding: 5rem 1.5rem; }
-.section-dark { background: var(--dark); }
-.section-label {
-  font-size: 12px; font-weight: 500; text-transform: uppercase;
-  letter-spacing: 1px; color: var(--mx); margin-bottom: 0.75rem;
-}
-.section-label.light { color: rgba(212,0,26,0.7); }
-.section h2 {
-  font-family: var(--font-head); font-weight: 800;
-  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
-  margin-bottom: 2.5rem; line-height: 1.1;
-}
-.section h2.light { color: white; }
-
-/* Steps */
-.steps-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
-.step-card {
-  background: white; border: 1px solid var(--border);
-  border-radius: var(--radius-lg); padding: 1.75rem;
-  position: relative; overflow: hidden;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.step-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.06); }
-.step-num {
-  font-family: var(--font-head); font-weight: 800;
-  font-size: 3rem; color: rgba(212,0,26,0.08);
-  position: absolute; top: 1rem; right: 1.25rem; line-height: 1;
-}
-.step-icon {
-  width: 46px; height: 46px; border-radius: 11px;
-  background: var(--mx-light); display: flex; align-items: center; justify-content: center;
-  margin-bottom: 1.25rem;
-}
-.step-icon i { font-size: 22px; color: var(--mx); }
-.step-card h3 { font-family: var(--font-head); font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; }
-.step-card p { font-size: 14px; color: var(--muted); line-height: 1.6; }
-
-/* Earn grid */
-.earn-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1.25rem; }
-.earn-item {
-  display: flex; gap: 1rem; align-items: flex-start;
-  padding: 1.25rem; border: 1px solid rgba(255,255,255,0.06);
-  border-radius: var(--radius); background: rgba(255,255,255,0.03);
-}
-.earn-item > i { font-size: 24px; color: var(--mx2); flex-shrink: 0; margin-top: 2px; }
-.earn-item h4 { font-weight: 500; font-size: 15px; color: white; margin-bottom: 4px; }
-.earn-item p { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.6; }
-
-/* CTA */
-.cta-section { background: var(--mx-light); border-top: 1px solid rgba(212,0,26,0.1); }
-
-/* ── BUTTONS ── */
-.btn-primary {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: var(--mx); color: white;
-  border: none; font-family: var(--font-body);
-  font-size: 15px; font-weight: 500;
-  padding: 13px 24px; border-radius: var(--radius-sm);
-  cursor: pointer; text-decoration: none;
-  transition: background 0.15s, transform 0.1s;
-}
-.btn-primary:hover { background: var(--mx-dark); transform: translateY(-1px); }
-.btn-primary:active { transform: translateY(0); }
-.btn-primary.btn-lg { padding: 16px 32px; font-size: 16px; border-radius: var(--radius); }
-.btn-secondary {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: transparent; color: rgba(255,255,255,0.8);
-  border: 1px solid rgba(255,255,255,0.2);
-  font-family: var(--font-body); font-size: 15px; font-weight: 400;
-  padding: 13px 24px; border-radius: var(--radius-sm);
-  cursor: pointer; text-decoration: none;
-  transition: all 0.15s;
-}
-.btn-secondary:hover { background: rgba(255,255,255,0.06); color: white; }
-
-/* ── FOOTER ── */
-.footer { background: var(--dark); border-top: 1px solid rgba(255,255,255,0.05); padding: 2rem 1.5rem; }
-.footer-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
-.footer-links { display: flex; gap: 1.5rem; }
-.footer-links a { color: rgba(255,255,255,0.35); text-decoration: none; font-size: 13px; transition: color 0.15s; }
-.footer-links a:hover { color: rgba(255,255,255,0.7); }
-.footer-copy { font-size: 12px; color: rgba(255,255,255,0.2); }
-
-/* ── AUTH PAGES ── */
-.auth-page {
-  min-height: 100vh; background: var(--dark);
-  display: flex; align-items: center; justify-content: center;
-  padding: 2rem 1rem;
-}
-.auth-box {
-  background: var(--surface); border-radius: var(--radius-lg);
-  width: 100%; max-width: 440px;
-  overflow: hidden;
-}
-.auth-box-header {
-  background: var(--dark2); padding: 1.75rem 2rem;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-}
-.auth-box-header .logo { font-size: 20px; display: block; margin-bottom: 0.5rem; }
-.auth-box-header h2 { font-family: var(--font-head); font-weight: 700; font-size: 1.3rem; color: white; }
-.auth-box-header p { font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 4px; }
-.auth-box-body { padding: 1.75rem 2rem; }
-
-.step-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 1.5rem; }
-.step-dot {
-  width: 28px; height: 28px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 500; flex-shrink: 0;
-  border: 1.5px solid var(--border); color: var(--muted); background: white;
-  transition: all 0.2s;
-}
-.step-dot.active { background: var(--mx); border-color: var(--mx); color: white; }
-.step-dot.done { background: var(--green); border-color: var(--green); color: white; }
-.step-line { flex: 1; height: 1.5px; background: var(--border); transition: background 0.2s; }
-.step-line.done { background: var(--green); }
-
-.field-group { margin-bottom: 1rem; }
-.field-label { font-size: 11px; font-weight: 500; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.3px; display: block; }
-.field-input {
-  width: 100%; padding: 11px 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm); font-size: 14px;
-  font-family: var(--font-body); background: white; color: var(--text);
-  outline: none; transition: border 0.15s;
-}
-.field-input:focus { border-color: var(--mx); }
-
-.role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
-.role-card {
-  padding: 1rem; border: 1.5px solid var(--border);
-  border-radius: var(--radius); cursor: pointer; text-align: center;
-  background: white; transition: all 0.15s;
-}
-.role-card.active { border-color: var(--mx); background: var(--mx-light); }
-.role-card i { font-size: 22px; color: var(--muted); display: block; margin-bottom: 6px; }
-.role-card.active i { color: var(--mx); }
-.role-card .rn { font-size: 13px; font-weight: 500; }
-.role-card .rd { font-size: 11px; color: var(--muted); margin-top: 2px; }
-
-.upload-zone {
-  border: 1.5px dashed var(--border); border-radius: var(--radius);
-  padding: 1.5rem 1rem; text-align: center;
-  background: var(--surface); cursor: pointer; margin-bottom: 10px;
-  transition: all 0.2s;
-}
-.upload-zone:hover { border-color: var(--mx); background: var(--mx-light); }
-.upload-zone.done { border-color: var(--green); background: var(--green-light); border-style: solid; }
-.upload-zone i { font-size: 26px; color: var(--muted); }
-.upload-zone.done i { color: var(--green); }
-.upload-zone p { font-size: 13px; color: var(--muted); margin-top: 6px; }
-.upload-zone.done p { color: var(--green); }
-
-.fp-wrap { text-align: center; padding: 1.5rem 0; }
-.fp-btn {
-  width: 90px; height: 90px; border-radius: 50%;
-  border: 2.5px solid var(--border); background: var(--surface);
-  display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 1rem; cursor: pointer; transition: all 0.3s;
-}
-.fp-btn i { font-size: 36px; color: var(--muted); }
-.fp-btn.scanning { border-color: var(--mx); animation: pulse 1s infinite; }
-.fp-btn.scanning i { color: var(--mx); }
-.fp-btn.done { border-color: var(--green); background: var(--green-light); }
-.fp-btn.done i { color: var(--green); }
-@keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(212,0,26,0.25);}50%{box-shadow:0 0 0 14px rgba(212,0,26,0);} }
-.fp-hint { font-size: 13px; color: var(--muted); }
-
-.info-box {
-  background: var(--mx-light); border: 1px solid rgba(212,0,26,0.12);
-  border-radius: var(--radius-sm); padding: 10px 13px;
-  font-size: 13px; color: var(--mx-dark);
-  display: flex; gap: 8px; align-items: flex-start; margin-bottom: 1rem;
-}
-.info-box i { flex-shrink: 0; font-size: 16px; margin-top: 1px; }
-
-/* Auth link */
-.auth-link { text-align: center; margin-top: 1.25rem; font-size: 13px; color: var(--muted); }
-.auth-link a { color: var(--mx); text-decoration: none; font-weight: 500; }
-
-/* Dashboard */
-.app-shell { display: flex; flex-direction: column; min-height: 100vh; background: var(--surface); }
-.app-header { background: var(--dark); padding: 1.25rem 1.5rem; }
-.app-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-.app-logo { font-family: var(--font-head); font-weight: 800; font-size: 20px; color: white; }
-.app-logo span { color: var(--mx2); }
-.icon-btn { background: rgba(255,255,255,0.08); border: none; color: white; width: 36px; height: 36px; border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-.greeting-line { color: rgba(255,255,255,0.4); font-size: 13px; }
-.user-line { color: white; font-weight: 500; font-size: 17px; }
-
-.balance-card {
-  background: var(--mx); border-radius: var(--radius);
-  padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center;
-  margin-top: 1rem;
-}
-.bal-label { font-size: 12px; color: rgba(255,255,255,0.65); margin-bottom: 3px; }
-.bal-amount { font-family: var(--font-head); font-weight: 700; font-size: 28px; color: white; }
-.withdraw-btn { background: rgba(255,255,255,0.18); border: none; color: white; font-family: var(--font-body); font-size: 13px; padding: 8px 14px; border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; gap: 6px; }
-
-.app-body { flex: 1; padding: 1.25rem 1.5rem; }
-
-.qa-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 1.5rem; }
-.qa-item { display: flex; flex-direction: column; align-items: center; padding: 12px 6px; background: white; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; gap: 6px; transition: border-color 0.15s; }
-.qa-item:hover { border-color: var(--mx); }
-.qa-item i { font-size: 22px; color: var(--mx); }
-.qa-item span { font-size: 11px; color: var(--muted); font-weight: 500; text-align: center; }
-
-.section-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
-.section-title { font-family: var(--font-head); font-weight: 700; font-size: 15px; }
-.see-all-btn { background: none; border: none; font-size: 13px; color: var(--mx); cursor: pointer; font-family: var(--font-body); }
-
-.order-row {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px; background: white; border: 1px solid var(--border);
-  border-radius: var(--radius); margin-bottom: 8px; cursor: pointer;
-  transition: border-color 0.15s;
-}
-.order-row:hover { border-color: rgba(212,0,26,0.2); }
-.order-ico { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.order-ico.food { background: var(--mx-light); }
-.order-ico.food i { color: var(--mx); font-size: 18px; }
-.order-ico.pkg { background: #E6F1FB; }
-.order-ico.pkg i { color: #378ADD; font-size: 18px; }
-.order-ico.store { background: #E1F5EE; }
-.order-ico.store i { color: var(--green); font-size: 18px; }
-.order-info { flex: 1; }
-.order-name { font-weight: 500; font-size: 14px; }
-.order-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
-.order-right { text-align: right; flex-shrink: 0; }
-.order-price { font-weight: 500; font-size: 14px; }
-.status-pill { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 500; margin-top: 3px; display: inline-block; }
-.s-active { background: #E1F5EE; color: var(--green); }
-.s-pending { background: var(--mx-light); color: var(--mx); }
-.s-done { background: #F1EFE8; color: var(--muted); }
-
-.bottom-bar {
-  background: white; border-top: 1px solid var(--border);
-  display: grid; grid-template-columns: repeat(4,1fr);
-  padding: 8px 0 env(safe-area-inset-bottom, 12px);
-  position: sticky; bottom: 0;
-}
-.bar-item { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; border: none; background: none; padding: 5px; }
-.bar-item i { font-size: 22px; color: var(--muted); }
-.bar-item span { font-size: 10px; color: var(--muted); }
-.bar-item.active i { color: var(--mx); }
-.bar-item.active span { color: var(--mx); font-weight: 500; }
-
-/* ── RESPONSIVE ── */
-@media (max-width: 768px) {
-  .nav-links { display: none; }
-  .nav-burger { display: flex; align-items: center; justify-content: center; }
-  .nav-mobile.open { display: flex; flex-direction: column; }
-  .hero-inner { grid-template-columns: 1fr; gap: 2.5rem; }
-  .hero-visual { display: none; }
-  .stats-inner { grid-template-columns: repeat(2,1fr); }
-  .stat { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.05); }
-  .stat:nth-child(odd) { border-right: 1px solid rgba(255,255,255,0.05); }
-  .steps-grid { grid-template-columns: 1fr; }
-  .earn-grid { grid-template-columns: 1fr; }
-  .footer-inner { flex-direction: column; text-align: center; }
-  .qa-grid { grid-template-columns: repeat(4,1fr); }
-}
-
-    /* SINGLE FILE OVERRIDES */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --mx: #D4001A; --mx2: #FF1F38; --mx-dark: #A0001A; --mx-light: #FFF0F2;
+      --dark: #0E0D0D; --dark2: #1A1818; --surface: #FAFAF8;
+      --border: rgba(0,0,0,0.08); --text: #1A1212; --muted: #8A7F7F;
+      --green: #1D9E75; --green-light: #E1F5EE;
+      --font-head: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+      --radius: 12px; --radius-sm: 8px; --radius-lg: 16px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font-body); background: var(--surface); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; }
     .page { display: none; } .page.active { display: block; }
+
+    /* NAV */
+    .nav { position: sticky; top: 0; z-index: 100; background: rgba(14,13,13,0.97); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .nav-inner { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 62px; }
+    .logo { font-family: var(--font-head); font-weight: 800; font-size: 22px; color: white; text-decoration: none; letter-spacing: -0.5px; cursor: pointer; }
+    .logo span { color: var(--mx2); }
+    .nav-links { display: flex; align-items: center; gap: 1.5rem; }
+    .nav-links a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px; cursor: pointer; transition: color 0.15s; }
+    .nav-links a:hover { color: white; }
+    .btn-nav-ghost { border: 1px solid rgba(255,255,255,0.2) !important; color: rgba(255,255,255,0.8) !important; padding: 8px 16px; border-radius: var(--radius-sm); }
+    .btn-nav { background: var(--mx) !important; color: white !important; padding: 8px 16px; border-radius: var(--radius-sm); font-weight: 500; }
+    .nav-burger { display: none; background: none; border: none; color: white; font-size: 22px; cursor: pointer; }
+    .nav-mobile { display: none; padding: 1rem 1.5rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.06); flex-direction: column; }
+    .nav-mobile.open { display: flex; }
+    .nav-mobile a { color: rgba(255,255,255,0.7); text-decoration: none; padding: 10px 0; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
+
+    /* HERO */
+    .hero { background: var(--dark); padding: 5rem 1.5rem 4rem; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: -100px; right: -100px; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(212,0,26,0.15) 0%, transparent 70%); pointer-events: none; }
+    .hero-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(212,0,26,0.2); color: #FF8C9A; font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1.25rem; }
+    .hero h1 { font-family: var(--font-head); font-weight: 800; font-size: clamp(2.5rem, 5vw, 3.75rem); color: white; line-height: 1.05; margin-bottom: 1rem; }
+    .hero h1 em { color: var(--mx2); font-style: normal; }
+    .hero-sub { color: rgba(255,255,255,0.5); font-size: 1.05rem; line-height: 1.7; margin-bottom: 2rem; }
+    .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 1.75rem; }
+    .hero-trust { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+    .hero-trust span { color: rgba(255,255,255,0.4); font-size: 13px; display: flex; align-items: center; gap: 5px; }
+    .hero-trust i { color: var(--mx2); font-size: 15px; }
+    .hero-visual { position: relative; }
+    .hero-sym { position: absolute; top: -30px; right: -20px; font-size: 180px; color: rgba(212,0,26,0.1); font-weight: 900; line-height: 1; pointer-events: none; z-index: 0; font-family: var(--font-head); }
+    .hero-card { background: #1A1818; border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-lg); padding: 1.5rem; position: relative; z-index: 1; }
+    .hc-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+    .hc-badge { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 20px; }
+    .hc-badge.live { background: rgba(29,158,117,0.2); color: #4ECFA0; }
+    .hc-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+    .hc-eta { font-size: 13px; color: rgba(255,255,255,0.5); }
+    .hc-route { margin-bottom: 1.25rem; }
+    .hc-point { display: flex; align-items: flex-start; gap: 12px; }
+    .hc-line { width: 2px; height: 24px; background: rgba(255,255,255,0.1); margin: 6px 0 6px 7px; }
+    .point-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+    .point-dot.origin { background: var(--mx2); } .point-dot.dest { background: var(--green); }
+    .point-label { font-size: 11px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.5px; }
+    .point-addr { font-size: 14px; color: white; margin-top: 1px; }
+    .hc-rep { display: flex; align-items: center; gap: 12px; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.07); }
+    .rep-av { width: 38px; height: 38px; border-radius: 50%; background: rgba(212,0,26,0.15); border: 1.5px solid var(--mx2); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--mx2); flex-shrink: 0; }
+    .rep-name { font-size: 14px; color: white; font-weight: 500; }
+    .rep-rating { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 1px; }
+    .rep-price { margin-left: auto; font-family: var(--font-head); font-weight: 700; font-size: 18px; color: white; }
+
+    /* STATS */
+    .stats-section { background: #1A1818; border-top: 1px solid rgba(255,255,255,0.04); }
+    .stats-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(4,1fr); }
+    .stat { display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; text-align: center; border-right: 1px solid rgba(255,255,255,0.05); }
+    .stat:last-child { border-right: none; }
+    .stat-n { font-family: var(--font-head); font-weight: 700; font-size: 2rem; color: var(--mx2); }
+    .stat-l { font-size: 13px; color: rgba(255,255,255,0.35); margin-top: 4px; }
+
+    /* SECTIONS */
+    .section { padding: 5rem 1.5rem; }
+    .section-dark { background: var(--dark); }
+    .section-label { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--mx); margin-bottom: 0.75rem; }
+    .section-label.light { color: rgba(212,0,26,0.7); }
+    .section h2 { font-family: var(--font-head); font-weight: 800; font-size: clamp(1.75rem, 3.5vw, 2.5rem); margin-bottom: 2.5rem; line-height: 1.1; }
+    .section h2.light { color: white; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .steps-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
+    .step-card { background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.75rem; position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; }
+    .step-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.06); }
+    .step-num { font-family: var(--font-head); font-weight: 800; font-size: 3rem; color: rgba(212,0,26,0.08); position: absolute; top: 1rem; right: 1.25rem; line-height: 1; }
+    .step-icon { width: 46px; height: 46px; border-radius: 11px; background: var(--mx-light); display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem; }
+    .step-icon i { font-size: 22px; color: var(--mx); }
+    .step-card h3 { font-family: var(--font-head); font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; }
+    .step-card p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+    .earn-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1.25rem; }
+    .earn-item { display: flex; gap: 1rem; align-items: flex-start; padding: 1.25rem; border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); background: rgba(255,255,255,0.03); }
+    .earn-item > i { font-size: 24px; color: var(--mx2); flex-shrink: 0; margin-top: 2px; }
+    .earn-item h4 { font-weight: 500; font-size: 15px; color: white; margin-bottom: 4px; }
+    .earn-item p { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.6; }
+
+    /* BUTTONS */
+    .btn-primary { display: inline-flex; align-items: center; gap: 8px; background: var(--mx); color: white; border: none; font-family: var(--font-body); font-size: 15px; font-weight: 500; padding: 13px 24px; border-radius: var(--radius-sm); cursor: pointer; text-decoration: none; transition: background 0.15s, transform 0.1s; }
+    .btn-primary:hover { background: var(--mx-dark); transform: translateY(-1px); }
+    .btn-primary.lg { padding: 16px 32px; font-size: 16px; border-radius: var(--radius); }
+    .btn-primary:disabled { opacity: 0.6; pointer-events: none; }
+    .btn-secondary { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,0.2); font-family: var(--font-body); font-size: 15px; padding: 13px 24px; border-radius: var(--radius-sm); cursor: pointer; text-decoration: none; transition: all 0.15s; }
+    .btn-secondary:hover { background: rgba(255,255,255,0.06); color: white; }
+    .btn-full { width: 100%; justify-content: center; }
+    .btn-outline { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: white; font-size: 14px; font-family: var(--font-body); cursor: pointer; color: var(--text); transition: all 0.15s; }
+    .btn-outline:hover { border-color: var(--mx); color: var(--mx); }
+
+    /* FOOTER */
+    .footer { background: var(--dark); border-top: 1px solid rgba(255,255,255,0.05); padding: 2rem 1.5rem; }
+    .footer-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a { color: rgba(255,255,255,0.35); text-decoration: none; font-size: 13px; }
+    .footer-copy { font-size: 12px; color: rgba(255,255,255,0.2); }
+
+    /* AUTH */
     .auth-wrap { min-height: calc(100vh - 62px); background: var(--dark); display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; }
     .auth-box { background: var(--surface); border-radius: var(--radius-lg); width: 100%; max-width: 440px; overflow: hidden; }
-    .auth-head { background: var(--dark2); padding: 1.75rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .auth-head { background: #1A1818; padding: 1.75rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
     .auth-head h2 { font-family: var(--font-head); font-weight: 700; font-size: 1.3rem; color: white; }
     .auth-head p { font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 4px; }
     .auth-body2 { padding: 1.75rem 2rem; }
@@ -462,6 +135,10 @@ body {
     .sp { display: none; } .sp.active { display: block; }
     .step-h { font-family: var(--font-head); font-weight: 700; font-size: 1.15rem; margin-bottom: 4px; }
     .step-s { font-size: 13px; color: var(--muted); margin-bottom: 1.5rem; }
+    .field-group { margin-bottom: 1rem; }
+    .field-label { font-size: 11px; font-weight: 500; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.3px; display: block; }
+    .field-input { width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: var(--font-body); background: white; color: var(--text); outline: none; transition: border 0.15s; }
+    .field-input:focus { border-color: var(--mx); }
     .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
     .role-card { padding: 1rem; border: 1.5px solid var(--border); border-radius: var(--radius); cursor: pointer; text-align: center; background: white; transition: all 0.15s; }
     .role-card.sel { border-color: var(--mx); background: var(--mx-light); }
@@ -489,9 +166,24 @@ body {
     .divider { display: flex; align-items: center; gap: 12px; margin: 1rem 0; }
     .divider::before,.divider::after { content:''; flex:1; height:1px; background:var(--border); }
     .divider span { font-size: 12px; color: var(--muted); }
-    .btn-outline { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: white; font-size: 14px; font-family: var(--font-body); cursor: pointer; color: var(--text); transition: all 0.15s; margin-bottom: 4px; }
-    .btn-outline:hover { border-color: var(--mx); color: var(--mx); }
+    .alert { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 1rem; display: none; }
+    .alert.error { background: #FFF0F2; border: 1px solid rgba(212,0,26,0.2); color: var(--mx-dark); display: block; }
+    .alert.success { background: var(--green-light); border: 1px solid rgba(29,158,117,0.2); color: #0F6E56; display: block; }
+
+    /* DASHBOARD */
     .app-shell { min-height: calc(100vh - 62px); display: flex; flex-direction: column; background: var(--surface); }
+    .app-header { background: var(--dark); padding: 1.25rem 1.5rem; }
+    .app-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .app-logo { font-family: var(--font-head); font-weight: 800; font-size: 20px; color: white; }
+    .app-logo span { color: var(--mx2); }
+    .icon-btn { background: rgba(255,255,255,0.08); border: none; color: white; width: 36px; height: 36px; border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .greeting { color: rgba(255,255,255,0.4); font-size: 13px; }
+    .user-name { color: white; font-weight: 500; font-size: 17px; }
+    .balance-card { background: var(--mx); border-radius: var(--radius); padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
+    .bal-label { font-size: 12px; color: rgba(255,255,255,0.65); margin-bottom: 3px; }
+    .bal-amount { font-family: var(--font-head); font-weight: 700; font-size: 28px; color: white; }
+    .withdraw-btn { background: rgba(255,255,255,0.18); border: none; color: white; font-family: var(--font-body); font-size: 13px; padding: 8px 14px; border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .abody { flex: 1; padding: 1.25rem 1.5rem; max-width: 700px; margin: 0 auto; width: 100%; }
     .dp { display: none; } .dp.active { display: block; }
     .qa-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 1.5rem; }
     .qa-item { display: flex; flex-direction: column; align-items: center; padding: 12px 6px; background: white; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; gap: 6px; }
@@ -537,32 +229,42 @@ body {
     .bitem { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; border: none; background: none; padding: 5px; }
     .bitem i { font-size: 22px; color: var(--muted); } .bitem span { font-size: 10px; color: var(--muted); }
     .bitem.active i { color: var(--mx); } .bitem.active span { color: var(--mx); font-weight: 500; }
-    .abody { flex: 1; padding: 1.25rem 1.5rem; max-width: 700px; margin: 0 auto; width: 100%; }
-    .btn-full { width: 100%; justify-content: center; }
+    .logout-btn { background: none; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.6); font-family: var(--font-body); font-size: 12px; padding: 5px 12px; border-radius: var(--radius-sm); cursor: pointer; }
+    .logout-btn:hover { color: white; border-color: rgba(255,255,255,0.3); }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .nav-burger { display: flex; align-items: center; justify-content: center; }
+      .hero-inner { grid-template-columns: 1fr; gap: 2.5rem; }
+      .hero-visual { display: none; }
+      .stats-inner { grid-template-columns: repeat(2,1fr); }
+      .steps-grid { grid-template-columns: 1fr; }
+      .earn-grid { grid-template-columns: 1fr; }
+      .footer-inner { flex-direction: column; text-align: center; }
+    }
   </style>
 </head>
 <body>
 
-<!-- NAV -->
 <nav class="nav">
   <div class="nav-inner">
-    <div class="logo" onclick="goPage('landing')" style="cursor:pointer">Maxi<span>⋊</span>ia</div>
+    <div class="logo" onclick="goPage('landing')">Maxi<span>⋊</span>ia</div>
     <div class="nav-links">
-      <a onclick="goPage('landing')" style="cursor:pointer">Cómo funciona</a>
-      <a onclick="goPage('landing')" style="cursor:pointer">Gana dinero</a>
-      <a class="btn-nav-ghost" onclick="goPage('login')" style="cursor:pointer">Entrar</a>
-      <a class="btn-nav" onclick="goPage('register')" style="cursor:pointer">Crear cuenta</a>
+      <a onclick="goPage('landing')">Cómo funciona</a>
+      <a onclick="goPage('landing')">Gana dinero</a>
+      <a class="btn-nav-ghost" onclick="goPage('login')">Entrar</a>
+      <a class="btn-nav" onclick="goPage('register')">Crear cuenta</a>
     </div>
     <button class="nav-burger" id="burger"><i class="ti ti-menu-2"></i></button>
   </div>
   <div class="nav-mobile" id="nav-mobile">
     <a onclick="goPage('landing');closeMob()">Cómo funciona</a>
     <a onclick="goPage('login');closeMob()">Entrar</a>
-    <a onclick="goPage('register');closeMob()" style="color:var(--mx2);font-weight:500">Crear cuenta gratis</a>
+    <a onclick="goPage('register');closeMob()">Crear cuenta gratis</a>
   </div>
 </nav>
 
-<!-- ═══════ LANDING ═══════ -->
+<!-- LANDING -->
 <div id="page-landing" class="page active">
   <section class="hero">
     <div class="hero-inner">
@@ -616,7 +318,7 @@ body {
       <div class="steps-grid">
         <div class="step-card"><div class="step-num">01</div><div class="step-icon"><i class="ti ti-map-pin"></i></div><h3>Publica tu envío</h3><p>Indica de dónde recoger, a dónde entregar y qué es el paquete. El precio se calcula automáticamente.</p></div>
         <div class="step-card"><div class="step-num">02</div><div class="step-icon"><i class="ti ti-user-check"></i></div><h3>Un repartidor lo acepta</h3><p>Repartidores verificados cerca de ti toman el pedido. Ves su nombre, foto y calificación.</p></div>
-        <div class="step-card"><div class="step-num">03</div><div class="step-icon"><i class="ti ti-circle-check"></i></div><h3>Entrega confirmada</h3><p>El destinatario confirma con código o huella. El repartidor recibe su pago al instante.</p></div>
+        <div class="step-card"><div class="step-num">03</div><div class="step-icon"><i class="ti ti-circle-check"></i></div><h3>Entrega confirmada</h3><p>El destinatario confirma con código. El repartidor recibe su pago al instante.</p></div>
       </div>
     </div>
   </section>
@@ -636,25 +338,25 @@ body {
   <section class="section" style="background:var(--mx-light);border-top:1px solid rgba(212,0,26,.1);text-align:center">
     <div class="container">
       <h2>¿Listo para empezar?</h2>
-      <p style="color:var(--muted);margin-bottom:2rem;font-size:1.05rem">Regístrate gratis en menos de 3 minutos. Hoy mismo puedes hacer tu primer envío — o tu primera entrega.</p>
-      <button class="btn-primary" style="padding:16px 32px;font-size:16px;border-radius:var(--radius)" onclick="goPage('register')"><i class="ti ti-user-plus"></i> Crear cuenta gratis</button>
+      <p style="color:var(--muted);margin-bottom:2rem;font-size:1.05rem">Regístrate gratis en menos de 3 minutos.</p>
+      <button class="btn-primary lg" onclick="goPage('register')"><i class="ti ti-user-plus"></i> Crear cuenta gratis</button>
     </div>
   </section>
   <footer class="footer">
     <div class="footer-inner container">
-      <div class="logo" style="cursor:pointer" onclick="goPage('landing')">Maxi<span>⋊</span>ia</div>
+      <div class="logo" onclick="goPage('landing')">Maxi<span>⋊</span>ia</div>
       <div class="footer-links"><a href="#">Términos</a><a href="#">Privacidad</a><a href="#">Contacto</a></div>
       <div class="footer-copy">© 2025 Maxikia. Todos los derechos reservados.</div>
     </div>
   </footer>
 </div>
 
-<!-- ═══════ REGISTER ═══════ -->
+<!-- REGISTER -->
 <div id="page-register" class="page">
   <div class="auth-wrap">
     <div class="auth-box">
       <div class="auth-head">
-        <div class="logo" onclick="goPage('landing')" style="font-size:18px;margin-bottom:8px;cursor:pointer">Maxi<span>⋊</span>ia</div>
+        <div class="logo" onclick="goPage('landing')" style="font-size:18px;margin-bottom:8px">Maxi<span>⋊</span>ia</div>
         <h2>Crear cuenta gratis</h2><p>Rápido como tú lo necesitas</p>
       </div>
       <div class="auth-body2">
@@ -663,6 +365,7 @@ body {
           <div class="sdot" id="sd2">2</div><div class="sline" id="sl2"></div>
           <div class="sdot" id="sd3">3</div>
         </div>
+        <div id="reg-alert" class="alert"></div>
         <div class="sp active" id="sp1">
           <div class="step-h">Tus datos básicos</div><div class="step-s">Paso 1 de 3</div>
           <div style="margin-bottom:.85rem;font-size:13px;font-weight:500">¿Cómo usarás Maxikia?</div>
@@ -670,11 +373,11 @@ body {
             <div class="role-card sel" id="rc-both" onclick="selR('both')"><i class="ti ti-arrows-exchange"></i><div class="rn">Ambos</div><div class="rd">Envío y reparto</div></div>
             <div class="role-card" id="rc-client" onclick="selR('client')"><i class="ti ti-package"></i><div class="rn">Solo cliente</div><div class="rd">Solo envíos</div></div>
           </div>
-          <div class="field-group"><label class="field-label">Nombre completo</label><input type="text" class="field-input" placeholder="Tu nombre y apellido"></div>
-          <div class="field-group"><label class="field-label">Correo electrónico</label><input type="email" class="field-input" placeholder="tu@correo.com"></div>
-          <div class="field-group"><label class="field-label">Teléfono</label><input type="tel" class="field-input" placeholder="+57 300 000 0000"></div>
-          <div class="field-group"><label class="field-label">Contraseña</label><input type="password" class="field-input" placeholder="Mínimo 8 caracteres"></div>
-          <button class="btn-primary btn-full" style="margin-top:.5rem" onclick="rStep(2)">Continuar <i class="ti ti-arrow-right"></i></button>
+          <div class="field-group"><label class="field-label">Nombre completo</label><input type="text" class="field-input" id="reg-name" placeholder="Tu nombre y apellido"></div>
+          <div class="field-group"><label class="field-label">Correo electrónico</label><input type="email" class="field-input" id="reg-email" placeholder="tu@correo.com"></div>
+          <div class="field-group"><label class="field-label">Teléfono</label><input type="tel" class="field-input" id="reg-phone" placeholder="+57 300 000 0000"></div>
+          <div class="field-group"><label class="field-label">Contraseña</label><input type="password" class="field-input" id="reg-pass" placeholder="Mínimo 8 caracteres"></div>
+          <button class="btn-primary btn-full" id="reg-btn1" onclick="doRegister()">Continuar <i class="ti ti-arrow-right"></i></button>
           <div class="alink">¿Ya tienes cuenta? <span onclick="goPage('login')">Iniciar sesión</span></div>
         </div>
         <div class="sp" id="sp2">
@@ -686,53 +389,57 @@ body {
           <button class="btn-primary btn-full" onclick="rStep(3)">Continuar <i class="ti ti-arrow-right"></i></button>
         </div>
         <div class="sp" id="sp3">
-          <div class="step-h">Huella digital</div><div class="step-s">Protege tu cuenta y confirma entregas con tu huella.</div>
+          <div class="step-h">Huella digital</div><div class="step-s">Protege tu cuenta con tu huella.</div>
           <div class="fp-wrap">
             <div class="fp-btn" id="fpb" onclick="scanFP()"><i class="ti ti-fingerprint" id="fpi"></i></div>
             <div class="fp-hint" id="fph">Toca para registrar tu huella</div>
             <div style="font-size:12px;color:var(--muted);margin-top:6px">Apoya y levanta 3 veces</div>
           </div>
-          <div class="ibox"><i class="ti ti-shield-check"></i><span>Tu huella solo se guarda en tu dispositivo. Maxikia nunca la almacena.</span></div>
-          <button class="btn-primary btn-full" id="fpc" style="opacity:.4" disabled onclick="goPage('dashboard')">Finalizar y entrar <i class="ti ti-arrow-right"></i></button>
+          <div class="ibox"><i class="ti ti-shield-check"></i><span>Tu huella solo se guarda en tu dispositivo.</span></div>
+          <button class="btn-primary btn-full" id="fpc" style="opacity:.4" disabled onclick="goPage('dashboard')">Entrar a Maxikia <i class="ti ti-arrow-right"></i></button>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ═══════ LOGIN ═══════ -->
+<!-- LOGIN -->
 <div id="page-login" class="page">
   <div class="auth-wrap">
     <div class="auth-box">
       <div class="auth-head">
-        <div class="logo" onclick="goPage('landing')" style="font-size:18px;margin-bottom:8px;cursor:pointer">Maxi<span>⋊</span>ia</div>
+        <div class="logo" onclick="goPage('landing')" style="font-size:18px;margin-bottom:8px">Maxi<span>⋊</span>ia</div>
         <h2>Bienvenido de vuelta</h2><p>Rápido como tú lo necesitas</p>
       </div>
       <div class="auth-body2">
-        <div class="field-group"><label class="field-label">Correo electrónico</label><input type="email" class="field-input" placeholder="tu@correo.com"></div>
-        <div class="field-group"><label class="field-label">Contraseña</label><input type="password" class="field-input" placeholder="••••••••"></div>
+        <div id="login-alert" class="alert"></div>
+        <div class="field-group"><label class="field-label">Correo electrónico</label><input type="email" class="field-input" id="login-email" placeholder="tu@correo.com"></div>
+        <div class="field-group"><label class="field-label">Contraseña</label><input type="password" class="field-input" id="login-pass" placeholder="••••••••"></div>
         <div style="text-align:right;margin-bottom:1rem"><a href="#" style="font-size:13px;color:var(--mx);text-decoration:none">¿Olvidaste tu contraseña?</a></div>
-        <button class="btn-primary btn-full" style="margin-bottom:10px" onclick="goPage('dashboard')">Entrar a mi cuenta</button>
+        <button class="btn-primary btn-full" id="login-btn" style="margin-bottom:10px" onclick="doLogin()">Entrar a mi cuenta</button>
         <div class="divider"><span>o</span></div>
-        <button class="btn-outline" onclick="goPage('dashboard')"><i class="ti ti-fingerprint" style="font-size:20px;color:var(--mx)"></i> Entrar con huella digital</button>
+        <button class="btn-outline" onclick="doLogin()"><i class="ti ti-fingerprint" style="font-size:20px;color:var(--mx)"></i> Entrar con huella digital</button>
         <div class="alink">¿No tienes cuenta? <span onclick="goPage('register')">Regístrate gratis</span></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ═══════ DASHBOARD ═══════ -->
+<!-- DASHBOARD -->
 <div id="page-dashboard" class="page">
   <div class="app-shell">
     <div class="app-header">
       <div class="app-header-top">
         <div class="app-logo">Maxi<span>⋊</span>ia</div>
-        <button class="icon-btn"><i class="ti ti-bell"></i></button>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="icon-btn"><i class="ti ti-bell"></i></button>
+          <button class="logout-btn" onclick="doLogout()">Salir</button>
+        </div>
       </div>
-      <div class="greeting">Buenos días,</div>
-      <div class="user-name">Andres Castilho 👋</div>
+      <div class="greeting">Bienvenido,</div>
+      <div class="user-name" id="dash-username">Usuario 👋</div>
       <div class="balance-card">
-        <div><div class="bal-label">Saldo disponible</div><div class="bal-amount">$47.500</div></div>
+        <div><div class="bal-label">Saldo disponible</div><div class="bal-amount">$0</div></div>
         <button class="withdraw-btn"><i class="ti ti-cash"></i> Retirar</button>
       </div>
     </div>
@@ -744,35 +451,41 @@ body {
           <div class="qa-item"><i class="ti ti-map-2"></i><span>Rastrear</span></div>
           <div class="qa-item" onclick="dTab('historial')"><i class="ti ti-history"></i><span>Historial</span></div>
         </div>
+        <div style="background:var(--green-light);border:1px solid rgba(29,158,117,0.2);border-radius:var(--radius);padding:14px 16px;margin-bottom:1.25rem;display:flex;gap:10px;align-items:flex-start">
+          <i class="ti ti-circle-check" style="color:var(--green);font-size:20px;flex-shrink:0;margin-top:1px"></i>
+          <div><div style="font-weight:500;font-size:14px;color:#0F6E56">¡Cuenta verificada!</div><div style="font-size:13px;color:#0F6E56;margin-top:2px">Ya puedes enviar y recibir pedidos en Maxikia.</div></div>
+        </div>
         <div class="sec-row"><div class="sec-t">Pedidos activos</div><button class="see-all">Ver todos</button></div>
-        <div class="orow"><div class="oico food"><i class="ti ti-pizza"></i></div><div class="oi"><div class="on">Pizza Napoli</div><div class="om">Chapinero → Usaquén · 4.2 km</div></div><div class="or"><div class="op">$18.000</div><span class="pill pa">En camino</span></div></div>
-        <div class="orow"><div class="oico pkg"><i class="ti ti-package"></i></div><div class="oi"><div class="on">Paquete electrónico</div><div class="om">Fontibón → El Dorado · 6.1 km</div></div><div class="or"><div class="op">$25.000</div><span class="pill pp">Buscando rep.</span></div></div>
-        <div class="sec-row" style="margin-top:1.25rem"><div class="sec-t">Últimas entregas</div></div>
-        <div class="orow"><div class="oico store"><i class="ti ti-building-store"></i></div><div class="oi"><div class="on">Medicamentos Droguería</div><div class="om">Ayer · Suba → Engativá</div></div><div class="or"><div class="op">$12.000</div><span class="pill pd">Entregado</span></div></div>
-        <div class="orow"><div class="oico food"><i class="ti ti-pizza"></i></div><div class="oi"><div class="on">Comida China Express</div><div class="om">Hace 2 días</div></div><div class="or"><div class="op">$15.000</div><span class="pill pd">Entregado</span></div></div>
+        <div style="text-align:center;padding:2rem;color:var(--muted);font-size:14px;background:white;border:1px solid var(--border);border-radius:var(--radius)">
+          <i class="ti ti-package" style="font-size:32px;display:block;margin-bottom:8px;opacity:.4"></i>
+          Aún no tienes pedidos activos.<br>¡Crea tu primer envío!
+        </div>
       </div>
       <div class="dp" id="dp-envio">
         <div class="br"><button onclick="dTab('home')"><i class="ti ti-arrow-left" style="font-size:22px;color:var(--text)"></i></button><h3>Nuevo envío</h3></div>
         <div class="map-mock"><i class="ti ti-map-pin"></i></div>
-        <div class="field-group"><label class="field-label">Dirección de recogida</label><input type="text" class="field-input" value="Cra 7 #45-20, Chapinero"></div>
-        <div class="field-group"><label class="field-label">Dirección de entrega</label><input type="text" class="field-input" placeholder="¿A dónde lo llevamos?"></div>
-        <div class="field-group"><label class="field-label">¿Qué es el paquete?</label><input type="text" class="field-input" placeholder="Comida, documentos, medicamentos..."></div>
+        <div class="field-group"><label class="field-label">Dirección de recogida</label><input type="text" class="field-input" id="env-origen" placeholder="¿Dónde lo recogemos?"></div>
+        <div class="field-group"><label class="field-label">Dirección de entrega</label><input type="text" class="field-input" id="env-destino" placeholder="¿A dónde lo llevamos?"></div>
+        <div class="field-group"><label class="field-label">¿Qué es el paquete?</label><input type="text" class="field-input" id="env-desc" placeholder="Comida, documentos, medicamentos..."></div>
         <div class="field-group"><label class="field-label">Instrucciones (opcional)</label><input type="text" class="field-input" placeholder="Frágil, llamar al llegar..."></div>
         <div class="price-row"><div><div class="price-lbl">Precio estimado</div><div style="font-size:12px;color:var(--muted)">Entrega en menos de 3h</div></div><div class="price-val">$22.000</div></div>
-        <button class="btn-primary btn-full" onclick="alert('¡Pedido publicado! Buscando repartidor...')">Buscar repartidor <i class="ti ti-motorbike"></i></button>
+        <button class="btn-primary btn-full" onclick="crearPedido()">Buscar repartidor <i class="ti ti-motorbike"></i></button>
       </div>
       <div class="dp" id="dp-repartir">
         <div class="br"><button onclick="dTab('home')"><i class="ti ti-arrow-left" style="font-size:22px;color:var(--text)"></i></button><h3>Modo repartidor</h3></div>
         <div class="rep-toggle"><div><div style="font-weight:500;font-size:14px">Estoy disponible</div><div style="font-size:12px;color:var(--muted)">Recibirás pedidos cercanos</div></div><div class="tsw" id="tsw" onclick="this.classList.toggle('on')"></div></div>
         <div class="sec-row"><div class="sec-t">Pedidos disponibles</div></div>
-        <div class="ao"><div class="aor"><div class="aod o"></div><div class="aoi"><strong>Pizza Napoli</strong> — Chapinero</div></div><div class="aor"><div class="aod d"></div><div class="aoi">Cra 15 #93-10 — Usaquén</div></div><div class="aof"><div><div class="aoe">$18.000</div><div class="aodist">4.2 km · ~28 min</div></div><button class="bacc" onclick="alert('¡Pedido aceptado!')">Aceptar</button></div></div>
-        <div class="ao"><div class="aor"><div class="aod o"></div><div class="aoi"><strong>Documentos urgentes</strong> — Centro</div></div><div class="aor"><div class="aod d"></div><div class="aoi">Av. El Dorado #68B — Fontibón</div></div><div class="aof"><div><div class="aoe">$32.000</div><div class="aodist">8.7 km · ~45 min</div></div><button class="bacc" onclick="alert('¡Pedido aceptado!')">Aceptar</button></div></div>
+        <div style="text-align:center;padding:2rem;color:var(--muted);font-size:14px;background:white;border:1px solid var(--border);border-radius:var(--radius)">
+          <i class="ti ti-motorbike" style="font-size:32px;display:block;margin-bottom:8px;opacity:.4"></i>
+          Activa el interruptor para ver pedidos cerca de ti.
+        </div>
       </div>
       <div class="dp" id="dp-historial">
         <div class="br"><button onclick="dTab('home')"><i class="ti ti-arrow-left" style="font-size:22px;color:var(--text)"></i></button><h3>Historial</h3></div>
-        <div class="orow"><div class="oico food"><i class="ti ti-pizza"></i></div><div class="oi"><div class="on">Pizza Napoli</div><div class="om">Hoy · Chapinero → Usaquén</div></div><div class="or"><div class="op">$18.000</div><span class="pill pa">En camino</span></div></div>
-        <div class="orow"><div class="oico store"><i class="ti ti-building-store"></i></div><div class="oi"><div class="on">Medicamentos Droguería</div><div class="om">Ayer</div></div><div class="or"><div class="op">$12.000</div><span class="pill pd">Entregado</span></div></div>
-        <div class="orow"><div class="oico pkg"><i class="ti ti-package"></i></div><div class="oi"><div class="on">Reparto — Ropa (ganaste)</div><div class="om">Hace 3 días</div></div><div class="or"><div class="op" style="color:var(--green)">+$22.000</div><span class="pill pd">Completado</span></div></div>
+        <div id="historial-list" style="text-align:center;padding:2rem;color:var(--muted);font-size:14px;background:white;border:1px solid var(--border);border-radius:var(--radius)">
+          <i class="ti ti-history" style="font-size:32px;display:block;margin-bottom:8px;opacity:.4"></i>
+          Tu historial aparecerá aquí.
+        </div>
       </div>
     </div>
     <div class="bbar">
@@ -785,55 +498,117 @@ body {
 </div>
 
 <script>
-  // Page navigation
+  // ── SUPABASE INIT ──
+  const { createClient } = supabase;
+  const sb = createClient(
+    'https://dovqezmhdiauhlpichdn.supabase.co',
+    'sb_publishable_z_KMYtrQ0zxbTWhAa5GUTg___LLx-hk'
+  );
+
+  // ── STATE ──
+  let currentUser = null;
+  let selectedRole = 'both';
+  let regStep = 1;
+  let fpCount = 0;
+
+  // ── INIT: check session ──
+  (async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      currentUser = session.user;
+      showDashboard();
+    }
+  })();
+
+  // ── NAV ──
   function goPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById('page-' + id).classList.add('active');
     window.scrollTo(0, 0);
   }
-
-  // Mobile nav
+  function closeMob() { document.getElementById('nav-mobile').classList.remove('open'); }
   document.getElementById('burger').addEventListener('click', () => {
     document.getElementById('nav-mobile').classList.toggle('open');
   });
-  function closeMob() { document.getElementById('nav-mobile').classList.remove('open'); }
 
-  // Register role select
+  // ── REGISTER ──
   function selR(r) {
+    selectedRole = r;
     document.querySelectorAll('.role-card').forEach(c => c.classList.remove('sel'));
     document.getElementById('rc-' + r).classList.add('sel');
   }
 
-  // Register steps
-  let curStep = 1;
+  async function doRegister() {
+    const name = document.getElementById('reg-name').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const phone = document.getElementById('reg-phone').value.trim();
+    const pass = document.getElementById('reg-pass').value;
+    const alert = document.getElementById('reg-alert');
+    const btn = document.getElementById('reg-btn1');
+
+    if (!name || !email || !pass) {
+      alert.className = 'alert error';
+      alert.textContent = 'Por favor completa todos los campos obligatorios.';
+      return;
+    }
+    if (pass.length < 8) {
+      alert.className = 'alert error';
+      alert.textContent = 'La contraseña debe tener al menos 8 caracteres.';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Creando cuenta...';
+
+    const { data, error } = await sb.auth.signUp({
+      email,
+      password: pass,
+      options: {
+        data: { full_name: name, phone, role: selectedRole }
+      }
+    });
+
+    if (error) {
+      alert.className = 'alert error';
+      alert.textContent = error.message === 'User already registered'
+        ? 'Este correo ya tiene una cuenta. ¿Quieres iniciar sesión?'
+        : error.message;
+      btn.disabled = false;
+      btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
+      return;
+    }
+
+    alert.className = 'alert success';
+    alert.textContent = '¡Cuenta creada! Revisa tu correo para confirmar.';
+    currentUser = data.user;
+    setTimeout(() => { alert.style.display = 'none'; rStep(2); }, 1500);
+  }
+
   function rStep(n) {
-    document.getElementById('sp' + curStep).classList.remove('active');
-    const prev = document.getElementById('sd' + curStep);
+    document.getElementById('sp' + regStep).classList.remove('active');
+    const prev = document.getElementById('sd' + regStep);
     prev.classList.remove('active'); prev.classList.add('done');
     prev.innerHTML = '<i class="ti ti-check" style="font-size:11px"></i>';
-    if (curStep <= 2) document.getElementById('sl' + curStep).classList.add('done');
-    curStep = n;
+    if (regStep <= 2) document.getElementById('sl' + regStep).classList.add('done');
+    regStep = n;
     document.getElementById('sp' + n).classList.add('active');
     document.getElementById('sd' + n).classList.add('active');
   }
 
-  // Upload zones
   function mUp(id, msg) {
     const el = document.getElementById(id);
     el.classList.add('done');
     el.innerHTML = '<i class="ti ti-circle-check"></i><p>' + msg + '</p>';
   }
 
-  // Fingerprint
-  let fpN = 0;
   function scanFP() {
-    if (fpN >= 3) return;
+    if (fpCount >= 3) return;
     const btn = document.getElementById('fpb'), hint = document.getElementById('fph');
     btn.classList.add('scanning'); btn.classList.remove('done');
     hint.textContent = 'Escaneando... mantén el dedo';
     setTimeout(() => {
-      fpN++; btn.classList.remove('scanning');
-      if (fpN < 3) { hint.textContent = 'Bien (' + fpN + '/3) — toca de nuevo'; }
+      fpCount++; btn.classList.remove('scanning');
+      if (fpCount < 3) { hint.textContent = 'Bien (' + fpCount + '/3) — toca de nuevo'; }
       else {
         btn.classList.add('done');
         document.getElementById('fpi').className = 'ti ti-check';
@@ -844,7 +619,83 @@ body {
     }, 1300);
   }
 
-  // Dashboard tabs
+  // ── LOGIN ──
+  async function doLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const pass = document.getElementById('login-pass').value;
+    const alertEl = document.getElementById('login-alert');
+    const btn = document.getElementById('login-btn');
+
+    if (!email || !pass) {
+      alertEl.className = 'alert error';
+      alertEl.textContent = 'Ingresa tu correo y contraseña.';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Entrando...';
+
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+
+    if (error) {
+      alertEl.className = 'alert error';
+      alertEl.textContent = 'Correo o contraseña incorrectos.';
+      btn.disabled = false;
+      btn.innerHTML = 'Entrar a mi cuenta';
+      return;
+    }
+
+    currentUser = data.user;
+    showDashboard();
+  }
+
+  // ── LOGOUT ──
+  async function doLogout() {
+    await sb.auth.signOut();
+    currentUser = null;
+    goPage('landing');
+  }
+
+  // ── SHOW DASHBOARD ──
+  function showDashboard() {
+    const meta = currentUser?.user_metadata;
+    const name = meta?.full_name || currentUser?.email?.split('@')[0] || 'Usuario';
+    document.getElementById('dash-username').textContent = name + ' 👋';
+    goPage('dashboard');
+  }
+
+  // ── CREAR PEDIDO ──
+  async function crearPedido() {
+    const origen = document.getElementById('env-origen').value.trim();
+    const destino = document.getElementById('env-destino').value.trim();
+    const desc = document.getElementById('env-desc').value.trim();
+
+    if (!origen || !destino || !desc) {
+      alert('Por favor completa origen, destino y descripción del paquete.');
+      return;
+    }
+
+    if (!currentUser) { goPage('login'); return; }
+
+    const { error } = await sb.from('pedidos').insert({
+      usuario_id: currentUser.id,
+      origen, destino,
+      descripcion: desc,
+      estado: 'buscando',
+      precio: 22000,
+      created_at: new Date().toISOString()
+    });
+
+    if (error) {
+      alert('No se pudo crear el pedido. Intenta de nuevo.');
+      return;
+    }
+
+    alert('¡Pedido publicado! Buscando repartidor cerca de ti...');
+    dTab('home');
+  }
+
+  // ── DASHBOARD TABS ──
   function dTab(t) {
     document.querySelectorAll('.dp').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.bitem').forEach(b => b.classList.remove('active'));
@@ -853,6 +704,11 @@ body {
     if (bn) bn.classList.add('active');
     else document.getElementById('bn-home').classList.add('active');
   }
+
+  // ── CSS SPIN ──
+  const style = document.createElement('style');
+  style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+  document.head.appendChild(style);
 </script>
 </body>
 </html>
