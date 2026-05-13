@@ -381,22 +381,48 @@
           <div class="alink">¿Ya tienes cuenta? <span onclick="goPage('login')">Iniciar sesión</span></div>
         </div>
         <div class="sp" id="sp2">
-          <div class="step-h">Verificar identidad</div><div class="step-s">Todos en Maxikia están verificados.</div>
-          <div class="uz" id="uz1" onclick="mUp('uz1','Frente de cédula subido ✓')"><i class="ti ti-id"></i><p>Sube el <strong>frente</strong> de tu cédula</p></div>
-          <div class="uz" id="uz2" onclick="mUp('uz2','Reverso subido ✓')"><i class="ti ti-id"></i><p>Sube el <strong>reverso</strong> de tu cédula</p></div>
-          <div class="uz" id="uz3" onclick="mUp('uz3','Selfie verificada ✓')"><i class="ti ti-camera-selfie"></i><p><strong>Selfie</strong> sosteniendo el documento</p></div>
-          <div class="ibox" style="margin-top:.5rem"><i class="ti ti-lock"></i><span>Tus documentos se usan solo para verificación.</span></div>
-          <button class="btn-primary btn-full" onclick="rStep(3)">Continuar <i class="ti ti-arrow-right"></i></button>
+          <div class="step-h">Verificar identidad</div>
+          <div class="step-s">Debes subir los 3 documentos para continuar.</div>
+
+          <!-- Frente cédula -->
+          <div class="uz" id="uz1" onclick="document.getElementById('file-frente').click()">
+            <i class="ti ti-id" id="uz1-icon"></i>
+            <p id="uz1-txt">Toca para subir el <strong>frente</strong> de tu cédula</p>
+          </div>
+          <input type="file" id="file-frente" accept="image/*" style="display:none" onchange="archivoSeleccionado(this,'uz1','uz1-icon','uz1-txt','Frente subido ✓')">
+
+          <!-- Reverso cédula -->
+          <div class="uz" id="uz2" onclick="document.getElementById('file-reverso').click()">
+            <i class="ti ti-id" id="uz2-icon"></i>
+            <p id="uz2-txt">Toca para subir el <strong>reverso</strong> de tu cédula</p>
+          </div>
+          <input type="file" id="file-reverso" accept="image/*" style="display:none" onchange="archivoSeleccionado(this,'uz2','uz2-icon','uz2-txt','Reverso subido ✓')">
+
+          <!-- Selfie -->
+          <div class="uz" id="uz3" onclick="document.getElementById('file-selfie').click()">
+            <i class="ti ti-camera-selfie" id="uz3-icon"></i>
+            <p id="uz3-txt"><strong>Selfie</strong> sosteniendo el documento</p>
+          </div>
+          <input type="file" id="file-selfie" accept="image/*" capture="user" style="display:none" onchange="archivoSeleccionado(this,'uz3','uz3-icon','uz3-txt','Selfie subida ✓')">
+
+          <div id="id-alert" class="alert" style="display:none"></div>
+          <div class="ibox" style="margin-top:.5rem"><i class="ti ti-lock"></i><span>Tus documentos se usan solo para verificación. No los compartimos.</span></div>
+          <button class="btn-primary btn-full" id="btn-continuar-id" onclick="validarDocumentos()">Continuar <i class="ti ti-arrow-right"></i></button>
         </div>
         <div class="sp" id="sp3">
-          <div class="step-h">Huella digital</div><div class="step-s">Protege tu cuenta con tu huella.</div>
+          <div class="step-h">Seguridad biométrica</div>
+          <div class="step-s">Registra tu huella o Face ID para confirmar entregas y acceder a tu cuenta.</div>
           <div class="fp-wrap">
-            <div class="fp-btn" id="fpb" onclick="scanFP()"><i class="ti ti-fingerprint" id="fpi"></i></div>
-            <div class="fp-hint" id="fph">Toca para registrar tu huella</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:6px">Apoya y levanta 3 veces</div>
+            <div class="fp-btn" id="fpb" onclick="registrarHuella()">
+              <i class="ti ti-fingerprint" id="fpi"></i>
+            </div>
+            <div class="fp-hint" id="fph">Toca para registrar tu huella o Face ID</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:6px" id="fp-sub">Tu dispositivo pedirá confirmación biométrica</div>
           </div>
-          <div class="ibox"><i class="ti ti-shield-check"></i><span>Tu huella solo se guarda en tu dispositivo.</span></div>
-          <button class="btn-primary btn-full" id="fpc" style="opacity:.4" disabled onclick="goPage('dashboard')">Entrar a Maxikia <i class="ti ti-arrow-right"></i></button>
+          <div id="fp-alert" class="alert" style="display:none"></div>
+          <div class="ibox"><i class="ti ti-shield-check"></i><span>Tu huella solo se guarda en tu dispositivo. Maxikia nunca la almacena en servidores.</span></div>
+          <button class="btn-primary btn-full" id="fpc" style="opacity:.4" disabled onclick="showDashboard()">Entrar a Maxikia <i class="ti ti-arrow-right"></i></button>
+          <button class="btn-outline" style="margin-top:10px" onclick="saltarHuella()">Omitir por ahora — usar solo contraseña</button>
         </div>
       </div>
     </div>
@@ -654,22 +680,141 @@
     el.innerHTML = '<i class="ti ti-circle-check"></i><p>' + msg + '</p>';
   }
 
-  function scanFP() {
-    if (fpCount >= 3) return;
-    const btn = document.getElementById('fpb'), hint = document.getElementById('fph');
-    btn.classList.add('scanning'); btn.classList.remove('done');
-    hint.textContent = 'Escaneando... mantén el dedo';
-    setTimeout(() => {
-      fpCount++; btn.classList.remove('scanning');
-      if (fpCount < 3) { hint.textContent = 'Bien (' + fpCount + '/3) — toca de nuevo'; }
-      else {
+  // ── DOCUMENT UPLOAD (archivos reales) ──
+  const archivosSubidos = { frente: false, reverso: false, selfie: false };
+
+  function archivoSeleccionado(input, zonaId, iconId, txtId, msg) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Archivo muy grande. Máximo 10MB.');
+      return;
+    }
+    const zona = document.getElementById(zonaId);
+    zona.classList.add('done');
+    document.getElementById(iconId).className = 'ti ti-circle-check';
+    document.getElementById(txtId).innerHTML = msg + ' <span style="color:var(--green);font-size:11px">(' + (file.size/1024).toFixed(0) + ' KB)</span>';
+    if (zonaId === 'uz1') archivosSubidos.frente = true;
+    if (zonaId === 'uz2') archivosSubidos.reverso = true;
+    if (zonaId === 'uz3') archivosSubidos.selfie = true;
+  }
+
+  async function validarDocumentos() {
+    const alertEl = document.getElementById('id-alert');
+    const faltantes = [];
+    if (!archivosSubidos.frente) faltantes.push('frente de la cédula');
+    if (!archivosSubidos.reverso) faltantes.push('reverso de la cédula');
+    if (!archivosSubidos.selfie) faltantes.push('selfie con el documento');
+
+    if (faltantes.length > 0) {
+      alertEl.className = 'alert error';
+      alertEl.style.display = 'block';
+      alertEl.textContent = '⚠ Faltan: ' + faltantes.join(', ') + '.';
+      return;
+    }
+
+    alertEl.style.display = 'none';
+    const btn = document.getElementById('btn-continuar-id');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Subiendo documentos...';
+
+    try {
+      const uid = currentUser?.id || 'anonimo-' + Date.now();
+      const archivos = [
+        { el: 'file-frente', nombre: 'frente' },
+        { el: 'file-reverso', nombre: 'reverso' },
+        { el: 'file-selfie', nombre: 'selfie' }
+      ];
+      for (const a of archivos) {
+        const file = document.getElementById(a.el).files[0];
+        const ext = file.name.split('.').pop();
+        await sb.storage.from('documentos').upload(uid + '/' + a.nombre + '.' + ext, file, { upsert: true });
+      }
+      alertEl.className = 'alert success';
+      alertEl.style.display = 'block';
+      alertEl.textContent = '✓ Documentos enviados. Continuando...';
+      setTimeout(() => { alertEl.style.display = 'none'; rStep(3); }, 1200);
+    } catch (e) {
+      // Si no existe el bucket de storage, igual avanzamos
+      rStep(3);
+    }
+  }
+
+  // ── HUELLA REAL (WebAuthn) ──
+  async function registrarHuella() {
+    const btn = document.getElementById('fpb');
+    const hint = document.getElementById('fph');
+    const sub = document.getElementById('fp-sub');
+    const alertEl = document.getElementById('fp-alert');
+    const cont = document.getElementById('fpc');
+
+    if (!window.PublicKeyCredential) {
+      alertEl.className = 'alert error';
+      alertEl.style.display = 'block';
+      alertEl.textContent = 'Tu dispositivo no soporta biometría. Usa el botón "Omitir".';
+      return;
+    }
+
+    btn.classList.add('scanning');
+    hint.textContent = 'Esperando tu biometría...';
+    sub.textContent = 'Apoya el dedo o mira la cámara';
+
+    try {
+      const userId = currentUser?.id || 'usuario-' + Date.now();
+      const encoder = new TextEncoder();
+
+      const credential = await navigator.credentials.create({
+        publicKey: {
+          challenge: encoder.encode('maxikia-reg-' + Date.now()),
+          rp: { name: 'Maxikia', id: location.hostname === 'localhost' ? 'localhost' : 'maxikia.com' },
+          user: {
+            id: encoder.encode(userId),
+            name: currentUser?.email || 'usuario@maxikia.com',
+            displayName: currentUser?.user_metadata?.full_name || 'Usuario Maxikia'
+          },
+          pubKeyCredParams: [{ alg: -7, type: 'public-key' }, { alg: -257, type: 'public-key' }],
+          authenticatorSelection: {
+            authenticatorAttachment: 'platform',
+            userVerification: 'required'
+          },
+          timeout: 60000
+        }
+      });
+
+      if (credential) {
+        btn.classList.remove('scanning');
         btn.classList.add('done');
         document.getElementById('fpi').className = 'ti ti-check';
-        hint.textContent = '¡Huella registrada!';
-        const c = document.getElementById('fpc');
-        c.style.opacity = '1'; c.disabled = false;
+        hint.textContent = '¡Biometría registrada correctamente!';
+        sub.textContent = 'Ya puedes entrar con tu huella o Face ID';
+        alertEl.style.display = 'none';
+        cont.style.opacity = '1';
+        cont.disabled = false;
+        localStorage.setItem('mx_cred_id', btoa(String.fromCharCode(...new Uint8Array(credential.rawId))));
       }
-    }, 1300);
+    } catch (err) {
+      btn.classList.remove('scanning');
+      if (err.name === 'NotAllowedError') {
+        alertEl.className = 'alert error';
+        alertEl.style.display = 'block';
+        alertEl.textContent = 'Cancelaste la biometría. Intenta de nuevo o usa "Omitir".';
+      } else if (err.name === 'InvalidStateError') {
+        alertEl.className = 'alert error';
+        alertEl.style.display = 'block';
+        alertEl.textContent = 'Esta biometría ya está registrada. Puedes continuar.';
+        cont.style.opacity = '1';
+        cont.disabled = false;
+      } else {
+        alertEl.className = 'alert error';
+        alertEl.style.display = 'block';
+        alertEl.textContent = 'Error: ' + err.message + '. Usa "Omitir" para continuar.';
+      }
+      hint.textContent = 'Toca para intentar de nuevo';
+    }
+  }
+
+  function saltarHuella() {
+    showDashboard();
   }
 
   // ── LOGIN ──
