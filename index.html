@@ -449,7 +449,7 @@
           <div class="qa-item" onclick="dTab('envio')"><i class="ti ti-plus-circle"></i><span>Nuevo envío</span></div>
           <div class="qa-item" onclick="dTab('repartir')"><i class="ti ti-motorbike"></i><span>Repartir</span></div>
           <div class="qa-item"><i class="ti ti-map-2"></i><span>Rastrear</span></div>
-          <div class="qa-item" onclick="dTab('historial')"><i class="ti ti-history"></i><span>Historial</span></div>
+          <div class="qa-item" onclick="dTab('billetera')"><i class="ti ti-wallet"></i><span>Billetera</span></div>
         </div>
         <div style="background:var(--green-light);border:1px solid rgba(29,158,117,0.2);border-radius:var(--radius);padding:14px 16px;margin-bottom:1.25rem;display:flex;gap:10px;align-items:flex-start">
           <i class="ti ti-circle-check" style="color:var(--green);font-size:20px;flex-shrink:0;margin-top:1px"></i>
@@ -488,11 +488,64 @@
         </div>
       </div>
     </div>
+      <div class="dp" id="dp-billetera">
+        <div class="br"><button onclick="dTab('home')"><i class="ti ti-arrow-left" style="font-size:22px;color:var(--text)"></i></button><h3>Mi billetera</h3></div>
+        <!-- Saldo -->
+        <div style="background:var(--dark);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1rem;position:relative;overflow:hidden">
+          <div style="position:absolute;top:-20px;right:-20px;font-size:100px;color:rgba(212,0,26,0.1);font-family:var(--font-head);font-weight:800;line-height:1">⋊</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:6px">Saldo disponible</div>
+          <div style="font-family:var(--font-head);font-weight:800;font-size:36px;color:white" id="wallet-saldo">$0</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:4px" id="wallet-user-num">Cargando...</div>
+        </div>
+        <!-- Recargar -->
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1rem">
+          <div style="font-family:var(--font-head);font-weight:700;font-size:15px;margin-bottom:1rem">Recargar saldo</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:1rem">Transfiere a cualquiera de estos métodos y envía el comprobante por WhatsApp para acreditar tu saldo.</div>
+          <!-- Nequi -->
+          <div style="border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <div style="width:36px;height:36px;border-radius:8px;background:#8B1A8B;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <span style="color:white;font-weight:800;font-size:13px">N</span>
+              </div>
+              <div>
+                <div style="font-weight:500;font-size:14px">Nequi</div>
+                <div style="font-size:13px;color:var(--muted)">3243334302</div>
+              </div>
+              <button onclick="copiar('3243334302','nequi-copy')" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--muted)" id="nequi-copy"><i class="ti ti-copy"></i> Copiar</button>
+            </div>
+          </div>
+          <!-- Daviplata -->
+          <div style="border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:1rem">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <div style="width:36px;height:36px;border-radius:8px;background:#E8001C;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <span style="color:white;font-weight:800;font-size:13px">D</span>
+              </div>
+              <div>
+                <div style="font-weight:500;font-size:14px">Daviplata</div>
+                <div style="font-size:13px;color:var(--muted)">3243334302</div>
+              </div>
+              <button onclick="copiar('3243334302','daviplata-copy')" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--muted)" id="daviplata-copy"><i class="ti ti-copy"></i> Copiar</button>
+            </div>
+          </div>
+          <!-- WhatsApp -->
+          <a href="https://wa.me/573243334302?text=Hola%2C%20quiero%20recargar%20mi%20billetera%20Maxikia.%20Adjunto%20el%20comprobante." target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:white;border:none;font-family:var(--font-body);font-size:14px;font-weight:500;padding:12px;border-radius:var(--radius-sm);cursor:pointer;text-decoration:none">
+            <i class="ti ti-brand-whatsapp" style="font-size:18px"></i> Enviar comprobante por WhatsApp
+          </a>
+        </div>
+        <!-- Historial de movimientos -->
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem">
+          <div style="font-family:var(--font-head);font-weight:700;font-size:15px;margin-bottom:1rem">Movimientos</div>
+          <div id="wallet-movimientos" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:13px">
+            <i class="ti ti-receipt" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>
+            Tus recargas y pagos aparecerán aquí.
+          </div>
+        </div>
+      </div>
     <div class="bbar">
       <button class="bitem active" id="bn-home" onclick="dTab('home')"><i class="ti ti-home"></i><span>Inicio</span></button>
       <button class="bitem" id="bn-envio" onclick="dTab('envio')"><i class="ti ti-package"></i><span>Envíos</span></button>
       <button class="bitem" id="bn-repartir" onclick="dTab('repartir')"><i class="ti ti-motorbike"></i><span>Repartir</span></button>
-      <button class="bitem"><i class="ti ti-user"></i><span>Perfil</span></button>
+      <button class="bitem" id="bn-billetera" onclick="dTab('billetera')"><i class="ti ti-wallet"></i><span>Billetera</span></button>
     </div>
   </div>
 </div>
@@ -703,9 +756,33 @@
     const bn = document.getElementById('bn-' + t);
     if (bn) bn.classList.add('active');
     else document.getElementById('bn-home').classList.add('active');
+    if (t === 'billetera') cargarWallet();
   }
 
-  // ── CSS SPIN ──
+  // ── WALLET ──
+  function copiar(texto, btnId) {
+    navigator.clipboard.writeText(texto).then(() => {
+      const btn = document.getElementById(btnId);
+      btn.innerHTML = '<i class="ti ti-check"></i> Copiado';
+      btn.style.color = 'var(--green)';
+      btn.style.borderColor = 'var(--green)';
+      setTimeout(() => {
+        btn.innerHTML = '<i class="ti ti-copy"></i> Copiar';
+        btn.style.color = 'var(--muted)';
+        btn.style.borderColor = 'var(--border)';
+      }, 2000);
+    });
+  }
+
+  function cargarWallet() {
+    if (!currentUser) return;
+    const meta = currentUser?.user_metadata;
+    const name = meta?.full_name || currentUser?.email?.split('@')[0] || 'Usuario';
+    const el = document.getElementById('wallet-user-num');
+    if (el) el.textContent = currentUser.email;
+  }
+
+
   const style = document.createElement('style');
   style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
   document.head.appendChild(style);
