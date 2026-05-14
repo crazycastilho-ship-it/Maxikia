@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Maxikia — Rápido como tú lo necesitas</title>
   <meta name="description" content="Entregas express en menos de 6 horas. Cualquier persona puede ser cliente o repartidor en Maxikia.">
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#D4001A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Maxikia">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <!-- iOS splash -->
+  <meta name="apple-touch-fullscreen" content="yes">
+  <meta name="format-detection" content="telephone=no">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -372,15 +385,45 @@
           <div class="alink">¿Ya tienes cuenta? <span onclick="goPage('login')">Iniciar sesión</span></div>
         </div>
         <div class="sp" id="sp2">
-          <div class="step-h">Verificar identidad</div><div class="step-s">Sube los 3 documentos para continuar.</div>
-          <div class="uz" id="uz1" onclick="document.getElementById('f-frente').click()"><i class="ti ti-id" id="uz1-i"></i><p id="uz1-t">Toca para subir el <strong>frente</strong> de tu cédula</p></div>
+          <div class="step-h">Verificar identidad</div>
+          <div class="step-s">Sube o fotografía los 3 documentos para continuar.</div>
+
+          <!-- Frente cédula -->
+          <div class="uz" id="uz1" onclick="mostrarOpcionesDoc('uz1','f-frente','f-frente-cam')">
+            <i class="ti ti-id" id="uz1-i"></i>
+            <p id="uz1-t">Toca para subir el <strong>frente</strong> de tu cédula</p>
+            <div style="display:flex;gap:8px;justify-content:center;margin-top:8px" id="uz1-btns" class="doc-btns">
+              <span style="font-size:11px;color:var(--muted);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border)"><i class="ti ti-photo"></i> Galería</span>
+              <span style="font-size:11px;color:var(--muted);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border)"><i class="ti ti-camera"></i> Cámara</span>
+            </div>
+          </div>
           <input type="file" id="f-frente" accept="image/*" style="display:none" onchange="fileOk(this,'uz1','uz1-i','uz1-t','frente','Frente subido ✓')">
-          <div class="uz" id="uz2" onclick="document.getElementById('f-reverso').click()"><i class="ti ti-id" id="uz2-i"></i><p id="uz2-t">Toca para subir el <strong>reverso</strong> de tu cédula</p></div>
+          <input type="file" id="f-frente-cam" accept="image/*" capture="environment" style="display:none" onchange="fileOk(this,'uz1','uz1-i','uz1-t','frente','Frente fotografiado ✓')">
+
+          <!-- Reverso cédula -->
+          <div class="uz" id="uz2" onclick="mostrarOpcionesDoc('uz2','f-reverso','f-reverso-cam')">
+            <i class="ti ti-id" id="uz2-i"></i>
+            <p id="uz2-t">Toca para subir el <strong>reverso</strong> de tu cédula</p>
+            <div style="display:flex;gap:8px;justify-content:center;margin-top:8px" class="doc-btns">
+              <span style="font-size:11px;color:var(--muted);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border)"><i class="ti ti-photo"></i> Galería</span>
+              <span style="font-size:11px;color:var(--muted);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border)"><i class="ti ti-camera"></i> Cámara</span>
+            </div>
+          </div>
           <input type="file" id="f-reverso" accept="image/*" style="display:none" onchange="fileOk(this,'uz2','uz2-i','uz2-t','reverso','Reverso subido ✓')">
-          <div class="uz" id="uz3" onclick="document.getElementById('f-selfie').click()"><i class="ti ti-camera-selfie" id="uz3-i"></i><p id="uz3-t"><strong>Selfie</strong> sosteniendo el documento</p></div>
-          <input type="file" id="f-selfie" accept="image/*" capture="user" style="display:none" onchange="fileOk(this,'uz3','uz3-i','uz3-t','selfie','Selfie subida ✓')">
+          <input type="file" id="f-reverso-cam" accept="image/*" capture="environment" style="display:none" onchange="fileOk(this,'uz2','uz2-i','uz2-t','reverso','Reverso fotografiado ✓')">
+
+          <!-- Selfie -->
+          <div class="uz" id="uz3" onclick="document.getElementById('f-selfie').click()">
+            <i class="ti ti-camera-selfie" id="uz3-i"></i>
+            <p id="uz3-t">Toca para tomar tu <strong>selfie</strong> sosteniendo el documento</p>
+            <div style="display:flex;gap:8px;justify-content:center;margin-top:8px" class="doc-btns">
+              <span style="font-size:11px;color:var(--mx);background:var(--mx-light);padding:4px 10px;border-radius:20px;border:1px solid rgba(212,0,26,0.2)"><i class="ti ti-camera-selfie"></i> Cámara frontal</span>
+            </div>
+          </div>
+          <input type="file" id="f-selfie" accept="image/*" capture="user" style="display:none" onchange="fileOk(this,'uz3','uz3-i','uz3-t','selfie','Selfie tomada ✓')">
+
           <div id="id-alert" style="margin-top:.5rem"></div>
-          <div class="ibox"><i class="ti ti-lock"></i><span>Tus documentos se usan solo para verificación.</span></div>
+          <div class="ibox"><i class="ti ti-lock"></i><span>Tus documentos se usan solo para verificación. No los compartimos.</span></div>
           <button class="btn-primary btn-full" id="btn-id" onclick="subirDocs()">Continuar <i class="ti ti-arrow-right"></i></button>
         </div>
         <div class="sp" id="sp3">
@@ -1178,6 +1221,101 @@
   const style = document.createElement('style');
   style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
   document.head.appendChild(style);
+  let deferredPrompt = null;
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    setTimeout(() => {
+      if (!localStorage.getItem('pwa-dismissed')) {
+        document.getElementById('pwa-banner').style.display = 'block';
+      }
+    }, 3000);
+  });
+
+  function instalarPWA() {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => {
+        deferredPrompt = null;
+        document.getElementById('pwa-banner').style.display = 'none';
+        localStorage.setItem('pwa-dismissed', '1');
+      });
+    } else {
+      // iOS — mostrar instrucciones
+      alert('Para instalar en iPhone:\n1. Toca el botón compartir ↑ en Safari\n2. Selecciona "Agregar a pantalla de inicio"\n3. Toca "Agregar"');
+    }
+  }
+
+  // ── CÁMARA DOCUMENTO ──
+  let docActual = { zonaId: null, galId: null, camId: null };
+
+  function mostrarOpcionesDoc(zonaId, galId, camId) {
+    const el = document.getElementById(zonaId);
+    if (el.classList.contains('done')) return;
+    docActual = { zonaId, galId, camId };
+    const modal = document.getElementById('modal-doc');
+    modal.style.display = 'flex';
+    document.getElementById('modal-gallery-btn').onclick = elegirGaleria;
+    document.getElementById('modal-camera-btn').onclick = elegirCamara;
+  }
+
+  function elegirGaleria() {
+    cerrarModalDoc();
+    document.getElementById(docActual.galId).click();
+  }
+
+  function elegirCamara() {
+    cerrarModalDoc();
+    document.getElementById(docActual.camId).click();
+  }
+
+  function cerrarModalDoc() {
+    document.getElementById('modal-doc').style.display = 'none';
+  }
+
+  document.getElementById('modal-doc').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-doc')) cerrarModalDoc();
+  });
+
+
 </script>
+<!-- PWA INSTALL BANNER -->
+<div id="pwa-banner" style="display:none;position:fixed;bottom:80px;left:1rem;right:1rem;z-index:200;background:var(--dark);border-radius:var(--radius);padding:1rem 1.25rem;box-shadow:0 8px 32px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08)">
+  <div style="display:flex;align-items:center;gap:12px">
+    <img src="/icon-192.png" style="width:44px;height:44px;border-radius:10px;flex-shrink:0" onerror="this.style.display='none'">
+    <div style="flex:1">
+      <div style="font-family:var(--font-head);font-weight:700;font-size:14px;color:white">Instalar Maxikia</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px">Agrega la app a tu pantalla de inicio</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-shrink:0">
+      <button onclick="instalarPWA()" style="background:var(--mx);color:white;border:none;border-radius:var(--radius-sm);padding:8px 14px;font-size:13px;font-family:var(--font-body);cursor:pointer;font-weight:500">Instalar</button>
+      <button onclick="document.getElementById('pwa-banner').style.display='none'" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);border:none;border-radius:var(--radius-sm);padding:8px 10px;font-size:13px;cursor:pointer">✕</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL OPCIONES DOCUMENTO -->
+<div id="modal-doc" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:300;align-items:flex-end;justify-content:center">
+  <div style="background:white;border-radius:16px 16px 0 0;width:100%;max-width:440px;padding:1.5rem;margin:0 auto">
+    <div style="font-family:var(--font-head);font-weight:700;font-size:16px;margin-bottom:1.25rem;text-align:center">¿Cómo quieres subir la foto?</div>
+    <button id="modal-gallery-btn" style="display:flex;align-items:center;gap:12px;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:10px;cursor:pointer;font-family:var(--font-body);font-size:14px">
+      <i class="ti ti-photo" style="font-size:24px;color:var(--mx)"></i>
+      <div style="text-align:left"><div style="font-weight:500">Subir desde galería</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Selecciona una foto existente</div></div>
+    </button>
+    <button id="modal-camera-btn" style="display:flex;align-items:center;gap:12px;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;cursor:pointer;font-family:var(--font-body);font-size:14px">
+      <i class="ti ti-camera" style="font-size:24px;color:var(--mx)"></i>
+      <div style="text-align:left"><div style="font-weight:500">Tomar foto ahora</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Abre la cámara del celular</div></div>
+    </button>
+    <button onclick="cerrarModalDoc()" style="width:100%;background:none;border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-family:var(--font-body);font-size:14px;cursor:pointer;color:var(--muted)">Cancelar</button>
+  </div>
+</div>
+
 </body>
 </html>
