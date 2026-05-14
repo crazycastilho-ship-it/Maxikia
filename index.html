@@ -282,6 +282,9 @@
         <div class="hero-ctas">
           <button class="btn-primary" onclick="goPage('register')"><i class="ti ti-package"></i> Enviar ahora</button>
           <button class="btn-secondary" onclick="goPage('register')"><i class="ti ti-motorbike"></i> Quiero repartir y ganar</button>
+          <button id="btn-instalar-pwa" onclick="instalarPWA()" style="display:none;align-items:center;gap:8px;background:rgba(255,255,255,0.12);color:white;border:1px solid rgba(255,255,255,0.25);font-family:var(--font-body);font-size:14px;font-weight:500;padding:11px 18px;border-radius:var(--radius-sm);cursor:pointer">
+            <i class="ti ti-download"></i> Instalar app
+          </button>
         </div>
         <div class="hero-trust">
           <span><i class="ti ti-shield-check"></i> Identidad verificada</span>
@@ -726,25 +729,99 @@
   let ubicacionActual = null;
   let disponibleComoRepartidor = false;
 
-  // ── INIT — sesión persistente ──
+  // ── INIT — pedir autenticación siempre al abrir ──
   (async () => {
-    // Restaurar sesión existente
     const { data: { session } } = await sb.auth.getSession();
     if (session) {
       currentUser = session.user;
-      await showDashboard();
-    }
+      // Si viene de PWA o lleva más de 30 min — mostrar pantalla de bienvenida
+      const ultimaAuth = parseInt(localStorage.getItem('mx_last_auth') || '0');
+      const ahora = Date.now();
+      const treintaMinutos = 30 * 60 * 1000;
+      const esPWA = window.matchMedia('(display-mode: standalone)').matches ||
+                    window.navigator.standalone === true;
 
-    // Escuchar cambios de auth — solo para renovación de token
+      if (esPWA || (ahora - ultimaAuth) > treintaMinutos) {
+        // Mostrar pantalla de bienvenida — pedir autenticación
+        mostrarBienvenida();
+      } else {
+        // Sesión reciente — entrar directo
+        await showDashboard();
+      }
+    }
+    // Si no hay sesión — mostrar landing normal
+
+    // Escuchar cambios de auth
     sb.auth.onAuthStateChange((event, session) => {
       if (event === 'TOKEN_REFRESHED' && session) {
         currentUser = session.user;
       } else if (event === 'SIGNED_OUT') {
         currentUser = null;
+        localStorage.removeItem('mx_last_auth');
         goPage('landing');
       }
     });
   })();
+
+  function mostrarBienvenida() {
+    const bv = document.getElementById('welcome-screen');
+    if (bv) {
+      const meta = currentUser?.user_metadata;
+      const name = meta?.full_name || meta?.name || currentUser?.email?.split('@')[0] || 'Usuario';
+      const el = document.getElementById('welcome-name');
+      if (el) el.textContent = name;
+      bv.style.display = 'flex';
+    }
+  }
+
+  async function entrarConContrasena() {
+    const pass = document.getElementById('welcome-pass').value;
+    const alertEl = document.getElementById('welcome-alert');
+    if (!pass) { alertEl.innerHTML = '<div class="alert error">Ingresa tu contraseña.</div>'; return; }
+    const btn = document.getElementById('welcome-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i>';
+    const { error } = await sb.auth.signInWithPassword({
+      email: currentUser.email, password: pass
+    });
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-arrow-right"></i>';
+    if (error) { alertEl.innerHTML = '<div class="alert error">Contraseña incorrecta.</div>'; return; }
+    localStorage.setItem('mx_last_auth', Date.now().toString());
+    document.getElementById('welcome-screen').style.display = 'none';
+    await showDashboard();
+  }
+
+  async function entrarConHuellaWelcome() {
+    const alertEl = document.getElementById('welcome-alert');
+    if (!window.PublicKeyCredential) {
+      alertEl.innerHTML = '<div class="alert error">Usa tu contraseña.</div>'; return;
+    }
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { alertEl.innerHTML = '<div class="alert error">Sesión expirada. Usa tu contraseña.</div>'; return; }
+    try {
+      const assertion = await navigator.credentials.get({
+        publicKey: {
+          challenge: new TextEncoder().encode('mx_welcome_' + Date.now()),
+          rpId: window.location.hostname,
+          userVerification: 'preferred',
+          timeout: 60000
+        }
+      });
+      if (assertion) {
+        localStorage.setItem('mx_last_auth', Date.now().toString());
+        document.getElementById('welcome-screen').style.display = 'none';
+        await showDashboard();
+      }
+    } catch(e) {
+      alertEl.innerHTML = '<div class="alert error">No se pudo verificar. Usa tu contraseña.</div>';
+    }
+  }
+
+  function cerrarSesionWelcome() {
+    doLogout();
+    document.getElementById('welcome-screen').style.display = 'none';
+  }
 
   // ── GOOGLE MAPS LOADER ──
   function loadGoogleMaps(cb) {
@@ -1806,35 +1883,60 @@
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => reg.update()).catch(() => {});
     });
   }
 
   window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
     deferredPrompt = e;
+    // Mostrar botón instalar en landing
+    const btn = document.getElementById('btn-instalar-pwa');
+    if (btn) btn.style.display = 'inline-flex';
+    // Banner flotante después de 5 seg
     setTimeout(() => {
-      if (!localStorage.getItem('pwa-dismissed')) {
-        document.getElementById('pwa-banner').style.display = 'block';
+      if (!localStorage.getItem('pwa-installed')) {
+        const banner = document.getElementById('pwa-banner');
+        if (banner) banner.style.display = 'block';
       }
-    }, 3000);
+    }, 5000);
+  });
+
+  window.addEventListener('appinstalled', () => {
+    localStorage.setItem('pwa-installed', '1');
+    const banner = document.getElementById('pwa-banner');
+    if (banner) banner.style.display = 'none';
+    const btn = document.getElementById('btn-instalar-pwa');
+    if (btn) btn.style.display = 'none';
   });
 
   function instalarPWA() {
     if (deferredPrompt) {
       deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(() => {
+      deferredPrompt.userChoice.then(c => {
+        if (c.outcome === 'accepted') localStorage.setItem('pwa-installed', '1');
         deferredPrompt = null;
-        document.getElementById('pwa-banner').style.display = 'none';
-        localStorage.setItem('pwa-dismissed', '1');
+        const banner = document.getElementById('pwa-banner');
+        if (banner) banner.style.display = 'none';
       });
+    } else if (isIOS()) {
+      document.getElementById('ios-modal').style.display = 'flex';
     } else {
-      // iOS — mostrar instrucciones
-      alert('Para instalar en iPhone:\n1. Toca el botón compartir ↑ en Safari\n2. Selecciona "Agregar a pantalla de inicio"\n3. Toca "Agregar"');
+      // Chrome sin evento — puede que ya esté instalada o navegador diferente
+      alert('Para instalar Maxikia:\n\n📱 Android (Chrome):\nToca el menú ⋮ → "Agregar a pantalla de inicio"\n\n🍎 iPhone (Safari):\nToca el botón compartir ↑ → "Agregar a pantalla de inicio"');
     }
   }
 
-  // ── CÁMARA DOCUMENTO ──
+  // Mostrar botón instalar en iOS inmediatamente (Safari no dispara beforeinstallprompt)
+  window.addEventListener('DOMContentLoaded', () => {
+    const yaInstalada = window.matchMedia('(display-mode: standalone)').matches ||
+                        window.navigator.standalone === true;
+    if (!yaInstalada && isIOS()) {
+      const btn = document.getElementById('btn-instalar-pwa');
+      if (btn) btn.style.display = 'inline-flex';
+    }
+  });
   let docActual = { zonaId: null, galId: null, camId: null };
 
   function mostrarOpcionesDoc(zonaId, galId, camId) {
@@ -1892,6 +1994,62 @@
     <div style="text-align:center;margin-top:1.25rem">
       <span onclick="doLogout()" style="font-size:13px;color:rgba(255,255,255,0.3);cursor:pointer">No soy yo — cerrar sesión</span>
     </div>
+  </div>
+</div>
+
+<!-- PANTALLA DE BIENVENIDA (reautenticación) -->
+<div id="welcome-screen" style="display:none;position:fixed;inset:0;background:var(--dark);z-index:500;flex-direction:column;align-items:center;justify-content:center;padding:2rem">
+  <div style="width:100%;max-width:340px">
+    <div style="text-align:center;margin-bottom:2rem">
+      <img src="/icon-192.png" style="width:80px;height:80px;border-radius:18px;margin-bottom:1rem" onerror="this.style.display='none'">
+      <div style="font-family:var(--font-head);font-weight:800;font-size:22px;color:white">Maxi<span style="color:var(--mx2)">⋊</span>ia Express</div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.5);margin-top:6px">Bienvenido de vuelta,</div>
+      <div style="font-size:16px;color:white;font-weight:500;margin-top:2px" id="welcome-name">Usuario</div>
+    </div>
+    <div id="welcome-alert" style="margin-bottom:1rem"></div>
+    <div style="position:relative;margin-bottom:12px">
+      <input type="password" id="welcome-pass" class="field-input" placeholder="••••••••"
+        onkeydown="if(event.key==='Enter')entrarConContrasena()"
+        style="background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.15);color:white;padding-right:48px">
+      <button id="welcome-btn" onclick="entrarConContrasena()"
+        style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--mx);border:none;color:white;width:32px;height:32px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">
+        <i class="ti ti-arrow-right"></i>
+      </button>
+    </div>
+    <button onclick="entrarConHuellaWelcome()"
+      style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.8);border-radius:var(--radius-sm);padding:12px;font-family:var(--font-body);font-size:14px;cursor:pointer;margin-bottom:1rem">
+      <i class="ti ti-fingerprint" style="color:var(--mx2);font-size:20px"></i>
+      Usar huella o Face ID
+    </button>
+    <div style="text-align:center">
+      <span onclick="cerrarSesionWelcome()" style="font-size:13px;color:rgba(255,255,255,0.3);cursor:pointer">No soy yo — cambiar cuenta</span>
+    </div>
+  </div>
+</div>
+
+<!-- iOS INSTALL MODAL -->
+<div id="ios-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:600;align-items:flex-end;justify-content:center">
+  <div style="background:white;border-radius:16px 16px 0 0;width:100%;max-width:440px;padding:1.5rem;margin:0 auto">
+    <div style="text-align:center;margin-bottom:1.25rem">
+      <img src="/icon-192.png" style="width:56px;height:56px;border-radius:12px;margin-bottom:10px" onerror="this.style.display='none'">
+      <div style="font-family:var(--font-head);font-weight:700;font-size:17px">Instalar Maxi⋊ia Express</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px">Sigue estos pasos en Safari</div>
+    </div>
+    <div style="background:var(--surface);border-radius:var(--radius);padding:1rem;margin-bottom:1rem">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--mx);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0">1</div>
+        <div style="font-size:14px">Toca el botón <strong>Compartir</strong> <span style="font-size:18px">⬆️</span> en la barra inferior de Safari</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--mx);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0">2</div>
+        <div style="font-size:14px">Desliza y toca <strong>"Agregar a pantalla de inicio"</strong></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--mx);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0">3</div>
+        <div style="font-size:14px">Toca <strong>"Agregar"</strong> — ¡listo!</div>
+      </div>
+    </div>
+    <button onclick="document.getElementById('ios-modal').style.display='none'" style="width:100%;background:var(--dark);color:white;border:none;border-radius:var(--radius-sm);padding:13px;font-family:var(--font-body);font-size:14px;font-weight:500;cursor:pointer">Entendido</button>
   </div>
 </div>
 
