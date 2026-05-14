@@ -1339,7 +1339,48 @@
     setTimeout(() => { alerta.innerHTML = ''; rStep(3); }, 1500);
   }
 
-  // ── HUELLA — registro simplificado ──
+  // ── BIOMETRÍA — verificación local simple ──
+  // No usa Passkeys/WebAuthn. Usa la huella del dispositivo como
+  // confirmación local de que el usuario es quien dice ser.
+  // La sesión real sigue siendo de Supabase.
+
+  async function verificarHuellaLocal(onExito, onError) {
+    // Método 1: Web Authentication API con credencial existente
+    if (window.PublicKeyCredential) {
+      try {
+        // Verificar si hay autenticador de plataforma disponible
+        const disponible = await PublicKeyCredential
+          .isUserVerifyingPlatformAuthenticatorAvailable()
+          .catch(() => false);
+
+        if (disponible) {
+          // Intentar verificación sin credencial específica
+          // Esto activa la huella/Face ID del dispositivo
+          const resultado = await navigator.credentials.get({
+            publicKey: {
+              challenge: crypto.getRandomValues(new Uint8Array(32)),
+              rpId: window.location.hostname,
+              userVerification: 'required',
+              allowCredentials: [], // lista vacía = cualquier credencial del dispositivo
+              timeout: 60000
+            },
+            mediation: 'optional'
+          });
+          if (resultado) { onExito(); return; }
+        }
+      } catch(e) {
+        if (e.name === 'NotAllowedError') {
+          onError('Cancelaste la verificación.'); return;
+        }
+        // Si falla por falta de credencial, intentar método 2
+      }
+    }
+
+    // Método 2: Si no hay credencial registrada, pedirle que la registre primero
+    onError('No hay huella registrada en esta app. Primero debes registrar tu huella al crear la cuenta, o usa tu contraseña.');
+  }
+
+  // ── REGISTRO DE HUELLA ──
   async function registrarHuella() {
     const btn = document.getElementById('fpb');
     const hint = document.getElementById('fph');
@@ -1347,32 +1388,37 @@
     const alertEl = document.getElementById('fp-alert');
     const cont = document.getElementById('fpc');
 
-    // Verificar soporte básico
     if (!window.PublicKeyCredential) {
-      // Dispositivo no soporta — permitir omitir
-      alertEl.innerHTML = '<div class="alert error">Este dispositivo no soporta huella digital. Toca "Omitir" para continuar.</div>';
-      return;
+      alertEl.innerHTML = '<div class="alert error">Este dispositivo no soporta biometría. Usa "Omitir".</div>';
+      cont.style.opacity = '1'; cont.disabled = false; return;
+    }
+
+    const disponible = await PublicKeyCredential
+      .isUserVerifyingPlatformAuthenticatorAvailable().catch(() => false);
+    if (!disponible) {
+      alertEl.innerHTML = '<div class="alert error">No se detectó huella o Face ID. Usa "Omitir" para continuar.</div>';
+      cont.style.opacity = '1'; cont.disabled = false; return;
     }
 
     btn.classList.add('scanning');
-    hint.textContent = isIOS() ? 'Usa Face ID o Touch ID...' : 'Usa tu huella dactilar...';
-    sub.textContent = 'El dispositivo pedirá confirmación';
+    hint.textContent = isIOS() ? 'Toca el sensor Touch ID o mira la cámara Face ID...' : 'Toca el sensor de huella...';
+    sub.textContent = 'Espera la confirmación del dispositivo';
     alertEl.innerHTML = '';
 
     try {
-      const encoder = new TextEncoder();
-      const uid = currentUser?.id || ('user_' + Date.now());
-      // Usar siempre el hostname actual — evita errores de dominio
-      const rpId = window.location.hostname;
-      const rpName = 'Maxikia Express';
+      const uid = currentUser?.id || ('u_' + Date.now());
+      const uidBytes = new TextEncoder().encode(uid.slice(0, 64));
 
       const credential = await navigator.credentials.create({
         publicKey: {
-          challenge: encoder.encode('maxikia_reg_' + Date.now()),
-          rp: { name: rpName, id: rpId },
+          challenge: crypto.getRandomValues(new Uint8Array(32)),
+          rp: {
+            name: 'Maxikia Express',
+            id: window.location.hostname
+          },
           user: {
-            id: encoder.encode(uid.padEnd(16, '0').slice(0, 64)),
-            name: currentUser?.email || 'usuario',
+            id: uidBytes,
+            name: currentUser?.email || 'usuario@maxikia.com',
             displayName: currentUser?.user_metadata?.full_name || 'Usuario'
           },
           pubKeyCredParams: [
@@ -1381,8 +1427,8 @@
           ],
           authenticatorSelection: {
             authenticatorAttachment: 'platform',
-            userVerification: 'preferred',
-            requireResidentKey: false
+            userVerification: 'required',
+            residentKey: 'preferred'
           },
           timeout: 60000,
           attestation: 'none'
@@ -1390,35 +1436,29 @@
       });
 
       if (credential) {
-        btn.classList.remove('scanning');
-        btn.classList.add('done');
+        btn.classList.remove('scanning'); btn.classList.add('done');
         document.getElementById('fpi').className = 'ti ti-check';
-        hint.textContent = '¡Biometría registrada correctamente!';
-        sub.textContent = isIOS() ? 'Entrarás con Face ID' : 'Entrarás con tu huella';
-        cont.style.opacity = '1';
-        cont.disabled = false;
-        try {
-          const credId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
-          localStorage.setItem('mx_credId_' + rpId, credId);
-        } catch(e) {}
+        hint.textContent = '¡Huella registrada correctamente!';
+        sub.textContent = isIOS() ? 'Podrás entrar con Face ID o Touch ID' : 'Podrás entrar con tu huella dactilar';
+        alertEl.innerHTML = '';
+        cont.style.opacity = '1'; cont.disabled = false;
+        // Guardar que este usuario tiene huella registrada
+        localStorage.setItem('mx_bio_' + window.location.hostname, currentUser?.id || '1');
       }
     } catch(err) {
       btn.classList.remove('scanning');
       hint.textContent = 'Toca para intentar de nuevo';
       if (err.name === 'InvalidStateError') {
-        // Ya registrada — dejar continuar
         btn.classList.add('done');
         document.getElementById('fpi').className = 'ti ti-check';
-        hint.textContent = 'Biometría ya registrada.';
+        hint.textContent = 'Huella ya registrada anteriormente.';
         cont.style.opacity = '1'; cont.disabled = false;
+        localStorage.setItem('mx_bio_' + window.location.hostname, currentUser?.id || '1');
       } else if (err.name === 'NotAllowedError') {
-        alertEl.innerHTML = '<div class="alert error">Cancelaste. Toca el círculo para intentar de nuevo, o usa "Omitir".</div>';
-      } else if (err.name === 'NotSupportedError' || err.name === 'SecurityError') {
-        alertEl.innerHTML = '<div class="alert error">Biometría no disponible en este navegador. Usa "Omitir" para continuar con contraseña.</div>';
-        cont.style.opacity = '1'; cont.disabled = false;
+        alertEl.innerHTML = '<div class="alert error">Cancelaste. Toca de nuevo o usa "Omitir".</div>';
       } else {
-        // Cualquier otro error — permitir omitir
-        alertEl.innerHTML = '<div class="alert error">No se pudo configurar la biometría. Usa "Omitir" para continuar.</div>';
+        // Error genérico — permitir continuar sin huella
+        alertEl.innerHTML = '<div class="alert error">No se pudo registrar la huella en este dispositivo. Usa "Omitir" para continuar con contraseña.</div>';
         cont.style.opacity = '1'; cont.disabled = false;
       }
     }
@@ -1428,41 +1468,76 @@
   async function loginConHuella() {
     const alertEl = document.getElementById('login-alert');
 
-    if (!window.PublicKeyCredential) {
-      alertEl.innerHTML = '<div class="alert error">Este dispositivo no soporta biometría. Usa tu contraseña.</div>'; return;
-    }
-
-    // Verificar que haya sesión activa para restaurar
+    // Verificar sesión activa
     const { data: { session } } = await sb.auth.getSession();
     if (!session) {
-      alertEl.innerHTML = '<div class="alert error">Sesión expirada. Ingresa con tu contraseña.</div>'; return;
+      alertEl.innerHTML = '<div class="alert error">Sesión expirada. Ingresa con tu contraseña primero.</div>'; return;
     }
 
-    try {
-      const encoder = new TextEncoder();
-      const rpId = window.location.hostname;
+    // Verificar si tiene huella registrada
+    const tieneBio = localStorage.getItem('mx_bio_' + window.location.hostname);
+    if (!tieneBio) {
+      alertEl.innerHTML = '<div class="alert error">No tienes huella registrada. Ingresa con contraseña y regístrala al crear tu cuenta.</div>'; return;
+    }
 
-      const assertion = await navigator.credentials.get({
-        publicKey: {
-          challenge: encoder.encode('maxikia_login_' + Date.now()),
-          rpId: rpId,
-          userVerification: 'preferred',
-          timeout: 60000
-        }
-      });
-
-      if (assertion) {
-        // Biometría verificada — restaurar sesión
+    verificarHuellaLocal(
+      async () => {
+        // Éxito — restaurar sesión
         currentUser = session.user;
+        localStorage.setItem('mx_last_auth', Date.now().toString());
         showDashboard();
+      },
+      (msg) => {
+        alertEl.innerHTML = '<div class="alert error">' + msg + '</div>';
       }
-    } catch(err) {
-      if (err.name === 'NotAllowedError') {
-        alertEl.innerHTML = '<div class="alert error">Cancelaste. Intenta de nuevo o usa tu contraseña.</div>';
-      } else {
-        alertEl.innerHTML = '<div class="alert error">No se pudo verificar. Usa tu contraseña para entrar.</div>';
-      }
+    );
+  }
+
+  // ── DESBLOQUEAR CON HUELLA (pantalla bienvenida) ──
+  async function entrarConHuellaWelcome() {
+    const alertEl = document.getElementById('welcome-alert');
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      alertEl.innerHTML = '<div class="alert error">Sesión expirada. Usa tu contraseña.</div>'; return;
     }
+
+    const tieneBio = localStorage.getItem('mx_bio_' + window.location.hostname);
+    if (!tieneBio) {
+      alertEl.innerHTML = '<div class="alert error">No tienes huella registrada en este dispositivo. Usa tu contraseña.</div>'; return;
+    }
+
+    verificarHuellaLocal(
+      async () => {
+        localStorage.setItem('mx_last_auth', Date.now().toString());
+        document.getElementById('welcome-screen').style.display = 'none';
+        await showDashboard();
+      },
+      (msg) => {
+        alertEl.innerHTML = '<div class="alert error">' + msg + '</div>';
+      }
+    );
+  }
+
+  // ── DESBLOQUEAR CON HUELLA (pantalla bloqueo) ──
+  async function desbloquearConHuella() {
+    const alertEl = document.getElementById('lock-alert');
+    const tieneBio = localStorage.getItem('mx_bio_' + window.location.hostname);
+    if (!tieneBio) {
+      alertEl.innerHTML = '<div class="alert error">No tienes huella registrada. Usa tu contraseña.</div>'; return;
+    }
+
+    verificarHuellaLocal(
+      () => {
+        document.getElementById('lock-screen').style.display = 'none';
+        document.getElementById('lock-pass').value = '';
+        alertEl.innerHTML = '';
+        appBloqueada = false;
+        resetTimerInactividad();
+      },
+      (msg) => {
+        alertEl.innerHTML = '<div class="alert error">' + msg + '</div>';
+      }
+    );
   }
 
   function getRpId() { return window.location.hostname; }
