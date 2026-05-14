@@ -458,7 +458,7 @@
         <div style="text-align:right;margin-bottom:1rem"><a href="#" style="font-size:13px;color:var(--mx);text-decoration:none">¿Olvidaste tu contraseña?</a></div>
         <button class="btn-primary btn-full" id="login-btn" onclick="doLogin()">Entrar a mi cuenta</button>
         <div class="divider"><span>o</span></div>
-        <button class="btn-outline" onclick="doLogin()"><i class="ti ti-fingerprint" style="font-size:20px;color:var(--mx)"></i> Entrar con huella digital</button>
+        <button class="btn-outline" onclick="loginConHuella()"><i class="ti ti-fingerprint" style="font-size:20px;color:var(--mx)"></i> Entrar con huella digital</button>
         <div class="alink">¿No tienes cuenta? <span onclick="goPage('register')">Regístrate gratis</span></div>
       </div>
     </div>
@@ -566,33 +566,120 @@
       <!-- BILLETERA -->
       <div class="dp" id="dp-billetera">
         <div class="br"><button onclick="dTab('home')"><i class="ti ti-arrow-left" style="font-size:22px;color:var(--text)"></i></button><h3>Mi billetera</h3></div>
+
+        <!-- Saldo card -->
         <div style="background:var(--dark);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1rem;position:relative;overflow:hidden">
           <div style="position:absolute;top:-20px;right:-20px;font-size:100px;color:rgba(212,0,26,0.1);font-family:var(--font-head);font-weight:800;line-height:1">⋊</div>
           <div style="font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:6px">Saldo disponible</div>
           <div style="font-family:var(--font-head);font-weight:800;font-size:36px;color:white" id="wallet-saldo">$0</div>
           <div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:4px" id="wallet-email"></div>
+          <div style="display:flex;gap:10px;margin-top:1rem">
+            <button onclick="mostrarSeccion('recarga')" id="tab-recarga" style="flex:1;background:rgba(255,255,255,0.12);color:white;border:none;border-radius:var(--radius-sm);padding:9px;font-size:13px;font-family:var(--font-body);cursor:pointer;font-weight:500">
+              <i class="ti ti-plus"></i> Recargar
+            </button>
+            <button onclick="mostrarSeccion('retiro')" id="tab-retiro" style="flex:1;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);border:none;border-radius:var(--radius-sm);padding:9px;font-size:13px;font-family:var(--font-body);cursor:pointer">
+              <i class="ti ti-arrow-up"></i> Retirar
+            </button>
+          </div>
         </div>
-        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1rem">
-          <div style="font-family:var(--font-head);font-weight:700;font-size:15px;margin-bottom:.75rem">Recargar saldo</div>
-          <div style="background:var(--surface);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:1rem;font-size:13px;color:var(--muted)">
-            <i class="ti ti-info-circle" style="color:var(--mx)"></i>
-            Recarga mínima <strong style="color:var(--text)">$10.000</strong>. Transfiere y envía el comprobante por WhatsApp — acreditamos en menos de 30 minutos.
+
+        <!-- SECCIÓN RECARGA -->
+        <div id="seccion-recarga">
+          <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1rem">
+            <div style="font-family:var(--font-head);font-weight:700;font-size:15px;margin-bottom:.75rem">Recargar saldo</div>
+            <div style="background:var(--surface);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:1rem;font-size:13px;color:var(--muted)">
+              <i class="ti ti-info-circle" style="color:var(--mx)"></i>
+              Recarga mínima <strong style="color:var(--text)">$10.000</strong>. Transfiere y envía el comprobante — acreditamos en menos de 30 minutos.
+            </div>
+            <!-- Wompi (cuando esté activo) -->
+            <div id="wompi-container" style="display:none;margin-bottom:1rem">
+              <div style="font-size:12px;font-weight:500;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.3px">Pago con tarjeta / PSE</div>
+              <div class="field-group">
+                <label class="field-label">Monto a recargar</label>
+                <input type="number" class="field-input" id="wompi-monto" placeholder="10000" min="10000" step="1000" oninput="actualizarWompi()">
+              </div>
+              <div id="wompi-btn-container"></div>
+            </div>
+            <!-- Nequi -->
+            <div style="border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:10px;display:flex;align-items:center;gap:10px">
+              <div style="width:36px;height:36px;border-radius:8px;background:#8B1A8B;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="color:white;font-weight:800;font-size:13px">N</span></div>
+              <div><div style="font-weight:500;font-size:14px">Nequi</div><div style="font-size:13px;color:var(--muted)">3243334302</div></div>
+              <button onclick="copiar('3243334302','nc')" id="nc" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--muted)"><i class="ti ti-copy"></i> Copiar</button>
+            </div>
+            <div style="border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;display:flex;align-items:center;gap:10px">
+              <div style="width:36px;height:36px;border-radius:8px;background:#E8001C;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="color:white;font-weight:800;font-size:13px">D</span></div>
+              <div><div style="font-weight:500;font-size:14px">Daviplata</div><div style="font-size:13px;color:var(--muted)">3243334302</div></div>
+              <button onclick="copiar('3243334302','dc')" id="dc" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--muted)"><i class="ti ti-copy"></i> Copiar</button>
+            </div>
+            <a href="#" onclick="abrirWARecarga()" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:white;border:none;font-family:var(--font-body);font-size:14px;font-weight:500;padding:12px;border-radius:var(--radius-sm);cursor:pointer;text-decoration:none"><i class="ti ti-brand-whatsapp" style="font-size:18px"></i> Enviar comprobante por WhatsApp</a>
           </div>
-          <div style="border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:10px;display:flex;align-items:center;gap:10px">
-            <div style="width:36px;height:36px;border-radius:8px;background:#8B1A8B;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="color:white;font-weight:800;font-size:13px">N</span></div>
-            <div><div style="font-weight:500;font-size:14px">Nequi</div><div style="font-size:13px;color:var(--muted)">3243334302</div></div>
-            <button onclick="copiar('3243334302','nc')" id="nc" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--muted)"><i class="ti ti-copy"></i> Copiar</button>
-          </div>
-          <div style="border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;display:flex;align-items:center;gap:10px">
-            <div style="width:36px;height:36px;border-radius:8px;background:#E8001C;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="color:white;font-weight:800;font-size:13px">D</span></div>
-            <div><div style="font-weight:500;font-size:14px">Daviplata</div><div style="font-size:13px;color:var(--muted)">3243334302</div></div>
-            <button onclick="copiar('3243334302','dc')" id="dc" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--muted)"><i class="ti ti-copy"></i> Copiar</button>
-          </div>
-          <a id="wa-recarga" href="#" onclick="abrirWARecarga()" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:white;border:none;font-family:var(--font-body);font-size:14px;font-weight:500;padding:12px;border-radius:var(--radius-sm);cursor:pointer;text-decoration:none"><i class="ti ti-brand-whatsapp" style="font-size:18px"></i> Enviar comprobante por WhatsApp</a>
         </div>
+
+        <!-- SECCIÓN RETIRO -->
+        <div id="seccion-retiro" style="display:none">
+          <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1rem">
+            <div style="font-family:var(--font-head);font-weight:700;font-size:15px;margin-bottom:.75rem">Solicitar retiro</div>
+            <div style="background:var(--surface);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:1rem;font-size:13px;color:var(--muted)">
+              <i class="ti ti-info-circle" style="color:var(--mx)"></i>
+              Retiro mínimo <strong style="color:var(--text)">$10.000</strong>. Procesamos en menos de 24 horas hábiles.
+            </div>
+            <div class="field-group">
+              <label class="field-label">Monto a retirar</label>
+              <input type="number" class="field-input" id="retiro-monto" placeholder="10000" min="10000" step="1000">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Método de retiro</label>
+              <select class="field-input" id="retiro-metodo" onchange="mostrarCampoRetiro()">
+                <option value="">Selecciona...</option>
+                <option value="nequi">Nequi</option>
+                <option value="daviplata">Daviplata</option>
+                <option value="bancolombia">Bancolombia</option>
+                <option value="otro_banco">Otro banco</option>
+              </select>
+            </div>
+            <div id="campo-nequi" style="display:none" class="field-group">
+              <label class="field-label">Número Nequi</label>
+              <input type="tel" class="field-input" id="retiro-nequi" placeholder="3XX XXX XXXX">
+            </div>
+            <div id="campo-banco" style="display:none">
+              <div class="field-group">
+                <label class="field-label">Banco</label>
+                <input type="text" class="field-input" id="retiro-banco" placeholder="Nombre del banco">
+              </div>
+              <div class="field-group">
+                <label class="field-label">Número de cuenta</label>
+                <input type="text" class="field-input" id="retiro-cuenta" placeholder="Número de cuenta">
+              </div>
+              <div class="field-group">
+                <label class="field-label">Tipo de cuenta</label>
+                <select class="field-input" id="retiro-tipo">
+                  <option value="ahorros">Ahorros</option>
+                  <option value="corriente">Corriente</option>
+                </select>
+              </div>
+            </div>
+            <div id="retiro-alert" style="margin-bottom:.75rem"></div>
+            <button class="btn-primary btn-full" onclick="solicitarRetiro()">
+              <i class="ti ti-arrow-up"></i> Solicitar retiro
+            </button>
+          </div>
+          <!-- Retiros anteriores -->
+          <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem">
+            <div style="font-family:var(--font-head);font-weight:700;font-size:15px;margin-bottom:1rem">Mis retiros</div>
+            <div id="lista-retiros" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:13px">
+              <i class="ti ti-receipt" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>
+              Aquí aparecerán tus retiros.
+            </div>
+          </div>
+        </div>
+
+        <!-- Movimientos -->
         <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem">
           <div style="font-family:var(--font-head);font-weight:700;font-size:15px;margin-bottom:1rem">Movimientos</div>
-          <div id="wallet-movimientos" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:13px"><i class="ti ti-receipt" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>Tus recargas y pagos aparecerán aquí.</div>
+          <div id="wallet-movimientos" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:13px">
+            <i class="ti ti-receipt" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>
+            Tus recargas y pagos aparecerán aquí.
+          </div>
         </div>
       </div>
     </div>
@@ -617,7 +704,15 @@
   const WHATSAPP = '573243334302';
 
   const { createClient } = supabase;
-  const sb = createClient(SB_URL, SB_KEY);
+  const sb = createClient(SB_URL, SB_KEY, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storage: window.localStorage,
+      storageKey: 'maxikia-auth'
+    }
+  });
 
   let currentUser = null;
   let selectedRole = 'both';
@@ -631,10 +726,35 @@
   let ubicacionActual = null;
   let disponibleComoRepartidor = false;
 
-  // ── INIT ──
+  // ── INIT — sesión persistente ──
   (async () => {
+    // Mostrar loading mientras verifica sesión
+    document.body.style.opacity = '0';
+
+    // Escuchar cambios de auth en tiempo real
+    sb.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        currentUser = session.user;
+        if (document.getElementById('page-dashboard').classList.contains('active')) return;
+        if (document.getElementById('page-register').classList.contains('active')) return;
+        showDashboard();
+      } else if (event === 'SIGNED_OUT') {
+        currentUser = null;
+      } else if (event === 'TOKEN_REFRESHED' && session) {
+        currentUser = session.user;
+      }
+    });
+
+    // Restaurar sesión existente
     const { data: { session } } = await sb.auth.getSession();
-    if (session) { currentUser = session.user; showDashboard(); }
+    if (session) {
+      currentUser = session.user;
+      await showDashboard();
+    }
+
+    // Mostrar página
+    document.body.style.opacity = '1';
+    document.body.style.transition = 'opacity 0.2s';
   })();
 
   // ── GOOGLE MAPS LOADER ──
@@ -1153,35 +1273,147 @@
     setTimeout(() => { alerta.innerHTML = ''; rStep(3); }, 1500);
   }
 
-  // ── HUELLA REAL (WebAuthn) ──
+  // ── HUELLA REAL (WebAuthn) — compatible móvil ──
   async function registrarHuella() {
-    const btn = document.getElementById('fpb'), hint = document.getElementById('fph');
-    const sub = document.getElementById('fp-sub'), alertEl = document.getElementById('fp-alert'), cont = document.getElementById('fpc');
+    const btn = document.getElementById('fpb');
+    const hint = document.getElementById('fph');
+    const sub = document.getElementById('fp-sub');
+    const alertEl = document.getElementById('fp-alert');
+    const cont = document.getElementById('fpc');
+
+    // Verificar soporte
     if (!window.PublicKeyCredential) {
-      alertEl.innerHTML = '<div class="alert error">Tu dispositivo no soporta biometría. Usa "Omitir".</div>'; return;
+      alertEl.innerHTML = '<div class="alert error">Tu dispositivo no soporta biometría. Usa "Omitir" para continuar.</div>';
+      return;
     }
-    btn.classList.add('scanning'); hint.textContent = 'Esperando biometría...'; sub.textContent = 'Apoya el dedo o mira la cámara';
+
+    // Verificar disponibilidad en plataforma
+    const disponible = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().catch(() => false);
+    if (!disponible) {
+      alertEl.innerHTML = '<div class="alert error">No se encontró huella o Face ID en este dispositivo. Usa "Omitir".</div>';
+      return;
+    }
+
+    btn.classList.add('scanning');
+    hint.textContent = 'Esperando biometría...';
+    sub.textContent = isIOS() ? 'Usa Face ID o Touch ID' : 'Apoya el dedo en el sensor';
+
     try {
       const encoder = new TextEncoder();
       const uid = currentUser?.id || 'user-' + Date.now();
-      const cred = await navigator.credentials.create({ publicKey: {
-        challenge: encoder.encode('mx-' + Date.now()),
-        rp: { name: 'Maxikia', id: location.hostname.includes('localhost') ? 'localhost' : 'maxikia.com' },
-        user: { id: encoder.encode(uid.slice(0,64)), name: currentUser?.email || 'user', displayName: currentUser?.user_metadata?.full_name || 'Usuario' },
-        pubKeyCredParams: [{ alg: -7, type: 'public-key' }, { alg: -257, type: 'public-key' }],
-        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
-        timeout: 60000
-      }});
-      btn.classList.remove('scanning'); btn.classList.add('done');
-      document.getElementById('fpi').className = 'ti ti-check';
-      hint.textContent = '¡Biometría registrada!'; sub.textContent = 'Puedes entrar con huella o Face ID';
-      alertEl.innerHTML = ''; cont.style.opacity = '1'; cont.disabled = false;
-      localStorage.setItem('mx_cred', btoa(String.fromCharCode(...new Uint8Array(cred.rawId))));
+      // Dominio correcto según donde esté corriendo
+      const rpId = getRpId();
+
+      const cred = await navigator.credentials.create({
+        publicKey: {
+          challenge: encoder.encode('mx-' + Date.now()),
+          rp: { name: 'Maxi⋊ia Express', id: rpId },
+          user: {
+            id: encoder.encode(uid.slice(0, 64)),
+            name: currentUser?.email || 'usuario@maxikia.com',
+            displayName: currentUser?.user_metadata?.full_name || 'Usuario'
+          },
+          pubKeyCredParams: [
+            { alg: -7, type: 'public-key' },
+            { alg: -257, type: 'public-key' }
+          ],
+          authenticatorSelection: {
+            authenticatorAttachment: 'platform',
+            userVerification: 'required',
+            requireResidentKey: false
+          },
+          timeout: 60000
+        }
+      });
+
+      if (cred) {
+        btn.classList.remove('scanning');
+        btn.classList.add('done');
+        document.getElementById('fpi').className = 'ti ti-check';
+        hint.textContent = '¡Biometría registrada!';
+        sub.textContent = isIOS() ? 'Puedes entrar con Face ID' : 'Puedes entrar con tu huella';
+        alertEl.innerHTML = '';
+        cont.style.opacity = '1';
+        cont.disabled = false;
+        // Guardar ID de credencial
+        try {
+          localStorage.setItem('mx_cred_' + uid.slice(0,8),
+            btoa(String.fromCharCode(...new Uint8Array(cred.rawId))));
+        } catch(e) {}
+      }
     } catch(err) {
       btn.classList.remove('scanning');
-      if (err.name === 'InvalidStateError') { cont.style.opacity='1'; cont.disabled=false; alertEl.innerHTML='<div class="alert success">Biometría ya registrada. Puedes continuar.</div>'; }
-      else alertEl.innerHTML = '<div class="alert error">' + (err.name === 'NotAllowedError' ? 'Cancelaste. Intenta de nuevo o usa "Omitir".' : 'Error: ' + err.message) + '</div>';
+      let msg = '';
+      switch(err.name) {
+        case 'NotAllowedError':
+          msg = 'Cancelaste la verificación. Toca el círculo para intentar de nuevo.'; break;
+        case 'InvalidStateError':
+          msg = ''; // Ya registrado — permitir continuar
+          cont.style.opacity = '1'; cont.disabled = false;
+          btn.classList.add('done');
+          document.getElementById('fpi').className = 'ti ti-check';
+          hint.textContent = 'Biometría ya registrada. Puedes continuar.';
+          break;
+        case 'NotSupportedError':
+          msg = 'Este navegador no soporta biometría. Intenta desde Chrome o Safari. Usa "Omitir" por ahora.'; break;
+        case 'SecurityError':
+          msg = 'Error de seguridad. Asegúrate de estar en maxikia.com. Usa "Omitir".'; break;
+        default:
+          msg = 'No se pudo registrar: ' + err.message + '. Usa "Omitir" para continuar.';
+      }
+      if (msg) alertEl.innerHTML = '<div class="alert error">' + msg + '</div>';
       hint.textContent = 'Toca para intentar de nuevo';
+    }
+  }
+
+  function getRpId() {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') return 'localhost';
+    if (host.includes('maxikia.com')) return 'maxikia.com';
+    return host; // vercel preview u otro dominio
+  }
+
+  function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+
+  // ── LOGIN CON HUELLA ──
+  async function loginConHuella() {
+    const alertEl = document.getElementById('login-alert');
+    if (!window.PublicKeyCredential) {
+      alertEl.innerHTML = '<div class="alert error">Este dispositivo no soporta biometría.</div>'; return;
+    }
+    const disponible = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().catch(() => false);
+    if (!disponible) {
+      alertEl.innerHTML = '<div class="alert error">No se encontró huella o Face ID. Usa tu contraseña.</div>'; return;
+    }
+    try {
+      const encoder = new TextEncoder();
+      const cred = await navigator.credentials.get({
+        publicKey: {
+          challenge: encoder.encode('mx-login-' + Date.now()),
+          rpId: getRpId(),
+          userVerification: 'required',
+          timeout: 60000
+        }
+      });
+      if (cred) {
+        // Login exitoso con biometría — buscar sesión guardada
+        const { data: { session } } = await sb.auth.getSession();
+        if (session) {
+          currentUser = session.user;
+          showDashboard();
+        } else {
+          alertEl.innerHTML = '<div class="alert error">Sesión expirada. Ingresa con tu contraseña una vez más.</div>';
+        }
+      }
+    } catch(err) {
+      if (err.name === 'NotAllowedError') {
+        alertEl.innerHTML = '<div class="alert error">Cancelaste. Usa tu contraseña para entrar.</div>';
+      } else {
+        alertEl.innerHTML = '<div class="alert error">No se pudo verificar. Usa tu contraseña.</div>';
+      }
     }
   }
 
@@ -1293,7 +1525,131 @@
     }).join('');
   }
 
-  // ── WALLET ──
+  // ── WOMPI CONFIG (pegar llaves cuando Wompi apruebe) ──
+  const WOMPI_PUB_KEY = ''; // ← Pegar aquí: pub_key_...
+  const WOMPI_ACTIVO = WOMPI_PUB_KEY !== '';
+
+  function iniciarWompi() {
+    if (!WOMPI_ACTIVO) return;
+    const script = document.createElement('script');
+    script.src = 'https://checkout.wompi.co/widget.js';
+    script.setAttribute('data-render', 'button');
+    script.setAttribute('data-public-key', WOMPI_PUB_KEY);
+    script.setAttribute('data-currency', 'COP');
+    script.setAttribute('data-amount-in-cents', '1000000');
+    script.setAttribute('data-reference', 'MX-' + currentUser.id + '-' + Date.now());
+    script.setAttribute('data-signature:integrity', '');
+    document.getElementById('wompi-btn-container').appendChild(script);
+    document.getElementById('wompi-container').style.display = 'block';
+  }
+
+  function actualizarWompi() {
+    const monto = parseInt(document.getElementById('wompi-monto').value) || 0;
+    if (monto >= 10000) {
+      const script = document.querySelector('#wompi-btn-container script');
+      if (script) script.setAttribute('data-amount-in-cents', monto * 100);
+    }
+  }
+
+  // ── BILLETERA SECCIONES ──
+  function mostrarSeccion(sec) {
+    document.getElementById('seccion-recarga').style.display = sec === 'recarga' ? 'block' : 'none';
+    document.getElementById('seccion-retiro').style.display = sec === 'retiro' ? 'block' : 'none';
+    document.getElementById('tab-recarga').style.background = sec === 'recarga' ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.06)';
+    document.getElementById('tab-recarga').style.color = sec === 'recarga' ? 'white' : 'rgba(255,255,255,0.6)';
+    document.getElementById('tab-retiro').style.background = sec === 'retiro' ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.06)';
+    document.getElementById('tab-retiro').style.color = sec === 'retiro' ? 'white' : 'rgba(255,255,255,0.6)';
+    if (sec === 'retiro') cargarRetiros();
+  }
+
+  function mostrarCampoRetiro() {
+    const metodo = document.getElementById('retiro-metodo').value;
+    document.getElementById('campo-nequi').style.display = (metodo === 'nequi' || metodo === 'daviplata') ? 'block' : 'none';
+    document.getElementById('campo-banco').style.display = (metodo === 'bancolombia' || metodo === 'otro_banco') ? 'block' : 'none';
+    if (metodo === 'nequi') document.getElementById('retiro-nequi').placeholder = 'Número Nequi';
+    if (metodo === 'daviplata') document.getElementById('retiro-nequi').placeholder = 'Número Daviplata';
+  }
+
+  async function solicitarRetiro() {
+    const monto = parseInt(document.getElementById('retiro-monto').value);
+    const metodo = document.getElementById('retiro-metodo').value;
+    const alertEl = document.getElementById('retiro-alert');
+
+    if (!monto || monto < 10000) {
+      alertEl.innerHTML = '<div class="alert error">Monto mínimo de retiro: $10.000</div>'; return;
+    }
+    if (!metodo) {
+      alertEl.innerHTML = '<div class="alert error">Selecciona el método de retiro.</div>'; return;
+    }
+
+    // Verificar saldo
+    const { data: perfil } = await sb.from('perfiles').select('saldo').eq('id', currentUser.id).single();
+    const saldo = perfil?.saldo || 0;
+    if (saldo < monto) {
+      alertEl.innerHTML = `<div class="alert error">Saldo insuficiente. Tienes $${saldo.toLocaleString('es-CO')}.</div>`; return;
+    }
+
+    // Obtener datos de cuenta
+    let datosCuenta = {};
+    if (metodo === 'nequi' || metodo === 'daviplata') {
+      datosCuenta.numero = document.getElementById('retiro-nequi').value;
+      if (!datosCuenta.numero) { alertEl.innerHTML = '<div class="alert error">Ingresa el número.</div>'; return; }
+    } else {
+      datosCuenta.banco = document.getElementById('retiro-banco').value;
+      datosCuenta.cuenta = document.getElementById('retiro-cuenta').value;
+      datosCuenta.tipo = document.getElementById('retiro-tipo').value;
+      if (!datosCuenta.banco || !datosCuenta.cuenta) { alertEl.innerHTML = '<div class="alert error">Completa los datos bancarios.</div>'; return; }
+    }
+
+    const btn = document.querySelector('#seccion-retiro .btn-primary');
+    btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Procesando...';
+
+    // Reservar saldo (descontar mientras se procesa)
+    await sb.from('perfiles').update({ saldo: saldo - monto }).eq('id', currentUser.id);
+
+    // Registrar solicitud de retiro
+    const { error } = await sb.from('retiros').insert({
+      usuario_id: currentUser.id,
+      monto, metodo,
+      datos_cuenta: JSON.stringify(datosCuenta),
+      estado: 'pendiente',
+      created_at: new Date().toISOString()
+    });
+
+    btn.disabled = false; btn.innerHTML = '<i class="ti ti-arrow-up"></i> Solicitar retiro';
+
+    if (error) {
+      // Revertir saldo si falla
+      await sb.from('perfiles').update({ saldo }).eq('id', currentUser.id);
+      alertEl.innerHTML = '<div class="alert error">Error: ' + error.message + '</div>'; return;
+    }
+
+    // Actualizar saldo mostrado
+    document.getElementById('wallet-saldo').textContent = '$' + (saldo - monto).toLocaleString('es-CO');
+    document.getElementById('dash-saldo').textContent = '$' + (saldo - monto).toLocaleString('es-CO');
+
+    alertEl.innerHTML = `<div class="alert success">✓ Retiro de $${monto.toLocaleString('es-CO')} solicitado. Lo procesamos en menos de 24 horas hábiles.</div>`;
+    document.getElementById('retiro-monto').value = '';
+    document.getElementById('retiro-metodo').value = '';
+    cargarRetiros();
+  }
+
+  async function cargarRetiros() {
+    if (!currentUser) return;
+    const { data } = await sb.from('retiros').select('*')
+      .eq('usuario_id', currentUser.id).order('created_at', { ascending: false }).limit(10);
+    const cont = document.getElementById('lista-retiros');
+    if (!data || data.length === 0) return;
+    const colores = { pendiente: '#BA7517', procesando: '#378ADD', completado: '#1D9E75', rechazado: '#D4001A' };
+    cont.innerHTML = data.map(r => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-size:13px;font-weight:500">$${r.monto.toLocaleString('es-CO')}</div>
+          <div style="font-size:11px;color:var(--muted)">${r.metodo} · ${new Date(r.created_at).toLocaleDateString('es-CO')}</div>
+        </div>
+        <span style="font-size:11px;padding:3px 8px;border-radius:20px;font-weight:500;background:${colores[r.estado]}22;color:${colores[r.estado]}">${r.estado}</span>
+      </div>`).join('');
+  }
   async function cargarWallet() {
     if (!currentUser) return;
     document.getElementById('wallet-email').textContent = currentUser.email;
