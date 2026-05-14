@@ -656,20 +656,39 @@
   }
 
   function verPedido(p) {
+    const fotoHtml = p.foto_entrega
+      ? `<div class="detail-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+           <span class="detail-label">Foto de entrega</span>
+           <img src="#" id="admin-foto-entrega" style="width:100%;border-radius:8px;max-height:200px;object-fit:cover;border:1px solid var(--border)">
+         </div>`
+      : `<div class="detail-row"><span class="detail-label">Foto de entrega</span><span class="detail-value" style="color:var(--muted)">Sin foto</span></div>`;
+
     document.getElementById('modal-pedido-body').innerHTML = `
-      <div class="detail-row"><span class="detail-label">ID</span><span class="detail-value" style="font-family:monospace;font-size:12px">${p.id}</span></div>
+      <div class="detail-row"><span class="detail-label">ID</span><span class="detail-value" style="font-family:monospace;font-size:11px">${p.id}</span></div>
       <div class="detail-row"><span class="detail-label">Descripción</span><span class="detail-value">${p.descripcion}</span></div>
       <div class="detail-row"><span class="detail-label">Origen</span><span class="detail-value">${p.origen}</span></div>
       <div class="detail-row"><span class="detail-label">Destino</span><span class="detail-value">${p.destino}</span></div>
       <div class="detail-row"><span class="detail-label">Distancia</span><span class="detail-value">${p.distancia_km ? p.distancia_km.toFixed(2) + ' km' : '—'}</span></div>
       <div class="detail-row"><span class="detail-label">Peso</span><span class="detail-value">${p.peso || '—'}</span></div>
-      <div class="detail-row"><span class="detail-label">Precio</span><span class="detail-value">$${p.precio.toLocaleString('es-CO')}</span></div>
-      <div class="detail-row"><span class="detail-label">Tu comisión</span><span class="detail-value" style="color:var(--green)">$${Math.round(p.precio * COMISION).toLocaleString('es-CO')}</span></div>
+      <div class="detail-row"><span class="detail-label">Precio cliente</span><span class="detail-value">$${p.precio.toLocaleString('es-CO')}</span></div>
+      <div class="detail-row"><span class="detail-label">Tu comisión (25%)</span><span class="detail-value" style="color:var(--green)">$${Math.round(p.precio * COMISION).toLocaleString('es-CO')}</span></div>
       <div class="detail-row"><span class="detail-label">Estado</span><span class="detail-value"><span class="pill p-${p.estado}">${p.estado}</span></span></div>
       <div class="detail-row"><span class="detail-label">Notas</span><span class="detail-value">${p.notas || '—'}</span></div>
       <div class="detail-row"><span class="detail-label">Fecha</span><span class="detail-value">${new Date(p.created_at).toLocaleString('es-CO')}</span></div>
+      ${fotoHtml}
     `;
     document.getElementById('modal-pedido').classList.add('open');
+
+    // Cargar foto de entrega si existe
+    if (p.foto_entrega) {
+      sb.storage.from('documentos').createSignedUrl(p.foto_entrega, 3600)
+        .then(({ data }) => {
+          if (data?.signedUrl) {
+            const img = document.getElementById('admin-foto-entrega');
+            if (img) img.src = data.signedUrl;
+          }
+        });
+    }
   }
 
   // ── USUARIOS ──

@@ -1371,8 +1371,21 @@
     if (faltantes.length > 0) {
       alerta.innerHTML = '<div class="alert error">Faltan: ' + faltantes.join(', ') + '.</div>'; return;
     }
+
+    // Siempre refrescar sesión antes de subir
     if (!currentUser) {
-      alerta.innerHTML = '<div class="alert error">Sesión expirada. Vuelve a iniciar sesión.</div>'; return;
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) {
+        currentUser = session.user;
+      } else {
+        const { data: refreshed } = await sb.auth.refreshSession();
+        if (refreshed?.session) {
+          currentUser = refreshed.session.user;
+        } else {
+          alerta.innerHTML = '<div class="alert error">Sesión no disponible. <span style="color:var(--mx);cursor:pointer;font-weight:500" onclick="goPage(\'login\')">Inicia sesión</span> y vuelve al paso de documentos.</div>';
+          return;
+        }
+      }
     }
 
     alerta.innerHTML = '';
@@ -1401,7 +1414,6 @@
 
       const ruta = uid + '/' + a.nombre + '_' + ts + '.jpg';
 
-      // Subir directamente sin comprimir para identificar el problema
       const { error } = await sb.storage
         .from('documentos')
         .upload(ruta, file, { contentType: 'image/jpeg' });
@@ -1409,7 +1421,7 @@
       if (error) {
         btn.disabled = false;
         btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
-        alerta.innerHTML = '<div class="alert error">Error en ' + a.nombre + ':<br><strong>' + error.message + '</strong><br>Código: ' + (error.statusCode || 'N/A') + '<br>Tamaño: ' + Math.round(file.size/1024) + 'KB</div>';
+        alerta.innerHTML = '<div class="alert error">Error en ' + a.nombre + ': ' + error.message + ' (Código: ' + (error.statusCode || 'N/A') + ')</div>';
         return;
       }
     }
@@ -1732,15 +1744,77 @@
     const cont = document.getElementById('historial-list');
     if (!data || data.length === 0) return;
     const estados = { buscando: ['pp','Buscando'], en_camino: ['pa','En camino'], entregado: ['pd','Entregado'], cancelado: ['pd','Cancelado'] };
-    cont.innerHTML = data.map(p => {
+
+    // Generar URLs firmadas para fotos de entrega
+    const rows = await Promise.all(data.map(async p => {
       const [cls, label] = estados[p.estado] || ['pd', p.estado];
       const esRepartidor = p.repartidor_id === currentUser.id;
-      return `<div class="orow">
-        <div class="oico ${esRepartidor ? 'store' : 'pkg'}"><i class="ti ti-${esRepartidor ? 'motorbike' : 'package'}"></i></div>
-        <div class="oi"><div class="on">${p.descripcion}</div><div class="om">${p.origen} → ${p.destino}</div></div>
-        <div class="or"><div class="op" style="${esRepartidor ? 'color:var(--green)' : ''}">$${p.precio.toLocaleString('es-CO')}</div><span class="pill ${cls}">${label}</span></div>
+      const monto = esRepartidor
+        ? Math.round(p.precio * COMISION_REPARTIDOR)
+        : p.precio;
+
+      let fotoHtml = '';
+      if (p.estado === 'entregado' && p.foto_entrega) {
+        const { data: signed } = await sb.storage
+          .from('documentos')
+          .createSignedUrl(p.foto_entrega, 3600);
+        if (signed?.signedUrl) {
+          fotoHtml = `
+            <div style="margin-top:8px">
+              <div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px">
+                ${esRepartidor ? '📸 Foto de entrega' : '📸 Prueba de entrega'}
+              </div>
+              <img src="${signed.signedUrl}"
+                style="width:100%;border-radius:8px;max-height:160px;object-fit:cover;border:1px solid var(--border);cursor:pointer"
+                onclick="verFotoEntrega('${signed.signedUrl}')"
+                onerror="this.parentElement.style.display='none'">
+            </div>`;
+        }
+      } else if (p.estado === 'entregado' && !p.foto_entrega) {
+        // No hay foto — solo para cliente
+        if (!esRepartidor) {
+          fotoHtml = `<div style="margin-top:6px;font-size:12px;color:var(--muted)">
+            <i class="ti ti-camera-off" style="font-size:13px"></i> Sin foto de entrega
+          </div>`;
+        }
+      }
+
+      return `<div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="oico ${esRepartidor ? 'store' : 'pkg'}" style="flex-shrink:0">
+            <i class="ti ti-${esRepartidor ? 'motorbike' : 'package'}"></i>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div class="on">${p.descripcion}</div>
+            <div class="om">${p.origen} → ${p.destino}</div>
+            <div class="om">${new Date(p.created_at).toLocaleDateString('es-CO')}</div>
+          </div>
+          <div class="or" style="flex-shrink:0">
+            <div class="op" style="${esRepartidor ? 'color:var(--green)' : ''}">
+              ${esRepartidor ? '+' : ''}$${monto.toLocaleString('es-CO')}
+            </div>
+            <span class="pill ${cls}">${label}</span>
+          </div>
+        </div>
+        ${fotoHtml}
       </div>`;
-    }).join('');
+    }));
+
+    cont.innerHTML = rows.join('');
+  }
+
+  function verFotoEntrega(url) {
+    // Abrir foto en pantalla completa
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:600;display:flex;align-items:center;justify-content:center;padding:1rem';
+    overlay.innerHTML = `
+      <div style="position:relative;max-width:100%;max-height:100%">
+        <img src="${url}" style="max-width:100%;max-height:90vh;border-radius:8px;object-fit:contain">
+        <button onclick="this.closest('div').parentElement.remove()"
+          style="position:absolute;top:-12px;right:-12px;background:white;border:none;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>
+      </div>`;
+    overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+    document.body.appendChild(overlay);
   }
 
   // ── WOMPI CONFIG (pegar llaves cuando Wompi apruebe) ──
