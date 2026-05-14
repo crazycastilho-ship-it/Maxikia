@@ -2249,9 +2249,12 @@
     document.getElementById('modal-doc').style.display = 'none';
   }
 
-  document.getElementById('modal-doc').addEventListener('click', e => {
-    if (e.target === document.getElementById('modal-doc')) cerrarModalDoc();
-  });
+  const modalDoc = document.getElementById('modal-doc');
+  if (modalDoc) {
+    modalDoc.addEventListener('click', e => {
+      if (e.target === modalDoc) cerrarModalDoc();
+    });
+  }
 
 
 </script>
