@@ -207,6 +207,10 @@
         <i class="ti ti-cash"></i> Recargas
         <span id="badge-recargas" style="margin-left:auto;background:var(--mx);color:white;font-size:10px;padding:2px 6px;border-radius:10px;display:none">0</span>
       </div>
+      <div class="nav-item" onclick="showPanel('retiros')" id="nav-retiros">
+        <i class="ti ti-arrow-up"></i> Retiros
+        <span id="badge-retiros" style="margin-left:auto;background:var(--mx);color:white;font-size:10px;padding:2px 6px;border-radius:10px;display:none">0</span>
+      </div>
       <div class="nav-item" onclick="showPanel('ingresos')" id="nav-ingresos">
         <i class="ti ti-chart-bar"></i> Ingresos
       </div>
@@ -388,6 +392,35 @@
         </div>
       </div>
 
+      <!-- RETIROS -->
+      <div class="panel" id="panel-retiros">
+        <div style="background:var(--green-light);border:1px solid rgba(29,158,117,0.2);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:14px;color:#0F6E56">
+          <i class="ti ti-info-circle"></i> Cuando apruebes un retiro, transfiere manualmente por Nequi/Daviplata o Bre-B al número del repartidor y marca como completado.
+        </div>
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">Solicitudes de retiro</div>
+            <select id="filtro-retiro" class="field-input" style="width:auto;padding:6px 10px;font-size:13px" onchange="cargarRetiros()">
+              <option value="">Todos</option>
+              <option value="pendiente">Pendientes</option>
+              <option value="procesando">Procesando</option>
+              <option value="completado">Completados</option>
+              <option value="rechazado">Rechazados</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Usuario</th><th>Monto</th><th>Método</th><th>Datos de pago</th><th>Estado</th><th>Fecha</th><th>Acciones</th>
+              </tr></thead>
+              <tbody id="retiros-tbody">
+                <tr><td colspan="7"><div class="empty-state"><i class="ti ti-loader spinning"></i>Cargando...</div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- INGRESOS -->
       <div class="panel" id="panel-ingresos">
         <div class="metrics-grid" style="grid-template-columns:repeat(3,1fr)">
@@ -521,12 +554,12 @@
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('panel-' + id).classList.add('active');
     document.getElementById('nav-' + id).classList.add('active');
-    const titles = { dashboard: 'Dashboard', pedidos: 'Pedidos', usuarios: 'Usuarios', verificaciones: 'Verificaciones', recargas: 'Recargas', ingresos: 'Ingresos' };
+    const titles = { dashboard: 'Dashboard', pedidos: 'Pedidos', usuarios: 'Usuarios', verificaciones: 'Verificaciones', recargas: 'Recargas', retiros: 'Retiros', ingresos: 'Ingresos' };
     document.getElementById('topbar-title').textContent = titles[id] || id;
     if (id === 'pedidos') cargarPedidos();
     if (id === 'usuarios') cargarUsuarios();
     if (id === 'verificaciones') cargarVerificaciones();
-    if (id === 'ingresos') cargarIngresos();
+    if (id === 'retiros') cargarRetiros();
   }
 
   async function recargarTodo() {
@@ -711,33 +744,61 @@
   }
 
   async function verDocumentos(userId, nombre) {
-    // Obtener URLs firmadas de los documentos
+    // Mostrar modal inmediatamente con loading
+    document.getElementById('modal-usuario-body').innerHTML = `
+      <div style="text-align:center;padding:2rem;color:var(--muted)">
+        <i class="ti ti-loader-2" style="font-size:28px;animation:spin 1s linear infinite;display:block;margin-bottom:8px"></i>
+        Cargando documentos...
+      </div>`;
+    document.getElementById('modal-usuario').classList.add('open');
+
     const tipos = ['frente', 'reverso', 'selfie'];
-    const exts = ['jpg', 'jpeg', 'png', 'JPG', 'PNG'];
-    let html = `<div style="font-weight:600;margin-bottom:1rem">${nombre}</div>`;
+    const etiquetas = { frente: '📄 Frente de cédula', reverso: '📄 Reverso de cédula', selfie: '🤳 Selfie con documento' };
+    let html = `<div style="font-family:var(--font-head);font-weight:700;font-size:16px;margin-bottom:1.25rem">${nombre}</div>`;
 
     for (const tipo of tipos) {
+      // Intentar con .jpg primero (nuevo formato), luego otros
+      const exts = ['jpg', 'jpeg', 'png', 'JPG', 'JPEG', 'PNG'];
       let urlEncontrada = null;
+
       for (const ext of exts) {
-        const { data } = await sb.storage.from('documentos').createSignedUrl(`${userId}/${tipo}.${ext}`, 3600);
-        if (data?.signedUrl) { urlEncontrada = data.signedUrl; break; }
+        const { data, error } = await sb.storage
+          .from('documentos')
+          .createSignedUrl(`${userId}/${tipo}.${ext}`, 3600);
+        if (data?.signedUrl && !error) {
+          urlEncontrada = data.signedUrl;
+          break;
+        }
       }
-      html += `<div style="margin-bottom:1rem">
-        <div style="font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;margin-bottom:6px">${tipo}</div>
+
+      html += `<div style="margin-bottom:1.25rem">
+        <div style="font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">
+          ${etiquetas[tipo]}
+        </div>
         ${urlEncontrada
-          ? `<img src="${urlEncontrada}" style="width:100%;border-radius:8px;border:1px solid var(--border);max-height:200px;object-fit:cover" onerror="this.parentElement.innerHTML='<div style=padding:1rem;background:var(--surface);border-radius:8px;font-size:13px;color:var(--muted)>No se pudo cargar la imagen</div>'">`
-          : `<div style="padding:1rem;background:var(--surface);border-radius:8px;font-size:13px;color:var(--muted)">No subido</div>`
+          ? `<img src="${urlEncontrada}"
+              style="width:100%;border-radius:10px;border:1px solid var(--border);max-height:220px;object-fit:cover;display:block"
+              onerror="this.outerHTML='<div style=padding:1rem;background:var(--surface);border-radius:8px;font-size:13px;color:var(--muted);text-align:center><i class=ti ti-photo-off style=font-size:24px></i><br>No se pudo cargar la imagen</div>'">`
+          : `<div style="padding:1.25rem;background:var(--surface);border-radius:10px;font-size:13px;color:var(--muted);text-align:center;border:1px dashed var(--border)">
+               <i class="ti ti-upload" style="font-size:20px;display:block;margin-bottom:4px"></i>
+               No subido aún
+             </div>`
         }
       </div>`;
     }
 
-    html += `<div style="display:flex;gap:8px;margin-top:1rem">
-      <button class="btn-sm primary" onclick="aprobarVerif('${userId}','${nombre}');cerrarModal('modal-usuario')" style="flex:1;justify-content:center">✓ Aprobar cuenta</button>
-      <button class="btn-sm" style="border-color:var(--mx);color:var(--mx)" onclick="rechazarVerif('${userId}');cerrarModal('modal-usuario')">✗ Rechazar</button>
+    html += `<div style="display:flex;gap:8px;margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border)">
+      <button class="btn-sm primary" onclick="aprobarVerif('${userId}','${nombre.replace(/'/g,"\\'")}');cerrarModal('modal-usuario')"
+        style="flex:1;justify-content:center;padding:10px">
+        <i class="ti ti-circle-check"></i> Aprobar cuenta
+      </button>
+      <button class="btn-sm" onclick="rechazarVerif('${userId}');cerrarModal('modal-usuario')"
+        style="border-color:var(--mx);color:var(--mx);padding:10px">
+        <i class="ti ti-x"></i> Rechazar
+      </button>
     </div>`;
 
     document.getElementById('modal-usuario-body').innerHTML = html;
-    document.getElementById('modal-usuario').classList.add('open');
   }
 
   async function aprobarVerif(id, nombre) {
@@ -789,6 +850,66 @@
     document.getElementById('ru-saldo').textContent = '$' + nuevoSaldo.toLocaleString('es-CO');
     document.getElementById('recarga-monto').value = '';
     document.getElementById('recarga-alert').innerHTML = '<div class="alert success">✓ Saldo de $' + monto.toLocaleString('es-CO') + ' acreditado por ' + metodo + '.</div>';
+  }
+
+  // ── RETIROS ──
+  async function cargarRetiros() {
+    const estado = document.getElementById('filtro-retiro')?.value || '';
+    let query = sb.from('retiros').select('*, perfiles(nombre, email)').order('created_at', { ascending: false });
+    if (estado) query = query.eq('estado', estado);
+    const { data } = await query;
+    const tbody = document.getElementById('retiros-tbody');
+
+    // Badge pendientes
+    const { count } = await sb.from('retiros').select('*', { count: 'exact', head: true }).eq('estado', 'pendiente');
+    const badge = document.getElementById('badge-retiros');
+    if (count > 0) { badge.textContent = count; badge.style.display = 'inline'; }
+    else badge.style.display = 'none';
+
+    if (!data || data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i class="ti ti-arrow-up"></i>Sin retiros</div></td></tr>'; return;
+    }
+
+    tbody.innerHTML = data.map(r => {
+      const datos = JSON.parse(r.datos_cuenta || '{}');
+      const datosPago = datos.numero
+        ? `${r.metodo}: ${datos.numero}`
+        : `${datos.banco} - ${datos.cuenta} (${datos.tipo})`;
+      return `<tr>
+        <td>${r.perfiles?.nombre || '—'}<br><span style="font-size:11px;color:var(--muted)">${r.perfiles?.email || ''}</span></td>
+        <td style="font-weight:600;color:var(--mx)">$${r.monto.toLocaleString('es-CO')}</td>
+        <td>${r.metodo}</td>
+        <td style="font-size:12px;font-family:monospace">${datosPago}</td>
+        <td><span class="pill p-${r.estado}">${r.estado}</span></td>
+        <td style="font-size:12px">${new Date(r.created_at).toLocaleDateString('es-CO')}</td>
+        <td>
+          ${r.estado === 'pendiente' ? `
+            <button class="action-btn approve" onclick="procesarRetiro('${r.id}','procesando')">Procesar</button>
+            <button class="action-btn approve" onclick="procesarRetiro('${r.id}','completado')" style="border-color:var(--green)">✓ Pagado</button>
+            <button class="action-btn reject" onclick="rechazarRetiro('${r.id}','${r.usuario_id}',${r.monto})">✗ Rechazar</button>
+          ` : r.estado === 'procesando' ? `
+            <button class="action-btn approve" onclick="procesarRetiro('${r.id}','completado')">✓ Marcar pagado</button>
+          ` : '—'}
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  async function procesarRetiro(id, nuevoEstado) {
+    await sb.from('retiros').update({ estado: nuevoEstado, updated_at: new Date().toISOString() }).eq('id', id);
+    cargarRetiros();
+    if (nuevoEstado === 'completado') alert('✓ Retiro marcado como pagado. Recuerda transferir el dinero al repartidor.');
+  }
+
+  async function rechazarRetiro(id, usuarioId, monto) {
+    const motivo = prompt('Motivo del rechazo:');
+    if (!motivo) return;
+    // Devolver saldo al usuario
+    const { data: perfil } = await sb.from('perfiles').select('saldo').eq('id', usuarioId).single();
+    await sb.from('perfiles').update({ saldo: (perfil?.saldo || 0) + monto }).eq('id', usuarioId);
+    await sb.from('retiros').update({ estado: 'rechazado', motivo_rechazo: motivo }).eq('id', id);
+    cargarRetiros();
+    alert('Retiro rechazado y saldo devuelto al usuario.');
   }
 
   // ── INGRESOS ──

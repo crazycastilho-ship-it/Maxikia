@@ -1317,23 +1317,66 @@
     if (faltantes.length > 0) {
       alerta.innerHTML = '<div class="alert error">Faltan: ' + faltantes.join(', ') + '.</div>'; return;
     }
+    if (!currentUser) {
+      alerta.innerHTML = '<div class="alert error">Sesión expirada. Vuelve a iniciar sesión.</div>'; return;
+    }
+
     alerta.innerHTML = '';
     const btn = document.getElementById('btn-id');
-    btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Subiendo...';
-    try {
-      const uid = currentUser?.id || 'anon';
-      const archivos = [
-        { id: 'f-frente', nombre: 'frente' }, { id: 'f-reverso', nombre: 'reverso' }, { id: 'f-selfie', nombre: 'selfie' }
-      ];
-      for (const a of archivos) {
-        const file = document.getElementById(a.id).files[0];
-        const ext = file.name.split('.').pop();
-        await sb.storage.from('documentos').upload(uid + '/' + a.nombre + '.' + ext, file, { upsert: true });
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Subiendo documentos...';
+
+    const uid = currentUser.id;
+    const archivos = [
+      { id: 'f-frente', nombre: 'frente' },
+      { id: 'f-reverso', nombre: 'reverso' },
+      { id: 'f-selfie', nombre: 'selfie' }
+    ];
+
+    let errores = [];
+    for (const a of archivos) {
+      const fileInput = document.getElementById(a.id);
+      const file = fileInput?.files[0];
+      if (!file) { errores.push(a.nombre); continue; }
+
+      // Siempre usar .jpg para simplificar
+      const ruta = uid + '/' + a.nombre + '.jpg';
+
+      // Intentar subir — primero eliminar si existe
+      await sb.storage.from('documentos').remove([ruta]).catch(() => {});
+
+      const { error } = await sb.storage.from('documentos').upload(ruta, file, {
+        upsert: true,
+        contentType: file.type || 'image/jpeg'
+      });
+
+      if (error) {
+        console.error('Error subiendo ' + a.nombre + ':', error.message);
+        errores.push(a.nombre + ' (' + error.message + ')');
       }
-      await sb.from('perfiles').upsert({ id: uid, docs_enviados: true, docs_estado: 'en_revision' });
-    } catch(e) {}
-    btn.disabled = false; btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
-    alerta.innerHTML = '<div class="alert success">Documentos enviados. En revisión en menos de 24h.</div>';
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
+
+    if (errores.length > 0) {
+      alerta.innerHTML = '<div class="alert error">Error subiendo: ' + errores.join(', ') + '. Verifica tu conexión e intenta de nuevo.</div>';
+      return;
+    }
+
+    // Marcar como enviados en el perfil
+    const { error: perfilError } = await sb.from('perfiles').upsert({
+      id: uid,
+      docs_enviados: true,
+      docs_estado: 'en_revision',
+      updated_at: new Date().toISOString()
+    });
+
+    if (perfilError) {
+      console.error('Error actualizando perfil:', perfilError.message);
+    }
+
+    alerta.innerHTML = '<div class="alert success">✓ Documentos enviados correctamente. En revisión en menos de 24h.</div>';
     setTimeout(() => { alerta.innerHTML = ''; rStep(3); }, 1500);
   }
 
