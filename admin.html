@@ -71,7 +71,7 @@
     .btn-sm:hover { border-color: var(--mx); color: var(--mx); }
     .btn-sm.primary { background: var(--mx); color: white; border-color: var(--mx); }
     .btn-sm.primary:hover { background: var(--mx-dark); }
-    .content { padding: 1.5rem; flex: 1; }
+    .content { padding: 1.5rem; flex: 1; padding-bottom: 80px; }
 
     /* PANELS */
     .panel { display: none; } .panel.active { display: block; }
@@ -80,9 +80,43 @@
     .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
     .metric-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
     .metric-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.3px; }
-    .metric-value { font-family: var(--font-head); font-weight: 700; font-size: 28px; color: var(--text); }
+    .metric-value { font-family: var(--font-body); font-weight: 700; font-size: 28px; color: var(--text); font-variant-numeric: tabular-nums; }
     .metric-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
     .metric-icon { float: right; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+
+    /* MOBILE RESPONSIVE */
+    @media (max-width: 768px) {
+      :root { --sidebar: 0px; }
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      .metrics-grid { grid-template-columns: repeat(2, 1fr) !important; }
+      .metric-value { font-size: 22px; }
+      .content { padding: 1rem; }
+      .topbar { padding: 0.75rem 1rem; }
+      .topbar-title { font-size: 16px; }
+      .btn-sm span { display: none; }
+      .table-wrap { font-size: 12px; }
+      thead th { font-size: 10px; padding: 8px; }
+      tbody td { padding: 8px; }
+      /* Bottom nav for mobile */
+      .mobile-nav { display: flex !important; }
+    }
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--dark);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      z-index: 20;
+      padding: 8px 0 env(safe-area-inset-bottom);
+    }
+    .mobile-nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      gap: 3px; padding: 6px 4px; color: rgba(255,255,255,0.4);
+      font-size: 10px; cursor: pointer; border: none; background: none;
+    }
+    .mobile-nav-item.active { color: var(--mx2); }
+    .mobile-nav-item i { font-size: 20px; }
     .metric-icon.red { background: var(--mx-light); } .metric-icon.red i { color: var(--mx); font-size: 20px; }
     .metric-icon.green { background: var(--green-light); } .metric-icon.green i { color: var(--green); font-size: 20px; }
     .metric-icon.blue { background: #E6F1FB; } .metric-icon.blue i { color: #378ADD; font-size: 20px; }
@@ -258,7 +292,7 @@
             <div class="metric-icon blue"><i class="ti ti-coin"></i></div>
             <div class="metric-label">Ingresos hoy</div>
             <div class="metric-value" id="m-ingresos-hoy">—</div>
-            <div class="metric-sub">15% comisión</div>
+            <div class="metric-sub">25% comisión</div>
           </div>
           <div class="metric-card">
             <div class="metric-icon amber"><i class="ti ti-motorbike"></i></div>
@@ -428,7 +462,7 @@
             <div class="metric-icon red"><i class="ti ti-trending-up"></i></div>
             <div class="metric-label">Ingresos totales</div>
             <div class="metric-value" id="ing-total">—</div>
-            <div class="metric-sub">15% de comisión</div>
+            <div class="metric-sub">25% de comisión</div>
           </div>
           <div class="metric-card">
             <div class="metric-icon green"><i class="ti ti-calendar-week"></i></div>
@@ -447,7 +481,7 @@
           <div class="table-header"><div class="table-title">Pedidos completados</div></div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Fecha</th><th>Descripción</th><th>Valor pedido</th><th>Tu comisión (15%)</th></tr></thead>
+              <thead><tr><th>Fecha</th><th>Descripción</th><th>Valor pedido</th><th>Tu comisión (25%)</th></tr></thead>
               <tbody id="ingresos-tbody">
                 <tr><td colspan="4"><div class="empty-state"><i class="ti ti-loader spinning"></i>Cargando...</div></td></tr>
               </tbody>
@@ -950,5 +984,31 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal-bg.open').forEach(m => m.classList.remove('open')); });
   document.getElementById('adm-pass').addEventListener('keydown', e => { if (e.key === 'Enter') adminLogin(); });
 </script>
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-nav" id="mobile-nav">
+  <button class="mobile-nav-item active" onclick="showPanel('dashboard');setMobileActive(this)">
+    <i class="ti ti-dashboard"></i>Inicio
+  </button>
+  <button class="mobile-nav-item" onclick="showPanel('pedidos');setMobileActive(this)">
+    <i class="ti ti-package"></i>Pedidos
+  </button>
+  <button class="mobile-nav-item" onclick="showPanel('verificaciones');setMobileActive(this)">
+    <i class="ti ti-id-badge"></i>Verif
+  </button>
+  <button class="mobile-nav-item" onclick="showPanel('recargas');setMobileActive(this)">
+    <i class="ti ti-cash"></i>Recargas
+  </button>
+  <button class="mobile-nav-item" onclick="showPanel('retiros');setMobileActive(this)">
+    <i class="ti ti-arrow-up"></i>Retiros
+  </button>
+</nav>
+
+<script>
+  function setMobileActive(el) {
+    document.querySelectorAll('.mobile-nav-item').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+  }
+</script>
+
 </body>
 </html>
