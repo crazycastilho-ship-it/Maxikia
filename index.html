@@ -574,7 +574,10 @@
         </div>
         <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1rem">
           <div style="font-family:var(--font-head);font-weight:700;font-size:15px;margin-bottom:.75rem">Recargar saldo</div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:1rem">Transfiere y envía el comprobante por WhatsApp para acreditar tu saldo en minutos.</div>
+          <div style="background:var(--surface);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:1rem;font-size:13px;color:var(--muted)">
+            <i class="ti ti-info-circle" style="color:var(--mx)"></i>
+            Recarga mínima <strong style="color:var(--text)">$10.000</strong>. Transfiere y envía el comprobante por WhatsApp — acreditamos en menos de 30 minutos.
+          </div>
           <div style="border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:10px;display:flex;align-items:center;gap:10px">
             <div style="width:36px;height:36px;border-radius:8px;background:#8B1A8B;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="color:white;font-weight:800;font-size:13px">N</span></div>
             <div><div style="font-weight:500;font-size:14px">Nequi</div><div style="font-size:13px;color:var(--muted)">3243334302</div></div>
@@ -585,7 +588,7 @@
             <div><div style="font-weight:500;font-size:14px">Daviplata</div><div style="font-size:13px;color:var(--muted)">3243334302</div></div>
             <button onclick="copiar('3243334302','dc')" id="dc" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--muted)"><i class="ti ti-copy"></i> Copiar</button>
           </div>
-          <a href="https://wa.me/573243334302?text=Hola%2C%20quiero%20recargar%20mi%20billetera%20Maxikia.%20Adjunto%20el%20comprobante." target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:white;border:none;font-family:var(--font-body);font-size:14px;font-weight:500;padding:12px;border-radius:var(--radius-sm);cursor:pointer;text-decoration:none"><i class="ti ti-brand-whatsapp" style="font-size:18px"></i> Enviar comprobante por WhatsApp</a>
+          <a id="wa-recarga" href="#" onclick="abrirWARecarga()" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:white;border:none;font-family:var(--font-body);font-size:14px;font-weight:500;padding:12px;border-radius:var(--radius-sm);cursor:pointer;text-decoration:none"><i class="ti ti-brand-whatsapp" style="font-size:18px"></i> Enviar comprobante por WhatsApp</a>
         </div>
         <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem">
           <div style="font-family:var(--font-head);font-weight:700;font-size:15px;margin-bottom:1rem">Movimientos</div>
@@ -767,16 +770,13 @@
     const alerta = document.getElementById('envio-alert');
 
     if (!origen || !destino) {
-      alerta.innerHTML = '<div class="alert error">Ingresa la dirección de recogida y entrega.</div>';
-      return;
+      alerta.innerHTML = '<div class="alert error">Ingresa la dirección de recogida y entrega.</div>'; return;
     }
     if (!desc) {
-      alerta.innerHTML = '<div class="alert error">Describe qué es el paquete.</div>';
-      return;
+      alerta.innerHTML = '<div class="alert error">Describe qué es el paquete.</div>'; return;
     }
     if (!coordOrigen || !coordDestino) {
-      alerta.innerHTML = '<div class="alert error">Espera a que se calculen las distancias o escribe direcciones más completas.</div>';
-      return;
+      alerta.innerHTML = '<div class="alert error">Espera a que se calculen las distancias o escribe direcciones más completas.</div>'; return;
     }
     if (!currentUser) { goPage('login'); return; }
 
@@ -784,14 +784,41 @@
     const distancia = window._distanciaKm || 0;
 
     if (distancia > 20) {
-      alerta.innerHTML = '<div class="alert error">La distancia supera los 20km. Solo hacemos envíos dentro de la ciudad.</div>';
+      alerta.innerHTML = '<div class="alert error">La distancia supera los 20km. Solo hacemos envíos dentro de la ciudad.</div>'; return;
+    }
+
+    // ── VERIFICAR SALDO ──
+    const { data: perfil } = await sb.from('perfiles').select('saldo').eq('id', currentUser.id).single();
+    const saldoActual = perfil?.saldo || 0;
+
+    if (saldoActual < precio) {
+      const faltante = precio - saldoActual;
+      alerta.innerHTML = `
+        <div style="background:var(--mx-light);border:1px solid rgba(212,0,26,0.2);border-radius:var(--radius);padding:1.25rem;text-align:center">
+          <i class="ti ti-wallet" style="font-size:28px;color:var(--mx);display:block;margin-bottom:8px"></i>
+          <div style="font-family:var(--font-head);font-weight:700;font-size:15px;margin-bottom:4px">Saldo insuficiente</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:10px">
+            Tienes <strong>$${saldoActual.toLocaleString('es-CO')}</strong> y el pedido cuesta <strong>$${precio.toLocaleString('es-CO')}</strong>.<br>
+            Necesitas recargar al menos <strong>$${faltante.toLocaleString('es-CO')}</strong> más.
+          </div>
+          <button onclick="dTab('billetera')" style="background:var(--mx);color:white;border:none;border-radius:var(--radius-sm);padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body)">
+            <i class="ti ti-wallet"></i> Recargar ahora
+          </button>
+        </div>`;
       return;
     }
 
     const btn = document.getElementById('btn-buscar');
     btn.disabled = true;
-    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Publicando pedido...';
+    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Procesando pago...';
     alerta.innerHTML = '';
+
+    // ── DESCONTAR SALDO AL CLIENTE ──
+    const nuevoSaldo = saldoActual - precio;
+    await sb.from('perfiles').update({ saldo: nuevoSaldo }).eq('id', currentUser.id);
+    document.getElementById('dash-saldo').textContent = '$' + nuevoSaldo.toLocaleString('es-CO');
+
+    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Publicando pedido...';
 
     const { data: pedido, error } = await sb.from('pedidos').insert({
       usuario_id: currentUser.id,
@@ -809,6 +836,8 @@
     btn.innerHTML = 'Buscar repartidor <i class="ti ti-motorbike"></i>';
 
     if (error) {
+      // Revertir saldo si falla
+      await sb.from('perfiles').update({ saldo: saldoActual }).eq('id', currentUser.id);
       alerta.innerHTML = '<div class="alert error">Error al publicar: ' + error.message + '</div>';
       return;
     }
@@ -819,9 +848,10 @@
           <i class="ti ti-circle-check" style="color:var(--green);font-size:22px"></i>
           <div style="font-weight:600;color:#0F6E56">¡Pedido publicado!</div>
         </div>
-        <div style="font-size:13px;color:#0F6E56;margin-bottom:10px">Buscando repartidores en un radio de ${RADIO_REPARTIDOR_KM}km de la dirección de recogida...</div>
-        <div style="font-size:13px;color:var(--muted)">📦 ${desc}<br>📍 ${origen}<br>🏁 ${destino}<br>💰 $${precio.toLocaleString('es-CO')}</div>
-        <a href="https://wa.me/${WHATSAPP}?text=Hola%20Maxikia%2C%20hice%20un%20pedido%20y%20necesito%20seguimiento.%20ID%3A%20${pedido.id}" target="_blank"
+        <div style="font-size:13px;color:#0F6E56;margin-bottom:4px">Pago de <strong>$${precio.toLocaleString('es-CO')}</strong> descontado de tu saldo.</div>
+        <div style="font-size:13px;color:#0F6E56;margin-bottom:10px">Buscando repartidor en un radio de ${RADIO_REPARTIDOR_KM}km...</div>
+        <div style="font-size:13px;color:var(--muted)">📦 ${desc}<br>📍 ${origen}<br>🏁 ${destino}</div>
+        <a href="https://wa.me/${WHATSAPP}?text=Hola%20Maxikia%2C%20hice%20un%20pedido.%20ID%3A%20${pedido.id}" target="_blank"
           style="display:flex;align-items:center;gap:6px;margin-top:12px;background:#25D366;color:white;padding:10px;border-radius:var(--radius-sm);text-decoration:none;font-size:13px;font-weight:500;justify-content:center">
           <i class="ti ti-brand-whatsapp"></i> Seguimiento por WhatsApp
         </a>
@@ -1264,9 +1294,37 @@
   }
 
   // ── WALLET ──
-  function cargarWallet() {
+  async function cargarWallet() {
     if (!currentUser) return;
     document.getElementById('wallet-email').textContent = currentUser.email;
+    const { data: perfil } = await sb.from('perfiles').select('saldo, nombre').eq('id', currentUser.id).single();
+    const saldo = perfil?.saldo || 0;
+    document.getElementById('wallet-saldo').textContent = '$' + saldo.toLocaleString('es-CO');
+    document.getElementById('dash-saldo').textContent = '$' + saldo.toLocaleString('es-CO');
+    cargarMovimientos();
+  }
+
+  async function cargarMovimientos() {
+    const { data } = await sb.from('pedidos').select('descripcion, precio, estado, created_at')
+      .eq('usuario_id', currentUser.id)
+      .order('created_at', { ascending: false }).limit(10);
+    const cont = document.getElementById('wallet-movimientos');
+    if (!data || data.length === 0) return;
+    cont.innerHTML = data.map(p => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-size:13px;font-weight:500">${p.descripcion}</div>
+          <div style="font-size:11px;color:var(--muted)">${new Date(p.created_at).toLocaleDateString('es-CO')} · ${p.estado}</div>
+        </div>
+        <div style="font-size:14px;font-weight:600;color:var(--mx)">-$${p.precio.toLocaleString('es-CO')}</div>
+      </div>`).join('');
+  }
+
+  function abrirWARecarga() {
+    const email = currentUser?.email || '';
+    const nombre = currentUser?.user_metadata?.full_name || '';
+    const msg = encodeURIComponent(`Hola Maxikia, quiero recargar mi billetera.\n\nNombre: ${nombre}\nCorreo: ${email}\n\nAdjunto el comprobante.`);
+    window.open(`https://wa.me/573243334302?text=${msg}`, '_blank');
   }
 
   function copiar(texto, btnId) {
