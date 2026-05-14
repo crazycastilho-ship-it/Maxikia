@@ -1442,7 +1442,8 @@
     const name = meta?.full_name || meta?.name || meta?.display_name || currentUser?.email?.split('@')[0] || 'Usuario';
     document.getElementById('dash-username').textContent = name + ' 👋';
 
-    // Verificar estado de aprobación
+    document.getElementById('lock-user').textContent = currentUser.email;
+    resetTimerInactividad();
     const { data: perfil } = await sb.from('perfiles').select('docs_estado, docs_motivo, nombre').eq('id', currentUser.id).single();
     const estado = perfil?.docs_estado || 'pendiente';
     const motivo = perfil?.docs_motivo || '';
@@ -1471,11 +1472,11 @@
     } else if (estado === 'rechazado') {
       icono = 'ti-x'; titulo = 'Documentos rechazados';
       msg = motivo ? 'Motivo: ' + motivo + '. Por favor sube los documentos nuevamente.' : 'Tus documentos no fueron aprobados. Por favor sube los documentos nuevamente.';
-      btn = `<button onclick="goPage('register')" style="margin-top:10px;background:var(--mx);color:white;border:none;border-radius:var(--radius-sm);padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body)">Subir documentos nuevamente</button>`;
+      btn = `<button onclick="reanudarVerificacion()" style="margin-top:10px;background:var(--mx);color:white;border:none;border-radius:var(--radius-sm);padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body)">Subir documentos nuevamente</button>`;
     } else {
       icono = 'ti-shield-lock'; titulo = 'Verificación pendiente';
       msg = 'Debes completar la verificación de identidad para empezar a usar Maxikia.';
-      btn = `<button onclick="goPage('register')" style="margin-top:10px;background:var(--mx);color:white;border:none;border-radius:var(--radius-sm);padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body)">Completar verificación</button>`;
+      btn = `<button onclick="reanudarVerificacion()" style="margin-top:10px;background:var(--mx);color:white;border:none;border-radius:var(--radius-sm);padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body)">Completar verificación</button>`;
     }
 
     document.getElementById('home-pedidos').insertAdjacentHTML('beforebegin', `
@@ -1551,7 +1552,115 @@
     }
   }
 
-  // ── BILLETERA SECCIONES ──
+  // ── REANUDAR VERIFICACIÓN EN EL PASO CORRECTO ──
+  async function reanudarVerificacion() {
+    if (!currentUser) { goPage('register'); return; }
+    const { data: perfil } = await sb.from('perfiles').select('docs_estado, docs_enviados').eq('id', currentUser.id).single();
+    goPage('register');
+    // Pequeño delay para que la página cargue
+    setTimeout(() => {
+      if (!perfil || !perfil.docs_enviados) {
+        // No ha subido documentos → paso 2
+        resetRegisterStep(2);
+      } else {
+        // Documentos subidos pero sin huella → paso 3
+        resetRegisterStep(3);
+      }
+    }, 100);
+  }
+
+  function resetRegisterStep(targetStep) {
+    // Reset visual
+    regStep = 1;
+    docsSubidos = { frente: false, reverso: false, selfie: false };
+    document.querySelectorAll('.sp').forEach(s => s.classList.remove('active'));
+    // Marcar pasos anteriores como done
+    for (let i = 1; i < targetStep; i++) {
+      const dot = document.getElementById('sd' + i);
+      if (dot) { dot.classList.remove('active'); dot.classList.add('done'); dot.innerHTML = '<i class="ti ti-check" style="font-size:11px"></i>'; }
+      const line = document.getElementById('sl' + i);
+      if (line) line.classList.add('done');
+    }
+    // Activar paso destino
+    const targetDot = document.getElementById('sd' + targetStep);
+    if (targetDot) { targetDot.classList.add('active'); targetDot.classList.remove('done'); }
+    const targetPanel = document.getElementById('sp' + targetStep);
+    if (targetPanel) targetPanel.classList.add('active');
+    regStep = targetStep;
+  }
+
+  // ── BLOQUEO POR INACTIVIDAD ──
+  const INACTIVIDAD_MS = 5 * 60 * 1000; // 5 minutos
+  let timerInactividad = null;
+  let appBloqueada = false;
+
+  function resetTimerInactividad() {
+    if (!currentUser) return;
+    clearTimeout(timerInactividad);
+    timerInactividad = setTimeout(() => {
+      bloquearApp();
+    }, INACTIVIDAD_MS);
+  }
+
+  function bloquearApp() {
+    if (!currentUser || appBloqueada) return;
+    appBloqueada = true;
+    // Mostrar pantalla de bloqueo
+    const lockScreen = document.getElementById('lock-screen');
+    if (lockScreen) lockScreen.style.display = 'flex';
+  }
+
+  async function desbloquearApp() {
+    const pass = document.getElementById('lock-pass').value;
+    const alertEl = document.getElementById('lock-alert');
+    if (!pass) { alertEl.innerHTML = '<div class="alert error">Ingresa tu contraseña.</div>'; return; }
+
+    const { error } = await sb.auth.signInWithPassword({
+      email: currentUser.email, password: pass
+    });
+
+    if (error) {
+      alertEl.innerHTML = '<div class="alert error">Contraseña incorrecta.</div>'; return;
+    }
+
+    document.getElementById('lock-screen').style.display = 'none';
+    document.getElementById('lock-pass').value = '';
+    alertEl.innerHTML = '';
+    appBloqueada = false;
+    resetTimerInactividad();
+  }
+
+  async function desbloquearConHuella() {
+    try {
+      const encoder = new TextEncoder();
+      const cred = await navigator.credentials.get({
+        publicKey: {
+          challenge: encoder.encode('mx-unlock-' + Date.now()),
+          rpId: getRpId(),
+          userVerification: 'required',
+          timeout: 60000
+        }
+      });
+      if (cred) {
+        document.getElementById('lock-screen').style.display = 'none';
+        document.getElementById('lock-pass').value = '';
+        document.getElementById('lock-alert').innerHTML = '';
+        appBloqueada = false;
+        resetTimerInactividad();
+      }
+    } catch(e) {
+      document.getElementById('lock-alert').innerHTML = '<div class="alert error">No se pudo verificar. Usa tu contraseña.</div>';
+    }
+  }
+
+  // Detectar actividad del usuario
+  ['touchstart','click','keydown','scroll'].forEach(ev => {
+    document.addEventListener(ev, () => {
+      if (currentUser && !appBloqueada) resetTimerInactividad();
+    }, { passive: true });
+  });
+
+
   function mostrarSeccion(sec) {
     document.getElementById('seccion-recarga').style.display = sec === 'recarga' ? 'block' : 'none';
     document.getElementById('seccion-retiro').style.display = sec === 'retiro' ? 'block' : 'none';
@@ -1760,6 +1869,34 @@
 
 
 </script>
+<!-- PANTALLA DE BLOQUEO -->
+<div id="lock-screen" style="display:none;position:fixed;inset:0;background:var(--dark);z-index:500;flex-direction:column;align-items:center;justify-content:center;padding:2rem">
+  <div style="text-align:center;margin-bottom:2rem">
+    <div style="font-family:var(--font-head);font-weight:800;font-size:26px;color:white;margin-bottom:6px">Maxi<span style="color:var(--mx2)">⋊</span>ia</div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.4)">Sesión bloqueada por inactividad</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.3);margin-top:4px" id="lock-user"></div>
+  </div>
+  <div style="width:100%;max-width:340px">
+    <div id="lock-alert" style="margin-bottom:1rem"></div>
+    <div class="field-group">
+      <label class="field-label" style="color:rgba(255,255,255,0.4)">Contraseña</label>
+      <input type="password" class="field-input" id="lock-pass" placeholder="••••••••"
+        onkeydown="if(event.key==='Enter')desbloquearApp()"
+        style="background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.15);color:white">
+    </div>
+    <button class="btn-primary btn-full" onclick="desbloquearApp()" style="margin-bottom:10px">
+      <i class="ti ti-lock-open"></i> Desbloquear
+    </button>
+    <button class="btn-outline" onclick="desbloquearConHuella()"
+      style="background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.15);color:rgba(255,255,255,0.7)">
+      <i class="ti ti-fingerprint" style="color:var(--mx2)"></i> Usar huella o Face ID
+    </button>
+    <div style="text-align:center;margin-top:1.25rem">
+      <span onclick="doLogout()" style="font-size:13px;color:rgba(255,255,255,0.3);cursor:pointer">No soy yo — cerrar sesión</span>
+    </div>
+  </div>
+</div>
+
 <!-- PWA INSTALL BANNER -->
 <div id="pwa-banner" style="display:none;position:fixed;bottom:80px;left:1rem;right:1rem;z-index:200;background:var(--dark);border-radius:var(--radius);padding:1rem 1.25rem;box-shadow:0 8px 32px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08)">
   <div style="display:flex;align-items:center;gap:12px">
