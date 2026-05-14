@@ -1060,41 +1060,66 @@
         });
         initMapRepartir();
         cargarPedidosCercanos();
+        // Actualizar pedidos cada 15 segundos
+        if (!window._repInterval) {
+          window._repInterval = setInterval(cargarPedidosCercanos, 15000);
+        }
       }, () => {
-        txt.textContent = 'Activa la ubicación para ver pedidos';
-        tsw.classList.remove('on');
-        disponibleComoRepartidor = false;
+        // Sin GPS — cargar pedidos igual
+        ubicacionActual = null;
+        cargarPedidosCercanos();
+        if (!window._repInterval) {
+          window._repInterval = setInterval(cargarPedidosCercanos, 15000);
+        }
+        txt.textContent = 'Disponible — activa el GPS para ver distancias';
       });
     } else {
       txt.textContent = 'Activa para recibir pedidos cercanos';
+      if (window._repInterval) { clearInterval(window._repInterval); window._repInterval = null; }
       if (currentUser) await sb.from('perfiles').upsert({ id: currentUser.id, disponible: false });
     }
   }
 
   async function cargarPedidosCercanos() {
-    if (!disponibleComoRepartidor || !ubicacionActual) return;
-    const { data: pedidos } = await sb.from('pedidos')
-      .select('*').eq('estado', 'buscando').order('created_at', { ascending: false }).limit(10);
-
     const cont = document.getElementById('pedidos-cercanos');
-    if (!pedidos || pedidos.length === 0) {
-      cont.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:14px;background:white;border:1px solid var(--border);border-radius:var(--radius)"><i class="ti ti-mood-smile" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>No hay pedidos disponibles ahora. Espera un momento.</div>';
+    if (!disponibleComoRepartidor) {
+      cont.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:14px">Activa el interruptor para ver pedidos disponibles.</div>';
       return;
     }
 
-    const cercanos = pedidos.filter(p => {
-      if (!p.lat_origen) return true;
-      const d = distanciaEntrePuntos(ubicacionActual.lat, ubicacionActual.lng, p.lat_origen, p.lng_origen);
-      return d <= RADIO_REPARTIDOR_KM;
-    });
+    cont.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:14px"><i class="ti ti-loader-2" style="animation:spin 1s linear infinite;font-size:24px;display:block;margin-bottom:8px"></i>Buscando pedidos...</div>';
 
-    if (cercanos.length === 0) {
-      cont.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:14px;background:white;border:1px solid var(--border);border-radius:var(--radius)">No hay pedidos en un radio de ' + RADIO_REPARTIDOR_KM + 'km. Espera o muévete a otra zona.</div>';
+    const { data: pedidos, error } = await sb.from('pedidos')
+      .select('*').eq('estado', 'buscando').order('created_at', { ascending: false }).limit(20);
+
+    if (error) {
+      cont.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:14px">Error al cargar pedidos: ' + error.message + '</div>';
       return;
+    }
+
+    if (!pedidos || pedidos.length === 0) {
+      cont.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:14px;background:white;border:1px solid var(--border);border-radius:var(--radius)"><i class="ti ti-mood-smile" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>No hay pedidos disponibles ahora.<br>Espera un momento.</div>';
+      return;
+    }
+
+    // Filtrar por distancia solo si tenemos ubicación
+    let cercanos = pedidos;
+    if (ubicacionActual) {
+      cercanos = pedidos.filter(p => {
+        if (!p.lat_origen) return true;
+        const d = distanciaEntrePuntos(ubicacionActual.lat, ubicacionActual.lng, p.lat_origen, p.lng_origen);
+        return d <= RADIO_REPARTIDOR_KM;
+      });
+      if (cercanos.length === 0) {
+        // Si no hay cercanos, mostrar todos igualmente
+        cercanos = pedidos;
+      }
     }
 
     cont.innerHTML = cercanos.map(p => {
-      const dist = p.lat_origen ? distanciaEntrePuntos(ubicacionActual.lat, ubicacionActual.lng, p.lat_origen, p.lng_origen).toFixed(1) : '?';
+      const dist = (ubicacionActual && p.lat_origen)
+        ? distanciaEntrePuntos(ubicacionActual.lat, ubicacionActual.lng, p.lat_origen, p.lng_origen).toFixed(1) + ' km de ti · '
+        : '';
       const ganancia = Math.round(p.precio * COMISION_REPARTIDOR);
       return `<div class="ao">
         <div class="aor"><div class="aod o"></div><div class="aoi"><strong>${p.descripcion}</strong></div></div>
@@ -1103,7 +1128,7 @@
         <div class="aof">
           <div>
             <div class="aoe">$${ganancia.toLocaleString('es-CO')}</div>
-            <div class="aodist">${dist} km de ti · ${p.distancia_km?.toFixed(1) || '?'} km envío · ${p.peso}</div>
+            <div class="aodist">${dist}${p.distancia_km?.toFixed(1) || '?'} km envío · ${p.peso || 'liviano'}</div>
           </div>
           <button class="bacc" onclick="aceptarPedido('${p.id}','${p.usuario_id}')">Aceptar</button>
         </div>
