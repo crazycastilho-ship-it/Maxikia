@@ -1291,8 +1291,8 @@
         alertEl.innerHTML = '<div class="alert success">¡Bienvenido de vuelta! Entrando...</div>';
         setTimeout(() => showDashboard(), 1000); return;
       }
-      alertEl.innerHTML = '<div class="alert success">Cuenta encontrada. Continuando...</div>';
-      setTimeout(() => { alertEl.innerHTML = ''; rStep(2); }, 1200);
+      alertEl.innerHTML = '';
+      rStep(2);
       return;
     }
 
@@ -1326,8 +1326,8 @@
 
     btn.disabled = false;
     btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
-    alertEl.innerHTML = '<div class="alert success">¡Cuenta creada! Continuando...</div>';
-    setTimeout(() => { alertEl.innerHTML = ''; rStep(2); }, 1200);
+    alertEl.innerHTML = '';
+    rStep(2);
   }
 
   function rStep(n) {
