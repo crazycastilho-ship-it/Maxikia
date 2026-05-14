@@ -1129,27 +1129,59 @@
     cargarPedidosCercanos();
   }
 
-  async function confirmarEntrega(pedidoId) {
-    // Obtener datos del pedido
+  // ── CONFIRMAR ENTREGA CON FOTO ──
+  function confirmarEntrega(pedidoId) {
+    // Mostrar modal para tomar foto de prueba
+    const modal = document.getElementById('modal-entrega');
+    if (modal) {
+      document.getElementById('entrega-pedido-id').value = pedidoId;
+      document.getElementById('entrega-foto-preview').style.display = 'none';
+      document.getElementById('entrega-foto-status').textContent = '';
+      document.getElementById('f-entrega').value = '';
+      modal.style.display = 'flex';
+    } else {
+      // Si no existe el modal, confirmar sin foto
+      procesarEntrega(pedidoId, null);
+    }
+  }
+
+  async function procesarEntrega(pedidoId, fotoFile) {
     const { data: pedido } = await sb.from('pedidos').select('*').eq('id', pedidoId).single();
     if (!pedido) { alert('Pedido no encontrado.'); return; }
 
     const gananciaRepartidor = Math.round(pedido.precio * COMISION_REPARTIDOR);
+    let fotoUrl = null;
+
+    // Subir foto de prueba si existe
+    if (fotoFile) {
+      const blob = await comprimirImagen(fotoFile, 1000, 0.75).catch(() => fotoFile);
+      const ruta = 'entregas/' + pedidoId + '_' + Date.now() + '.jpg';
+      const { data: uploaded } = await sb.storage
+        .from('documentos')
+        .upload(ruta, blob, { contentType: 'image/jpeg' });
+      if (uploaded) fotoUrl = ruta;
+    }
 
     // Marcar como entregado
     await sb.from('pedidos').update({
       estado: 'entregado',
-      entregado_at: new Date().toISOString()
+      entregado_at: new Date().toISOString(),
+      foto_entrega: fotoUrl
     }).eq('id', pedidoId);
 
     // Acreditar saldo al repartidor (75%)
     if (pedido.repartidor_id) {
-      const { data: repPerfil } = await sb.from('perfiles').select('saldo,entregas_completadas').eq('id', pedido.repartidor_id).single();
+      const { data: repPerfil } = await sb.from('perfiles')
+        .select('saldo,entregas_completadas').eq('id', pedido.repartidor_id).single();
       await sb.from('perfiles').update({
         saldo: (repPerfil?.saldo || 0) + gananciaRepartidor,
         entregas_completadas: (repPerfil?.entregas_completadas || 0) + 1
       }).eq('id', pedido.repartidor_id);
     }
+
+    // Cerrar modal
+    const modal = document.getElementById('modal-entrega');
+    if (modal) modal.style.display = 'none';
 
     alert('✓ Entrega confirmada.\n\n$' + gananciaRepartidor.toLocaleString('es-CO') + ' acreditados a tu billetera Maxikia.');
     cargarPedidosHome();
@@ -1964,6 +1996,33 @@
         <span style="font-size:11px;padding:3px 8px;border-radius:20px;font-weight:500;background:${colores[r.estado]}22;color:${colores[r.estado]}">${r.estado}</span>
       </div>`).join('');
   }
+  function previewFotoEntrega(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = e => {
+      const preview = document.getElementById('entrega-foto-preview');
+      if (preview) { preview.src = e.target.result; preview.style.display = 'block'; }
+      const status = document.getElementById('entrega-foto-status');
+      if (status) status.textContent = '✓ Foto lista (' + Math.round(file.size/1024) + 'KB)';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function submitEntrega() {
+    const pedidoId = document.getElementById('entrega-pedido-id').value;
+    const btn = document.getElementById('btn-confirmar-entrega');
+    const camInput = document.getElementById('f-entrega-cam');
+    const galInput = document.getElementById('f-entrega');
+    const fotoFile = (camInput?.files && camInput.files[0]) ||
+                     (galInput?.files && galInput.files[0]) || null;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Confirmando...';
+    await procesarEntrega(pedidoId, fotoFile);
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-circle-check"></i> Confirmar entrega';
+  }
+
   async function cargarWallet() {
     if (!currentUser) return;
     document.getElementById('wallet-email').textContent = currentUser.email;
@@ -2159,6 +2218,47 @@
     <div style="text-align:center">
       <span onclick="cerrarSesionWelcome()" style="font-size:13px;color:rgba(255,255,255,0.3);cursor:pointer">No soy yo — cambiar cuenta</span>
     </div>
+  </div>
+</div>
+
+<!-- MODAL FOTO DE ENTREGA -->
+<div id="modal-entrega" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:400;align-items:flex-end;justify-content:center">
+  <div style="background:white;border-radius:16px 16px 0 0;width:100%;max-width:440px;padding:1.5rem;margin:0 auto">
+    <input type="hidden" id="entrega-pedido-id">
+    <div style="text-align:center;margin-bottom:1.25rem">
+      <div style="font-family:var(--font-head);font-weight:700;font-size:17px">Confirmar entrega</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px">Toma una foto como prueba de entrega</div>
+    </div>
+
+    <!-- Preview foto -->
+    <img id="entrega-foto-preview" style="display:none;width:100%;border-radius:10px;max-height:200px;object-fit:cover;margin-bottom:1rem;border:1px solid var(--border)">
+
+    <!-- Botones cámara/galería -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
+      <button onclick="document.getElementById('f-entrega-cam').click()"
+        style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:var(--mx-light);border:1px solid rgba(212,0,26,0.2);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;font-weight:500;color:var(--mx);cursor:pointer">
+        <i class="ti ti-camera" style="font-size:18px"></i> Tomar foto
+      </button>
+      <button onclick="document.getElementById('f-entrega').click()"
+        style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;cursor:pointer;color:var(--text)">
+        <i class="ti ti-photo" style="font-size:18px"></i> Galería
+      </button>
+    </div>
+    <input type="file" id="f-entrega-cam" accept="image/*" capture="environment" style="display:none"
+      onchange="previewFotoEntrega(this)">
+    <input type="file" id="f-entrega" accept="image/*" style="display:none"
+      onchange="previewFotoEntrega(this)">
+
+    <div id="entrega-foto-status" style="font-size:13px;color:var(--green);text-align:center;margin-bottom:1rem;font-weight:500"></div>
+
+    <button id="btn-confirmar-entrega" onclick="submitEntrega()"
+      style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--green);color:white;border:none;border-radius:var(--radius-sm);padding:13px;font-family:var(--font-body);font-size:15px;font-weight:500;cursor:pointer;margin-bottom:10px">
+      <i class="ti ti-circle-check"></i> Confirmar entrega
+    </button>
+    <button onclick="document.getElementById('modal-entrega').style.display='none'"
+      style="width:100%;background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;font-family:var(--font-body);font-size:14px;cursor:pointer;color:var(--muted)">
+      Cancelar
+    </button>
   </div>
 </div>
 
