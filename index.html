@@ -392,28 +392,26 @@
           <div class="step-s">Sube o fotografía los 3 documentos para continuar.</div>
 
           <!-- Frente cédula -->
-          <div class="uz" id="uz1" onclick="mostrarOpcionesDoc('uz1','f-frente','f-frente-cam')">
+          <div class="uz" id="uz1" onclick="document.getElementById('f-frente').click()">
             <i class="ti ti-id" id="uz1-i"></i>
             <p id="uz1-t">Toca para subir el <strong>frente</strong> de tu cédula</p>
-            <div style="display:flex;gap:8px;justify-content:center;margin-top:8px" id="uz1-btns" class="doc-btns">
-              <span style="font-size:11px;color:var(--muted);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border)"><i class="ti ti-photo"></i> Galería</span>
-              <span style="font-size:11px;color:var(--muted);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border)"><i class="ti ti-camera"></i> Cámara</span>
+            <div style="display:flex;gap:8px;justify-content:center;margin-top:8px" class="doc-btns">
+              <span style="font-size:11px;color:var(--muted);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border)"><i class="ti ti-photo"></i> Galería o Cámara</span>
             </div>
           </div>
-          <input type="file" id="f-frente" accept="image/*" style="display:none" onchange="fileOk(this,'uz1','uz1-i','uz1-t','frente','Frente subido ✓')">
-          <input type="file" id="f-frente-cam" accept="image/*" capture="environment" style="display:none" onchange="fileOk(this,'uz1','uz1-i','uz1-t','frente','Frente fotografiado ✓')">
+          <input type="file" id="f-frente" accept="image/*" style="display:none"
+            onchange="fileOk(this,'uz1','uz1-i','uz1-t','frente','Frente listo ✓')">
 
           <!-- Reverso cédula -->
-          <div class="uz" id="uz2" onclick="mostrarOpcionesDoc('uz2','f-reverso','f-reverso-cam')">
+          <div class="uz" id="uz2" onclick="document.getElementById('f-reverso').click()">
             <i class="ti ti-id" id="uz2-i"></i>
             <p id="uz2-t">Toca para subir el <strong>reverso</strong> de tu cédula</p>
             <div style="display:flex;gap:8px;justify-content:center;margin-top:8px" class="doc-btns">
-              <span style="font-size:11px;color:var(--muted);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border)"><i class="ti ti-photo"></i> Galería</span>
-              <span style="font-size:11px;color:var(--muted);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border)"><i class="ti ti-camera"></i> Cámara</span>
+              <span style="font-size:11px;color:var(--muted);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border)"><i class="ti ti-photo"></i> Galería o Cámara</span>
             </div>
           </div>
-          <input type="file" id="f-reverso" accept="image/*" style="display:none" onchange="fileOk(this,'uz2','uz2-i','uz2-t','reverso','Reverso subido ✓')">
-          <input type="file" id="f-reverso-cam" accept="image/*" capture="environment" style="display:none" onchange="fileOk(this,'uz2','uz2-i','uz2-t','reverso','Reverso fotografiado ✓')">
+          <input type="file" id="f-reverso" accept="image/*" style="display:none"
+            onchange="fileOk(this,'uz2','uz2-i','uz2-t','reverso','Reverso listo ✓')">
 
           <!-- Selfie -->
           <div class="uz" id="uz3" onclick="document.getElementById('f-selfie').click()">
@@ -423,7 +421,8 @@
               <span style="font-size:11px;color:var(--mx);background:var(--mx-light);padding:4px 10px;border-radius:20px;border:1px solid rgba(212,0,26,0.2)"><i class="ti ti-camera-selfie"></i> Cámara frontal</span>
             </div>
           </div>
-          <input type="file" id="f-selfie" accept="image/*" capture="user" style="display:none" onchange="fileOk(this,'uz3','uz3-i','uz3-t','selfie','Selfie tomada ✓')">
+          <input type="file" id="f-selfie" accept="image/*" capture="user" style="display:none"
+            onchange="fileOk(this,'uz3','uz3-i','uz3-t','selfie','Selfie tomada ✓')">
 
           <div id="id-alert" style="margin-top:.5rem"></div>
           <div class="ibox"><i class="ti ti-lock"></i><span>Tus documentos se usan solo para verificación. No los compartimos.</span></div>
