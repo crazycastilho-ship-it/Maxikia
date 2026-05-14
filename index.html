@@ -26,6 +26,7 @@
     .nav-inner { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 62px; }
     .logo { font-family: var(--font-head); font-weight: 800; font-size: 22px; color: white; text-decoration: none; letter-spacing: -0.5px; cursor: pointer; }
     .logo span { color: var(--mx2); }
+    .logo .express { font-size: 0.42em; color: var(--mx2); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; vertical-align: super; margin-left: 4px; font-family: var(--font-body); }
     .nav-links { display: flex; align-items: center; gap: 1.5rem; }
     .nav-links a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px; cursor: pointer; transition: color 0.15s; }
     .nav-links a:hover { color: white; }
@@ -160,6 +161,8 @@
     .app-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
     .app-logo { font-family: var(--font-head); font-weight: 800; font-size: 20px; color: white; }
     .app-logo span { color: var(--mx2); }
+    .app-logo .express { font-size: 0.38em; color: var(--mx2); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; vertical-align: super; margin-left: 3px; font-family: var(--font-body); }
+    .app-logo .express { font-size: 0.38em; color: var(--mx2); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; vertical-align: super; margin-left: 3px; font-family: var(--font-body); }
     .icon-btn { background: rgba(255,255,255,0.08); border: none; color: white; width: 36px; height: 36px; border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
     .greeting { color: rgba(255,255,255,0.4); font-size: 13px; }
     .user-name { color: white; font-weight: 500; font-size: 17px; }
@@ -239,7 +242,7 @@
 
 <nav class="nav">
   <div class="nav-inner">
-    <div class="logo" onclick="goPage('landing')">Maxi<span>⋊</span>ia</div>
+    <div class="logo" onclick="goPage('landing')">Maxi<span>⋊</span>ia<span class="express">Express</span></div>
     <div class="nav-links">
       <a onclick="goPage('landing')">Cómo funciona</a>
       <a onclick="goPage('landing')">Gana dinero</a>
@@ -332,7 +335,7 @@
   </section>
   <footer class="footer">
     <div class="footer-inner container">
-      <div class="logo" onclick="goPage('landing')">Maxi<span>⋊</span>ia</div>
+      <div class="logo" onclick="goPage('landing')">Maxi<span>⋊</span>ia<span class="express">Express</span></div>
       <div class="footer-links"><a href="#">Términos</a><a href="#">Privacidad</a><a href="#">Contacto</a></div>
       <div class="footer-copy">© 2025 Maxikia. Todos los derechos reservados.</div>
     </div>
@@ -344,7 +347,7 @@
   <div class="auth-wrap">
     <div class="auth-box">
       <div class="auth-head">
-        <div class="logo" onclick="goPage('landing')" style="font-size:18px;margin-bottom:8px">Maxi<span>⋊</span>ia</div>
+        <div class="logo" onclick="goPage('landing')" style="font-size:18px;margin-bottom:8px">Maxi<span>⋊</span>ia<span class="express">Express</span></div>
         <h2>Crear cuenta gratis</h2><p>Rápido como tú lo necesitas</p>
       </div>
       <div class="auth-body2">
@@ -402,7 +405,7 @@
   <div class="auth-wrap">
     <div class="auth-box">
       <div class="auth-head">
-        <div class="logo" onclick="goPage('landing')" style="font-size:18px;margin-bottom:8px">Maxi<span>⋊</span>ia</div>
+        <div class="logo" onclick="goPage('landing')" style="font-size:18px;margin-bottom:8px">Maxi<span>⋊</span>ia<span class="express">Express</span></div>
         <h2>Bienvenido de vuelta</h2><p>Rápido como tú lo necesitas</p>
       </div>
       <div class="auth-body2">
@@ -424,7 +427,7 @@
   <div class="app-shell">
     <div class="app-header">
       <div class="app-header-top">
-        <div class="app-logo">Maxi<span>⋊</span>ia</div>
+        <div class="app-logo">Maxi<span>⋊</span>ia<span class="express">Express</span></div>
         <div style="display:flex;gap:8px;align-items:center">
           <button class="icon-btn"><i class="ti ti-bell"></i></button>
           <button class="logout-btn" onclick="doLogout()">Salir</button>
@@ -836,17 +839,24 @@
 
     cont.innerHTML = cercanos.map(p => {
       const dist = p.lat_origen ? distanciaEntrePuntos(ubicacionActual.lat, ubicacionActual.lng, p.lat_origen, p.lng_origen).toFixed(1) : '?';
+      const ganancia = Math.round(p.precio * COMISION_REPARTIDOR);
       return `<div class="ao">
         <div class="aor"><div class="aod o"></div><div class="aoi"><strong>${p.descripcion}</strong></div></div>
         <div class="aor"><div class="aod o" style="background:var(--mx2)"></div><div class="aoi">${p.origen}</div></div>
         <div class="aor"><div class="aod d"></div><div class="aoi">${p.destino}</div></div>
         <div class="aof">
-          <div><div class="aoe">$${p.precio.toLocaleString('es-CO')}</div><div class="aodist">${dist} km de ti · ${p.distancia_km?.toFixed(1) || '?'} km envío · ${p.peso}</div></div>
+          <div>
+            <div class="aoe">$${ganancia.toLocaleString('es-CO')} <span style="font-size:11px;color:var(--muted);font-family:var(--font-body)">tu ganancia</span></div>
+            <div class="aodist">${dist} km de ti · ${p.distancia_km?.toFixed(1) || '?'} km envío · ${p.peso}</div>
+          </div>
           <button class="bacc" onclick="aceptarPedido('${p.id}','${p.usuario_id}')">Aceptar</button>
         </div>
       </div>`;
     }).join('');
   }
+
+  const COMISION_MAXIKIA = 0.25; // 25% Maxikia
+  const COMISION_REPARTIDOR = 0.75; // 75% repartidor
 
   async function aceptarPedido(pedidoId, clienteId) {
     const { error } = await sb.from('pedidos').update({
@@ -854,8 +864,39 @@
     }).eq('id', pedidoId).eq('estado', 'buscando');
 
     if (error) { alert('No se pudo aceptar — alguien más lo tomó primero.'); cargarPedidosCercanos(); return; }
-    alert('¡Pedido aceptado! Ve a recoger en la dirección indicada.');
+
+    // Mostrar ganancia estimada
+    const { data: pedido } = await sb.from('pedidos').select('precio,descripcion').eq('id', pedidoId).single();
+    const ganancia = pedido ? Math.round(pedido.precio * COMISION_REPARTIDOR) : 0;
+    alert('¡Pedido aceptado! 🎉\n\nVe a recoger: ' + (pedido?.descripcion || '') + '\n\nTu ganancia al entregar: $' + ganancia.toLocaleString('es-CO'));
     cargarPedidosCercanos();
+  }
+
+  async function confirmarEntrega(pedidoId) {
+    // Obtener datos del pedido
+    const { data: pedido } = await sb.from('pedidos').select('*').eq('id', pedidoId).single();
+    if (!pedido) { alert('Pedido no encontrado.'); return; }
+
+    const gananciaRepartidor = Math.round(pedido.precio * COMISION_REPARTIDOR);
+
+    // Marcar como entregado
+    await sb.from('pedidos').update({
+      estado: 'entregado',
+      entregado_at: new Date().toISOString()
+    }).eq('id', pedidoId);
+
+    // Acreditar saldo al repartidor (75%)
+    if (pedido.repartidor_id) {
+      const { data: repPerfil } = await sb.from('perfiles').select('saldo,entregas_completadas').eq('id', pedido.repartidor_id).single();
+      await sb.from('perfiles').update({
+        saldo: (repPerfil?.saldo || 0) + gananciaRepartidor,
+        entregas_completadas: (repPerfil?.entregas_completadas || 0) + 1
+      }).eq('id', pedido.repartidor_id);
+    }
+
+    alert('✓ Entrega confirmada.\n\n$' + gananciaRepartidor.toLocaleString('es-CO') + ' acreditados a tu billetera (75% del pedido).');
+    cargarPedidosHome();
+    dTab('home');
   }
 
   // ── PEDIDOS HOME ──
@@ -928,18 +969,54 @@
 
     btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Creando cuenta...';
 
+    // Paso 1: intentar login primero (por si el usuario ya existe)
+    const { data: loginIntento, error: loginError } = await sb.auth.signInWithPassword({ email, password: pass });
+
+    if (loginIntento?.user) {
+      // Usuario ya existe y contraseña correcta — continuar registro
+      currentUser = loginIntento.user;
+      await sb.from('perfiles').upsert({
+        id: currentUser.id, nombre: name, telefono: phone,
+        rol: selectedRole, email, disponible: false, saldo: 0
+      });
+      btn.disabled = false; btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
+      const { data: perfil } = await sb.from('perfiles').select('docs_estado').eq('id', currentUser.id).single();
+      if (perfil?.docs_estado === 'aprobado') {
+        alertEl.innerHTML = '<div class="alert success">¡Bienvenido de vuelta! Entrando...</div>';
+        setTimeout(() => showDashboard(), 1000); return;
+      }
+      alertEl.innerHTML = '<div class="alert success">Cuenta encontrada. Continuando donde lo dejaste...</div>';
+      setTimeout(() => { alertEl.innerHTML = ''; rStep(2); }, 1200); return;
+    }
+
+    // Paso 2: crear cuenta nueva
     const { data, error } = await sb.auth.signUp({
       email, password: pass,
       options: { data: { full_name: name, phone, role: selectedRole, display_name: name } }
     });
 
     if (error) {
-      alertEl.innerHTML = '<div class="alert error">' + (error.message === 'User already registered' ? 'Este correo ya tiene cuenta. <span style="color:var(--mx);cursor:pointer" onclick="goPage(\'login\')">Inicia sesión</span>' : error.message) + '</div>';
+      alertEl.innerHTML = '<div class="alert error">' + error.message + '</div>';
       btn.disabled = false; btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>'; return;
     }
 
-    currentUser = data.user;
-    await sb.from('perfiles').upsert({ id: currentUser.id, nombre: name, telefono: phone, rol: selectedRole, email, disponible: false });
+    // Paso 3: obtener sesión — signUp puede no devolver sesión si email confirm está activo
+    if (data?.session) {
+      currentUser = data.user;
+    } else {
+      // Hacer login inmediato
+      const { data: ld } = await sb.auth.signInWithPassword({ email, password: pass });
+      if (ld?.user) currentUser = ld.user;
+    }
+
+    if (currentUser) {
+      await sb.from('perfiles').upsert({
+        id: currentUser.id, nombre: name, telefono: phone,
+        rol: selectedRole, email, disponible: false, saldo: 0
+      });
+    }
+
+    btn.disabled = false; btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
     alertEl.innerHTML = '<div class="alert success">¡Cuenta creada! Continuando...</div>';
     setTimeout(() => { alertEl.innerHTML = ''; rStep(2); }, 1200);
   }
