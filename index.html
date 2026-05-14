@@ -1298,13 +1298,24 @@
       btn.disabled = false; btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>'; return;
     }
 
-    // Paso 3: obtener sesión — signUp puede no devolver sesión si email confirm está activo
+    // Paso 3: establecer sesión correctamente
     if (data?.session) {
-      currentUser = data.user;
+      // signUp devolvió sesión directamente (confirm email desactivado)
+      currentUser = data.session.user || data.user;
     } else {
-      // Hacer login inmediato
-      const { data: ld } = await sb.auth.signInWithPassword({ email, password: pass });
-      if (ld?.user) currentUser = ld.user;
+      // No hay sesión — hacer login inmediato
+      const { data: ld, error: le } = await sb.auth.signInWithPassword({ email, password: pass });
+      if (ld?.session) {
+        currentUser = ld.session.user || ld.user;
+      } else if (ld?.user) {
+        currentUser = ld.user;
+      }
+    }
+
+    // Verificar que tenemos sesión activa
+    if (!currentUser) {
+      const { data: { session: s } } = await sb.auth.getSession();
+      if (s) currentUser = s.user;
     }
 
     if (currentUser) {
