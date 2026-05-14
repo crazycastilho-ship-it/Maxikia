@@ -728,23 +728,6 @@
 
   // ── INIT — sesión persistente ──
   (async () => {
-    // Mostrar loading mientras verifica sesión
-    document.body.style.opacity = '0';
-
-    // Escuchar cambios de auth en tiempo real
-    sb.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        currentUser = session.user;
-        if (document.getElementById('page-dashboard').classList.contains('active')) return;
-        if (document.getElementById('page-register').classList.contains('active')) return;
-        showDashboard();
-      } else if (event === 'SIGNED_OUT') {
-        currentUser = null;
-      } else if (event === 'TOKEN_REFRESHED' && session) {
-        currentUser = session.user;
-      }
-    });
-
     // Restaurar sesión existente
     const { data: { session } } = await sb.auth.getSession();
     if (session) {
@@ -752,9 +735,15 @@
       await showDashboard();
     }
 
-    // Mostrar página
-    document.body.style.opacity = '1';
-    document.body.style.transition = 'opacity 0.2s';
+    // Escuchar cambios de auth — solo para renovación de token
+    sb.auth.onAuthStateChange((event, session) => {
+      if (event === 'TOKEN_REFRESHED' && session) {
+        currentUser = session.user;
+      } else if (event === 'SIGNED_OUT') {
+        currentUser = null;
+        goPage('landing');
+      }
+    });
   })();
 
   // ── GOOGLE MAPS LOADER ──
@@ -1273,7 +1262,7 @@
     setTimeout(() => { alerta.innerHTML = ''; rStep(3); }, 1500);
   }
 
-  // ── HUELLA REAL (WebAuthn) — compatible móvil ──
+  // ── HUELLA — registro simplificado ──
   async function registrarHuella() {
     const btn = document.getElementById('fpb');
     const hint = document.getElementById('fph');
@@ -1281,36 +1270,32 @@
     const alertEl = document.getElementById('fp-alert');
     const cont = document.getElementById('fpc');
 
-    // Verificar soporte
+    // Verificar soporte básico
     if (!window.PublicKeyCredential) {
-      alertEl.innerHTML = '<div class="alert error">Tu dispositivo no soporta biometría. Usa "Omitir" para continuar.</div>';
-      return;
-    }
-
-    // Verificar disponibilidad en plataforma
-    const disponible = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().catch(() => false);
-    if (!disponible) {
-      alertEl.innerHTML = '<div class="alert error">No se encontró huella o Face ID en este dispositivo. Usa "Omitir".</div>';
+      // Dispositivo no soporta — permitir omitir
+      alertEl.innerHTML = '<div class="alert error">Este dispositivo no soporta huella digital. Toca "Omitir" para continuar.</div>';
       return;
     }
 
     btn.classList.add('scanning');
-    hint.textContent = 'Esperando biometría...';
-    sub.textContent = isIOS() ? 'Usa Face ID o Touch ID' : 'Apoya el dedo en el sensor';
+    hint.textContent = isIOS() ? 'Usa Face ID o Touch ID...' : 'Usa tu huella dactilar...';
+    sub.textContent = 'El dispositivo pedirá confirmación';
+    alertEl.innerHTML = '';
 
     try {
       const encoder = new TextEncoder();
-      const uid = currentUser?.id || 'user-' + Date.now();
-      // Dominio correcto según donde esté corriendo
-      const rpId = getRpId();
+      const uid = currentUser?.id || ('user_' + Date.now());
+      // Usar siempre el hostname actual — evita errores de dominio
+      const rpId = window.location.hostname;
+      const rpName = 'Maxikia Express';
 
-      const cred = await navigator.credentials.create({
+      const credential = await navigator.credentials.create({
         publicKey: {
-          challenge: encoder.encode('mx-' + Date.now()),
-          rp: { name: 'Maxi⋊ia Express', id: rpId },
+          challenge: encoder.encode('maxikia_reg_' + Date.now()),
+          rp: { name: rpName, id: rpId },
           user: {
-            id: encoder.encode(uid.slice(0, 64)),
-            name: currentUser?.email || 'usuario@maxikia.com',
+            id: encoder.encode(uid.padEnd(16, '0').slice(0, 64)),
+            name: currentUser?.email || 'usuario',
             displayName: currentUser?.user_metadata?.full_name || 'Usuario'
           },
           pubKeyCredParams: [
@@ -1319,102 +1304,94 @@
           ],
           authenticatorSelection: {
             authenticatorAttachment: 'platform',
-            userVerification: 'required',
+            userVerification: 'preferred',
             requireResidentKey: false
           },
-          timeout: 60000
+          timeout: 60000,
+          attestation: 'none'
         }
       });
 
-      if (cred) {
+      if (credential) {
         btn.classList.remove('scanning');
         btn.classList.add('done');
         document.getElementById('fpi').className = 'ti ti-check';
-        hint.textContent = '¡Biometría registrada!';
-        sub.textContent = isIOS() ? 'Puedes entrar con Face ID' : 'Puedes entrar con tu huella';
-        alertEl.innerHTML = '';
+        hint.textContent = '¡Biometría registrada correctamente!';
+        sub.textContent = isIOS() ? 'Entrarás con Face ID' : 'Entrarás con tu huella';
         cont.style.opacity = '1';
         cont.disabled = false;
-        // Guardar ID de credencial
         try {
-          localStorage.setItem('mx_cred_' + uid.slice(0,8),
-            btoa(String.fromCharCode(...new Uint8Array(cred.rawId))));
+          const credId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
+          localStorage.setItem('mx_credId_' + rpId, credId);
         } catch(e) {}
       }
     } catch(err) {
       btn.classList.remove('scanning');
-      let msg = '';
-      switch(err.name) {
-        case 'NotAllowedError':
-          msg = 'Cancelaste la verificación. Toca el círculo para intentar de nuevo.'; break;
-        case 'InvalidStateError':
-          msg = ''; // Ya registrado — permitir continuar
-          cont.style.opacity = '1'; cont.disabled = false;
-          btn.classList.add('done');
-          document.getElementById('fpi').className = 'ti ti-check';
-          hint.textContent = 'Biometría ya registrada. Puedes continuar.';
-          break;
-        case 'NotSupportedError':
-          msg = 'Este navegador no soporta biometría. Intenta desde Chrome o Safari. Usa "Omitir" por ahora.'; break;
-        case 'SecurityError':
-          msg = 'Error de seguridad. Asegúrate de estar en maxikia.com. Usa "Omitir".'; break;
-        default:
-          msg = 'No se pudo registrar: ' + err.message + '. Usa "Omitir" para continuar.';
-      }
-      if (msg) alertEl.innerHTML = '<div class="alert error">' + msg + '</div>';
       hint.textContent = 'Toca para intentar de nuevo';
+      if (err.name === 'InvalidStateError') {
+        // Ya registrada — dejar continuar
+        btn.classList.add('done');
+        document.getElementById('fpi').className = 'ti ti-check';
+        hint.textContent = 'Biometría ya registrada.';
+        cont.style.opacity = '1'; cont.disabled = false;
+      } else if (err.name === 'NotAllowedError') {
+        alertEl.innerHTML = '<div class="alert error">Cancelaste. Toca el círculo para intentar de nuevo, o usa "Omitir".</div>';
+      } else if (err.name === 'NotSupportedError' || err.name === 'SecurityError') {
+        alertEl.innerHTML = '<div class="alert error">Biometría no disponible en este navegador. Usa "Omitir" para continuar con contraseña.</div>';
+        cont.style.opacity = '1'; cont.disabled = false;
+      } else {
+        // Cualquier otro error — permitir omitir
+        alertEl.innerHTML = '<div class="alert error">No se pudo configurar la biometría. Usa "Omitir" para continuar.</div>';
+        cont.style.opacity = '1'; cont.disabled = false;
+      }
     }
-  }
-
-  function getRpId() {
-    const host = window.location.hostname;
-    if (host === 'localhost' || host === '127.0.0.1') return 'localhost';
-    if (host.includes('maxikia.com')) return 'maxikia.com';
-    return host; // vercel preview u otro dominio
-  }
-
-  function isIOS() {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   }
 
   // ── LOGIN CON HUELLA ──
   async function loginConHuella() {
     const alertEl = document.getElementById('login-alert');
+
     if (!window.PublicKeyCredential) {
-      alertEl.innerHTML = '<div class="alert error">Este dispositivo no soporta biometría.</div>'; return;
+      alertEl.innerHTML = '<div class="alert error">Este dispositivo no soporta biometría. Usa tu contraseña.</div>'; return;
     }
-    const disponible = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().catch(() => false);
-    if (!disponible) {
-      alertEl.innerHTML = '<div class="alert error">No se encontró huella o Face ID. Usa tu contraseña.</div>'; return;
+
+    // Verificar que haya sesión activa para restaurar
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      alertEl.innerHTML = '<div class="alert error">Sesión expirada. Ingresa con tu contraseña.</div>'; return;
     }
+
     try {
       const encoder = new TextEncoder();
-      const cred = await navigator.credentials.get({
+      const rpId = window.location.hostname;
+
+      const assertion = await navigator.credentials.get({
         publicKey: {
-          challenge: encoder.encode('mx-login-' + Date.now()),
-          rpId: getRpId(),
-          userVerification: 'required',
+          challenge: encoder.encode('maxikia_login_' + Date.now()),
+          rpId: rpId,
+          userVerification: 'preferred',
           timeout: 60000
         }
       });
-      if (cred) {
-        // Login exitoso con biometría — buscar sesión guardada
-        const { data: { session } } = await sb.auth.getSession();
-        if (session) {
-          currentUser = session.user;
-          showDashboard();
-        } else {
-          alertEl.innerHTML = '<div class="alert error">Sesión expirada. Ingresa con tu contraseña una vez más.</div>';
-        }
+
+      if (assertion) {
+        // Biometría verificada — restaurar sesión
+        currentUser = session.user;
+        showDashboard();
       }
     } catch(err) {
       if (err.name === 'NotAllowedError') {
-        alertEl.innerHTML = '<div class="alert error">Cancelaste. Usa tu contraseña para entrar.</div>';
+        alertEl.innerHTML = '<div class="alert error">Cancelaste. Intenta de nuevo o usa tu contraseña.</div>';
       } else {
-        alertEl.innerHTML = '<div class="alert error">No se pudo verificar. Usa tu contraseña.</div>';
+        alertEl.innerHTML = '<div class="alert error">No se pudo verificar. Usa tu contraseña para entrar.</div>';
       }
     }
+  }
+
+  function getRpId() { return window.location.hostname; }
+  function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   }
 
   // ── LOGIN ──
@@ -1442,8 +1419,9 @@
     const name = meta?.full_name || meta?.name || meta?.display_name || currentUser?.email?.split('@')[0] || 'Usuario';
     document.getElementById('dash-username').textContent = name + ' 👋';
 
-    document.getElementById('lock-user').textContent = currentUser.email;
-    resetTimerInactividad();
+    const lockUserEl = document.getElementById('lock-user');
+    if (lockUserEl) lockUserEl.textContent = currentUser?.email || '';
+    setTimeout(() => resetTimerInactividad(), 500);
     const { data: perfil } = await sb.from('perfiles').select('docs_estado, docs_motivo, nombre').eq('id', currentUser.id).single();
     const estado = perfil?.docs_estado || 'pendiente';
     const motivo = perfil?.docs_motivo || '';
@@ -1555,74 +1533,91 @@
   // ── REANUDAR VERIFICACIÓN EN EL PASO CORRECTO ──
   async function reanudarVerificacion() {
     if (!currentUser) { goPage('register'); return; }
-    const { data: perfil } = await sb.from('perfiles').select('docs_estado, docs_enviados').eq('id', currentUser.id).single();
+
+    // Obtener estado actual del perfil
+    const { data: perfil } = await sb.from('perfiles')
+      .select('docs_estado, docs_enviados').eq('id', currentUser.id).single();
+
+    // Ir a la página de registro
     goPage('register');
-    // Pequeño delay para que la página cargue
+
+    // Esperar a que el DOM esté listo y luego ir al paso correcto
     setTimeout(() => {
       if (!perfil || !perfil.docs_enviados) {
-        // No ha subido documentos → paso 2
         resetRegisterStep(2);
-      } else {
-        // Documentos subidos pero sin huella → paso 3
+      } else if (perfil.docs_estado !== 'aprobado') {
         resetRegisterStep(3);
       }
-    }, 100);
+    }, 300);
   }
 
   function resetRegisterStep(targetStep) {
-    // Reset visual
     regStep = 1;
     docsSubidos = { frente: false, reverso: false, selfie: false };
-    document.querySelectorAll('.sp').forEach(s => s.classList.remove('active'));
-    // Marcar pasos anteriores como done
+
+    // Ocultar todos los paneles
+    for (let i = 1; i <= 3; i++) {
+      const panel = document.getElementById('sp' + i);
+      if (panel) panel.classList.remove('active');
+      const dot = document.getElementById('sd' + i);
+      if (dot) { dot.classList.remove('active', 'done'); dot.textContent = i; }
+      const line = document.getElementById('sl' + i);
+      if (line) line.classList.remove('done');
+    }
+
+    // Marcar pasos anteriores como completados
     for (let i = 1; i < targetStep; i++) {
       const dot = document.getElementById('sd' + i);
-      if (dot) { dot.classList.remove('active'); dot.classList.add('done'); dot.innerHTML = '<i class="ti ti-check" style="font-size:11px"></i>'; }
+      if (dot) {
+        dot.classList.add('done');
+        dot.innerHTML = '<i class="ti ti-check" style="font-size:11px"></i>';
+      }
       const line = document.getElementById('sl' + i);
       if (line) line.classList.add('done');
     }
+
     // Activar paso destino
     const targetDot = document.getElementById('sd' + targetStep);
-    if (targetDot) { targetDot.classList.add('active'); targetDot.classList.remove('done'); }
+    if (targetDot) { targetDot.classList.add('active'); }
     const targetPanel = document.getElementById('sp' + targetStep);
     if (targetPanel) targetPanel.classList.add('active');
     regStep = targetStep;
+
+    // Scroll al inicio
+    window.scrollTo(0, 0);
   }
 
   // ── BLOQUEO POR INACTIVIDAD ──
-  const INACTIVIDAD_MS = 5 * 60 * 1000; // 5 minutos
+  const INACTIVIDAD_MS = 10 * 60 * 1000; // 10 minutos
   let timerInactividad = null;
   let appBloqueada = false;
 
   function resetTimerInactividad() {
     if (!currentUser) return;
     clearTimeout(timerInactividad);
-    timerInactividad = setTimeout(() => {
-      bloquearApp();
-    }, INACTIVIDAD_MS);
+    timerInactividad = setTimeout(bloquearApp, INACTIVIDAD_MS);
   }
 
   function bloquearApp() {
     if (!currentUser || appBloqueada) return;
     appBloqueada = true;
-    // Mostrar pantalla de bloqueo
-    const lockScreen = document.getElementById('lock-screen');
-    if (lockScreen) lockScreen.style.display = 'flex';
+    const ls = document.getElementById('lock-screen');
+    if (ls) {
+      ls.style.display = 'flex';
+      // Enfocar el campo de contraseña
+      setTimeout(() => {
+        const lp = document.getElementById('lock-pass');
+        if (lp) lp.focus();
+      }, 100);
+    }
   }
 
   async function desbloquearApp() {
     const pass = document.getElementById('lock-pass').value;
     const alertEl = document.getElementById('lock-alert');
     if (!pass) { alertEl.innerHTML = '<div class="alert error">Ingresa tu contraseña.</div>'; return; }
-
-    const { error } = await sb.auth.signInWithPassword({
-      email: currentUser.email, password: pass
-    });
-
-    if (error) {
-      alertEl.innerHTML = '<div class="alert error">Contraseña incorrecta.</div>'; return;
-    }
-
+    const { error } = await sb.auth.signInWithPassword({ email: currentUser.email, password: pass });
+    if (error) { alertEl.innerHTML = '<div class="alert error">Contraseña incorrecta.</div>'; return; }
     document.getElementById('lock-screen').style.display = 'none';
     document.getElementById('lock-pass').value = '';
     alertEl.innerHTML = '';
@@ -1631,29 +1626,32 @@
   }
 
   async function desbloquearConHuella() {
+    const alertEl = document.getElementById('lock-alert');
+    if (!window.PublicKeyCredential) {
+      alertEl.innerHTML = '<div class="alert error">Usa tu contraseña.</div>'; return;
+    }
     try {
-      const encoder = new TextEncoder();
-      const cred = await navigator.credentials.get({
+      const assertion = await navigator.credentials.get({
         publicKey: {
-          challenge: encoder.encode('mx-unlock-' + Date.now()),
-          rpId: getRpId(),
-          userVerification: 'required',
+          challenge: new TextEncoder().encode('mx_unlock_' + Date.now()),
+          rpId: window.location.hostname,
+          userVerification: 'preferred',
           timeout: 60000
         }
       });
-      if (cred) {
+      if (assertion) {
         document.getElementById('lock-screen').style.display = 'none';
         document.getElementById('lock-pass').value = '';
-        document.getElementById('lock-alert').innerHTML = '';
+        alertEl.innerHTML = '';
         appBloqueada = false;
         resetTimerInactividad();
       }
     } catch(e) {
-      document.getElementById('lock-alert').innerHTML = '<div class="alert error">No se pudo verificar. Usa tu contraseña.</div>';
+      alertEl.innerHTML = '<div class="alert error">No se pudo verificar. Usa tu contraseña.</div>';
     }
   }
 
-  // Detectar actividad del usuario
+  // Detectar actividad
   ['touchstart','click','keydown','scroll'].forEach(ev => {
     document.addEventListener(ev, () => {
       if (currentUser && !appBloqueada) resetTimerInactividad();
