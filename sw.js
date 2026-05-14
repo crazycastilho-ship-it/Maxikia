@@ -1,28 +1,21 @@
-const CACHE = 'maxikia-v1';
-const ASSETS = ['/', '/index.html'];
+const CACHE = 'maxikia-v3';
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
   self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys =>
-    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-  ));
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.map(k => caches.delete(k)))
+    )
+  );
   self.clients.claim();
 });
 
+// No cachear nada — siempre buscar en red
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
-  if (e.request.url.includes('supabase') || e.request.url.includes('maps.googleapis')) return;
-  e.respondWith(
-    fetch(e.request)
-      .then(res => {
-        const clone = res.clone();
-        caches.open(CACHE).then(c => c.put(e.request, clone));
-        return res;
-      })
-      .catch(() => caches.match(e.request))
-  );
+  // Solo dejar pasar requests normales sin caché
+  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
 });

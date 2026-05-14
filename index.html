@@ -729,29 +729,27 @@
   let ubicacionActual = null;
   let disponibleComoRepartidor = false;
 
-  // ── INIT — pedir autenticación siempre al abrir ──
+  // ── INIT — siempre pedir autenticación al cargar la página ──
   (async () => {
     const { data: { session } } = await sb.auth.getSession();
     if (session) {
       currentUser = session.user;
-      // Si viene de PWA o lleva más de 30 min — mostrar pantalla de bienvenida
-      const ultimaAuth = parseInt(localStorage.getItem('mx_last_auth') || '0');
-      const ahora = Date.now();
-      const treintaMinutos = 30 * 60 * 1000;
-      const esPWA = window.matchMedia('(display-mode: standalone)').matches ||
-                    window.navigator.standalone === true;
 
-      if (esPWA || (ahora - ultimaAuth) > treintaMinutos) {
-        // Mostrar pantalla de bienvenida — pedir autenticación
-        mostrarBienvenida();
-      } else {
-        // Sesión reciente — entrar directo
+      // Verificar si viene de un login reciente (menos de 2 segundos)
+      const ultimaAuth = parseInt(localStorage.getItem('mx_last_auth') || '0');
+      const ahorita = Date.now();
+      const dosSegundos = 2 * 1000;
+      const loginMuyReciente = (ahorita - ultimaAuth) < dosSegundos;
+
+      if (loginMuyReciente) {
+        // Acaba de hacer login — entrar directo
         await showDashboard();
+      } else {
+        // Cualquier otro caso — pedir autenticación
+        mostrarBienvenida();
       }
     }
-    // Si no hay sesión — mostrar landing normal
 
-    // Escuchar cambios de auth
     sb.auth.onAuthStateChange((event, session) => {
       if (event === 'TOKEN_REFRESHED' && session) {
         currentUser = session.user;
@@ -2004,12 +2002,17 @@
   }
 
   // Mostrar botón instalar en iOS inmediatamente (Safari no dispara beforeinstallprompt)
-  window.addEventListener('DOMContentLoaded', () => {
+  // Mostrar botón instalar al cargar
+  window.addEventListener('load', () => {
     const yaInstalada = window.matchMedia('(display-mode: standalone)').matches ||
                         window.navigator.standalone === true;
-    if (!yaInstalada && isIOS()) {
-      const btn = document.getElementById('btn-instalar-pwa');
-      if (btn) btn.style.display = 'inline-flex';
+    if (!yaInstalada && !localStorage.getItem('pwa-installed')) {
+      // iOS: mostrar siempre (Safari no dispara beforeinstallprompt)
+      if (isIOS()) {
+        const btn = document.getElementById('btn-instalar-pwa');
+        if (btn) btn.style.display = 'inline-flex';
+      }
+      // Android: el beforeinstallprompt lo maneja
     }
   });
   let docActual = { zonaId: null, galId: null, camId: null };
