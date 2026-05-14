@@ -1324,59 +1324,53 @@
     alerta.innerHTML = '';
     const btn = document.getElementById('btn-id');
     btn.disabled = true;
-    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Subiendo documentos...';
+    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Subiendo...';
 
     const uid = currentUser.id;
     const archivos = [
-      { id: 'f-frente', nombre: 'frente' },
-      { id: 'f-reverso', nombre: 'reverso' },
-      { id: 'f-selfie', nombre: 'selfie' }
+      { inputId: 'f-frente', nombre: 'frente' },
+      { inputId: 'f-reverso', nombre: 'reverso' },
+      { inputId: 'f-selfie', nombre: 'selfie' }
     ];
 
-    let errores = [];
     for (const a of archivos) {
-      const fileInput = document.getElementById(a.id);
-      const file = fileInput?.files[0];
-      if (!file) { errores.push(a.nombre); continue; }
+      const file = document.getElementById(a.inputId)?.files[0];
+      if (!file) continue;
 
-      // Siempre usar .jpg para simplificar
-      const ruta = uid + '/' + a.nombre + '.jpg';
+      // Nombre fijo con timestamp para evitar conflictos de caché
+      const ruta = `${uid}/${a.nombre}.jpg`;
 
-      // Intentar subir — primero eliminar si existe
-      await sb.storage.from('documentos').remove([ruta]).catch(() => {});
-
-      const { error } = await sb.storage.from('documentos').upload(ruta, file, {
-        upsert: true,
-        contentType: file.type || 'image/jpeg'
-      });
+      const { error } = await sb.storage
+        .from('documentos')
+        .upload(ruta, file, {
+          upsert: true,
+          cacheControl: '3600',
+          contentType: file.type || 'image/jpeg'
+        });
 
       if (error) {
-        console.error('Error subiendo ' + a.nombre + ':', error.message);
-        errores.push(a.nombre + ' (' + error.message + ')');
+        console.error(a.nombre, error);
+        btn.disabled = false;
+        btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
+        alerta.innerHTML = `<div class="alert error">
+          Error subiendo ${a.nombre}: ${error.message}<br>
+          <small>Código: ${error.statusCode || 'desconocido'}</small>
+        </div>`;
+        return;
       }
     }
 
-    btn.disabled = false;
-    btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
-
-    if (errores.length > 0) {
-      alerta.innerHTML = '<div class="alert error">Error subiendo: ' + errores.join(', ') + '. Verifica tu conexión e intenta de nuevo.</div>';
-      return;
-    }
-
-    // Marcar como enviados en el perfil
-    const { error: perfilError } = await sb.from('perfiles').upsert({
+    // Actualizar perfil
+    await sb.from('perfiles').upsert({
       id: uid,
       docs_enviados: true,
       docs_estado: 'en_revision',
       updated_at: new Date().toISOString()
     });
 
-    if (perfilError) {
-      console.error('Error actualizando perfil:', perfilError.message);
-    }
-
-    alerta.innerHTML = '<div class="alert success">✓ Documentos enviados correctamente. En revisión en menos de 24h.</div>';
+    btn.disabled = false;
+    btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
+    alerta.innerHTML = '<div class="alert success">✓ Documentos enviados. En revisión en menos de 24h.</div>';
     setTimeout(() => { alerta.innerHTML = ''; rStep(3); }, 1500);
   }
 
