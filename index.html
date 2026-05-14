@@ -1271,13 +1271,16 @@
 
     btn.disabled = true;
     btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Creando cuenta...';
+    alertEl.innerHTML = '';
 
     // Guardar para usar en paso 2
     _regEmail = email;
     _regPass = pass;
 
     // Intentar login primero (usuario ya existe)
-    const { data: loginData } = await sb.auth.signInWithPassword({ email, password: pass });
+    alertEl.innerHTML = '<div style="font-size:12px;color:var(--muted)">Verificando...</div>';
+    const { data: loginData, error: loginErr } = await sb.auth.signInWithPassword({ email, password: pass });
+
     if (loginData?.user) {
       currentUser = loginData.user;
       await sb.from('perfiles').upsert({
@@ -1288,8 +1291,8 @@
       btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
       const { data: perfil } = await sb.from('perfiles').select('docs_estado').eq('id', currentUser.id).single();
       if (perfil?.docs_estado === 'aprobado') {
-        alertEl.innerHTML = '<div class="alert success">¡Bienvenido de vuelta! Entrando...</div>';
-        setTimeout(() => showDashboard(), 1000); return;
+        alertEl.innerHTML = '';
+        showDashboard(); return;
       }
       alertEl.innerHTML = '';
       rStep(2);
@@ -1297,6 +1300,7 @@
     }
 
     // Crear cuenta nueva
+    alertEl.innerHTML = '<div style="font-size:12px;color:var(--muted)">Creando cuenta...</div>';
     const { data, error } = await sb.auth.signUp({
       email, password: pass,
       options: { data: { full_name: name, phone, role: selectedRole, display_name: name } }
@@ -1309,7 +1313,8 @@
       return;
     }
 
-    // Hacer login explícito siempre — más confiable que esperar sesión de signUp
+    // Login explícito post-registro
+    alertEl.innerHTML = '<div style="font-size:12px;color:var(--muted)">Iniciando sesión...</div>';
     const { data: ld } = await sb.auth.signInWithPassword({ email, password: pass });
     if (ld?.user) {
       currentUser = ld.user;
