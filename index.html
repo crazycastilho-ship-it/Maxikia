@@ -846,7 +846,7 @@
         <div class="aor"><div class="aod d"></div><div class="aoi">${p.destino}</div></div>
         <div class="aof">
           <div>
-            <div class="aoe">$${ganancia.toLocaleString('es-CO')} <span style="font-size:11px;color:var(--muted);font-family:var(--font-body)">tu ganancia</span></div>
+            <div class="aoe">$${ganancia.toLocaleString('es-CO')}</div>
             <div class="aodist">${dist} km de ti · ${p.distancia_km?.toFixed(1) || '?'} km envío · ${p.peso}</div>
           </div>
           <button class="bacc" onclick="aceptarPedido('${p.id}','${p.usuario_id}')">Aceptar</button>
@@ -868,7 +868,7 @@
     // Mostrar ganancia estimada
     const { data: pedido } = await sb.from('pedidos').select('precio,descripcion').eq('id', pedidoId).single();
     const ganancia = pedido ? Math.round(pedido.precio * COMISION_REPARTIDOR) : 0;
-    alert('¡Pedido aceptado! 🎉\n\nVe a recoger: ' + (pedido?.descripcion || '') + '\n\nTu ganancia al entregar: $' + ganancia.toLocaleString('es-CO'));
+    alert('¡Pedido aceptado! 🎉\n\nVe a recoger: ' + (pedido?.descripcion || '') + '\n\nGanarás: $' + ganancia.toLocaleString('es-CO') + ' al entregar.');
     cargarPedidosCercanos();
   }
 
@@ -894,7 +894,7 @@
       }).eq('id', pedido.repartidor_id);
     }
 
-    alert('✓ Entrega confirmada.\n\n$' + gananciaRepartidor.toLocaleString('es-CO') + ' acreditados a tu billetera (75% del pedido).');
+    alert('✓ Entrega confirmada.\n\n$' + gananciaRepartidor.toLocaleString('es-CO') + ' acreditados a tu billetera Maxikia.');
     cargarPedidosHome();
     dTab('home');
   }
@@ -909,10 +909,19 @@
     const estados = { buscando: ['pp','Buscando rep.'], en_camino: ['pa','En camino'], entregado: ['pd','Entregado'], cancelado: ['pd','Cancelado'] };
     cont.innerHTML = data.map(p => {
       const [cls, label] = estados[p.estado] || ['pd', p.estado];
+      const esRepartidor = p.repartidor_id === currentUser.id;
+      const ganancia = Math.round(p.precio * COMISION_REPARTIDOR);
       return `<div class="orow">
-        <div class="oico pkg"><i class="ti ti-package"></i></div>
-        <div class="oi"><div class="on">${p.descripcion}</div><div class="om">${p.origen} → ${p.destino}</div></div>
-        <div class="or"><div class="op">$${p.precio.toLocaleString('es-CO')}</div><span class="pill ${cls}">${label}</span></div>
+        <div class="oico ${esRepartidor ? 'store' : 'pkg'}"><i class="ti ti-${esRepartidor ? 'motorbike' : 'package'}"></i></div>
+        <div class="oi">
+          <div class="on">${p.descripcion}</div>
+          <div class="om">${p.origen} → ${p.destino}</div>
+          ${esRepartidor && p.estado === 'en_camino' ? `<button onclick="confirmarEntrega('${p.id}')" style="margin-top:6px;background:var(--green);color:white;border:none;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:var(--font-body)">✓ Confirmar entrega</button>` : ''}
+        </div>
+        <div class="or">
+          <div class="op">$${esRepartidor ? ganancia.toLocaleString('es-CO') : p.precio.toLocaleString('es-CO')}</div>
+          <span class="pill ${cls}">${label}</span>
+        </div>
       </div>`;
     }).join('');
   }
