@@ -1254,6 +1254,10 @@
     document.getElementById('rc-' + r).classList.add('sel');
   }
 
+  // Guardar credenciales temporalmente para login en paso 2
+  let _regEmail = '';
+  let _regPass = '';
+
   async function doRegister() {
     const name = document.getElementById('reg-name').value.trim();
     const email = document.getElementById('reg-email').value.trim();
@@ -1265,29 +1269,34 @@
     if (!name || !email || !pass) { alertEl.innerHTML = '<div class="alert error">Completa nombre, correo y contraseña.</div>'; return; }
     if (pass.length < 8) { alertEl.innerHTML = '<div class="alert error">La contraseña debe tener mínimo 8 caracteres.</div>'; return; }
 
-    btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Creando cuenta...';
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Creando cuenta...';
 
-    // Paso 1: intentar login primero (por si el usuario ya existe)
-    const { data: loginIntento, error: loginError } = await sb.auth.signInWithPassword({ email, password: pass });
+    // Guardar para usar en paso 2
+    _regEmail = email;
+    _regPass = pass;
 
-    if (loginIntento?.user) {
-      // Usuario ya existe y contraseña correcta — continuar registro
-      currentUser = loginIntento.user;
+    // Intentar login primero (usuario ya existe)
+    const { data: loginData } = await sb.auth.signInWithPassword({ email, password: pass });
+    if (loginData?.user) {
+      currentUser = loginData.user;
       await sb.from('perfiles').upsert({
         id: currentUser.id, nombre: name, telefono: phone,
         rol: selectedRole, email, disponible: false, saldo: 0
       });
-      btn.disabled = false; btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
+      btn.disabled = false;
+      btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
       const { data: perfil } = await sb.from('perfiles').select('docs_estado').eq('id', currentUser.id).single();
       if (perfil?.docs_estado === 'aprobado') {
         alertEl.innerHTML = '<div class="alert success">¡Bienvenido de vuelta! Entrando...</div>';
         setTimeout(() => showDashboard(), 1000); return;
       }
-      alertEl.innerHTML = '<div class="alert success">Cuenta encontrada. Continuando donde lo dejaste...</div>';
-      setTimeout(() => { alertEl.innerHTML = ''; rStep(2); }, 1200); return;
+      alertEl.innerHTML = '<div class="alert success">Cuenta encontrada. Continuando...</div>';
+      setTimeout(() => { alertEl.innerHTML = ''; rStep(2); }, 1200);
+      return;
     }
 
-    // Paso 2: crear cuenta nueva
+    // Crear cuenta nueva
     const { data, error } = await sb.auth.signUp({
       email, password: pass,
       options: { data: { full_name: name, phone, role: selectedRole, display_name: name } }
@@ -1295,27 +1304,17 @@
 
     if (error) {
       alertEl.innerHTML = '<div class="alert error">' + error.message + '</div>';
-      btn.disabled = false; btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>'; return;
+      btn.disabled = false;
+      btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
+      return;
     }
 
-    // Paso 3: establecer sesión correctamente
-    if (data?.session) {
-      // signUp devolvió sesión directamente (confirm email desactivado)
-      currentUser = data.session.user || data.user;
-    } else {
-      // No hay sesión — hacer login inmediato
-      const { data: ld, error: le } = await sb.auth.signInWithPassword({ email, password: pass });
-      if (ld?.session) {
-        currentUser = ld.session.user || ld.user;
-      } else if (ld?.user) {
-        currentUser = ld.user;
-      }
-    }
-
-    // Verificar que tenemos sesión activa
-    if (!currentUser) {
-      const { data: { session: s } } = await sb.auth.getSession();
-      if (s) currentUser = s.user;
+    // Hacer login explícito siempre — más confiable que esperar sesión de signUp
+    const { data: ld } = await sb.auth.signInWithPassword({ email, password: pass });
+    if (ld?.user) {
+      currentUser = ld.user;
+    } else if (data?.user) {
+      currentUser = data.user;
     }
 
     if (currentUser) {
@@ -1325,7 +1324,8 @@
       });
     }
 
-    btn.disabled = false; btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
+    btn.disabled = false;
+    btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
     alertEl.innerHTML = '<div class="alert success">¡Cuenta creada! Continuando...</div>';
     setTimeout(() => { alertEl.innerHTML = ''; rStep(2); }, 1200);
   }
@@ -1383,19 +1383,21 @@
       alerta.innerHTML = '<div class="alert error">Faltan: ' + faltantes.join(', ') + '.</div>'; return;
     }
 
-    // Siempre refrescar sesión antes de subir
+    // Asegurar sesión activa antes de subir
     if (!currentUser) {
+      // Intentar obtener sesión activa
       const { data: { session } } = await sb.auth.getSession();
       if (session) {
         currentUser = session.user;
-      } else {
-        const { data: refreshed } = await sb.auth.refreshSession();
-        if (refreshed?.session) {
-          currentUser = refreshed.session.user;
-        } else {
-          alerta.innerHTML = '<div class="alert error">Sesión no disponible. <span style="color:var(--mx);cursor:pointer;font-weight:500" onclick="goPage(\'login\')">Inicia sesión</span> y vuelve al paso de documentos.</div>';
-          return;
-        }
+      } else if (_regEmail && _regPass) {
+        // Re-login con credenciales guardadas del registro
+        const { data: ld } = await sb.auth.signInWithPassword({ email: _regEmail, password: _regPass });
+        if (ld?.user) currentUser = ld.user;
+      }
+
+      if (!currentUser) {
+        alerta.innerHTML = '<div class="alert error">Sesión no disponible. <span style="color:var(--mx);cursor:pointer;font-weight:500" onclick="goPage(\'login\')">Inicia sesión</span> — tus archivos siguen seleccionados.</div>';
+        return;
       }
     }
 
