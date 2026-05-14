@@ -453,7 +453,7 @@
   const ADMIN_EMAIL = 'andresmaxicaia@outlook.com';
   const SB_URL = 'https://dovqezmhdiauhlpichdn.supabase.co';
   const SB_KEY = 'sb_publishable_z_KMYtrQ0zxbTWhAa5GUTg___LLx-hk';
-  const COMISION = 0.15;
+  const COMISION = 0.25;
 
   const { createClient } = supabase;
   const sb = createClient(SB_URL, SB_KEY);
@@ -699,19 +699,62 @@
       <td><span class="pill p-${u.docs_estado || 'pendiente'}">${u.docs_estado || 'pendiente'}</span></td>
       <td style="font-size:12px">${u.created_at ? new Date(u.created_at).toLocaleDateString('es-CO') : '—'}</td>
       <td>
-        <button class="action-btn approve" onclick="aprobarVerif('${u.id}')">✓ Aprobar</button>
+        <button class="action-btn" onclick="verDocumentos('${u.id}','${u.nombre || u.email}')"><i class="ti ti-eye"></i> Ver docs</button>
+        <button class="action-btn approve" onclick="aprobarVerif('${u.id}','${u.nombre || u.email}')">✓ Aprobar</button>
         <button class="action-btn reject" onclick="rechazarVerif('${u.id}')">✗ Rechazar</button>
       </td>
     </tr>`).join('');
+
+    // Badge
+    const b = document.getElementById('badge-verif');
+    b.textContent = data.length; b.style.display = 'inline';
   }
 
-  async function aprobarVerif(id) {
+  async function verDocumentos(userId, nombre) {
+    // Obtener URLs firmadas de los documentos
+    const tipos = ['frente', 'reverso', 'selfie'];
+    const exts = ['jpg', 'jpeg', 'png', 'JPG', 'PNG'];
+    let html = `<div style="font-weight:600;margin-bottom:1rem">${nombre}</div>`;
+
+    for (const tipo of tipos) {
+      let urlEncontrada = null;
+      for (const ext of exts) {
+        const { data } = await sb.storage.from('documentos').createSignedUrl(`${userId}/${tipo}.${ext}`, 3600);
+        if (data?.signedUrl) { urlEncontrada = data.signedUrl; break; }
+      }
+      html += `<div style="margin-bottom:1rem">
+        <div style="font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;margin-bottom:6px">${tipo}</div>
+        ${urlEncontrada
+          ? `<img src="${urlEncontrada}" style="width:100%;border-radius:8px;border:1px solid var(--border);max-height:200px;object-fit:cover" onerror="this.parentElement.innerHTML='<div style=padding:1rem;background:var(--surface);border-radius:8px;font-size:13px;color:var(--muted)>No se pudo cargar la imagen</div>'">`
+          : `<div style="padding:1rem;background:var(--surface);border-radius:8px;font-size:13px;color:var(--muted)">No subido</div>`
+        }
+      </div>`;
+    }
+
+    html += `<div style="display:flex;gap:8px;margin-top:1rem">
+      <button class="btn-sm primary" onclick="aprobarVerif('${userId}','${nombre}');cerrarModal('modal-usuario')" style="flex:1;justify-content:center">✓ Aprobar cuenta</button>
+      <button class="btn-sm" style="border-color:var(--mx);color:var(--mx)" onclick="rechazarVerif('${userId}');cerrarModal('modal-usuario')">✗ Rechazar</button>
+    </div>`;
+
+    document.getElementById('modal-usuario-body').innerHTML = html;
+    document.getElementById('modal-usuario').classList.add('open');
+  }
+
+  async function aprobarVerif(id, nombre) {
     await sb.from('perfiles').update({ docs_estado: 'aprobado' }).eq('id', id);
     cargarVerificaciones(); cargarMetricas();
+    // Actualizar badge
+    const { data } = await sb.from('perfiles').select('*', { count: 'exact', head: true }).in('docs_estado', ['en_revision', 'pendiente']);
+    const b = document.getElementById('badge-verif');
+    if (data?.count > 0) { b.textContent = data.count; b.style.display = 'inline'; }
+    else b.style.display = 'none';
+    alert('✓ Cuenta de ' + (nombre || 'usuario') + ' aprobada. Ya puede usar Maxikia.');
   }
 
   async function rechazarVerif(id) {
-    await sb.from('perfiles').update({ docs_estado: 'rechazado' }).eq('id', id);
+    const motivo = prompt('Motivo del rechazo (se le mostrará al usuario):');
+    if (!motivo) return;
+    await sb.from('perfiles').update({ docs_estado: 'rechazado', docs_motivo: motivo }).eq('id', id);
     cargarVerificaciones();
   }
 
