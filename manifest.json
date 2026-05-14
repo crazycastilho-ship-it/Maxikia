@@ -4,7 +4,7 @@
   "description": "Entregas express. Rápido como tú lo necesitas.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0E0D0D",
+  "background_color": "#400200",
   "theme_color": "#D4001A",
   "orientation": "portrait",
   "icons": [
