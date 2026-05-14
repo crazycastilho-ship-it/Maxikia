@@ -1355,26 +1355,29 @@
       { inputId: 'f-selfie', nombre: 'selfie' }
     ];
 
+    const ts = Date.now();
     for (const a of archivos) {
       const file = document.getElementById(a.inputId)?.files[0];
-      if (!file) continue;
+      if (!file) {
+        btn.disabled = false;
+        btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
+        alerta.innerHTML = '<div class="alert error">No se encontró el archivo de ' + a.nombre + '. Vuelve a seleccionarlo.</div>';
+        return;
+      }
 
-      alerta.innerHTML = '<div style="font-size:13px;color:var(--muted);text-align:center">Comprimiendo ' + a.nombre + '...</div>';
+      alerta.innerHTML = '<div style="font-size:13px;color:var(--muted);text-align:center">Subiendo ' + a.nombre + ' (' + Math.round(file.size/1024) + 'KB)...</div>';
 
-      // Comprimir imagen a máximo 800KB
-      const blob = await comprimirImagen(file, 1000, 0.70);
-      const ruta = uid + '/' + a.nombre + '.jpg';
+      const ruta = uid + '/' + a.nombre + '_' + ts + '.jpg';
 
-      alerta.innerHTML = '<div style="font-size:13px;color:var(--muted);text-align:center">Subiendo ' + a.nombre + '...</div>';
-
+      // Subir directamente sin comprimir para identificar el problema
       const { error } = await sb.storage
         .from('documentos')
-        .upload(ruta, blob, { upsert: true, contentType: 'image/jpeg' });
+        .upload(ruta, file, { contentType: 'image/jpeg' });
 
       if (error) {
         btn.disabled = false;
         btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
-        alerta.innerHTML = '<div class="alert error">Error en ' + a.nombre + ': ' + error.message + ' | Código: ' + (error.statusCode || 'N/A') + '</div>';
+        alerta.innerHTML = '<div class="alert error">Error en ' + a.nombre + ':<br><strong>' + error.message + '</strong><br>Código: ' + (error.statusCode || 'N/A') + '<br>Tamaño: ' + Math.round(file.size/1024) + 'KB</div>';
         return;
       }
     }

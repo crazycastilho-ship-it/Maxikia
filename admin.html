@@ -744,61 +744,33 @@
   }
 
   async function verDocumentos(userId, nombre) {
-    // Mostrar modal inmediatamente con loading
-    document.getElementById('modal-usuario-body').innerHTML = `
-      <div style="text-align:center;padding:2rem;color:var(--muted)">
-        <i class="ti ti-loader-2" style="font-size:28px;animation:spin 1s linear infinite;display:block;margin-bottom:8px"></i>
-        Cargando documentos...
-      </div>`;
-    document.getElementById('modal-usuario').classList.add('open');
-
-    const tipos = ['frente', 'reverso', 'selfie'];
-    const etiquetas = { frente: '📄 Frente de cédula', reverso: '📄 Reverso de cédula', selfie: '🤳 Selfie con documento' };
-    let html = `<div style="font-family:var(--font-head);font-weight:700;font-size:16px;margin-bottom:1.25rem">${nombre}</div>`;
-
-    for (const tipo of tipos) {
-      // Intentar con .jpg primero (nuevo formato), luego otros
-      const exts = ['jpg', 'jpeg', 'png', 'JPG', 'JPEG', 'PNG'];
-      let urlEncontrada = null;
-
-      for (const ext of exts) {
-        const { data, error } = await sb.storage
-          .from('documentos')
-          .createSignedUrl(`${userId}/${tipo}.${ext}`, 3600);
-        if (data?.signedUrl && !error) {
-          urlEncontrada = data.signedUrl;
-          break;
+    document.getElementById("modal-usuario-body").innerHTML = "<div style=text-align:center;padding:2rem;color:var(--muted)><i class=ti ti-loader-2 style=font-size:28px;animation:spin 1s linear infinite;display:block;margin-bottom:8px></i>Cargando documentos...</div>";
+    document.getElementById("modal-usuario").classList.add("open");
+    const { data: files } = await sb.storage.from("documentos").list(userId, { limit: 20 });
+    const etiquetas = { frente: "Frente cedula", reverso: "Reverso cedula", selfie: "Selfie con documento" };
+    let html = "<div style=font-weight:700;font-size:16px;margin-bottom:1.25rem>" + nombre + "</div>";
+    if (!files || files.length === 0) {
+      html += "<div style=text-align:center;padding:2rem;color:var(--muted)>No se encontraron documentos.</div>";
+    } else {
+      for (const tipo of ["frente","reverso","selfie"]) {
+        const archivo = files.find(function(f){ return f.name.startsWith(tipo); });
+        let url = null;
+        if (archivo) {
+          const res = await sb.storage.from("documentos").createSignedUrl(userId + "/" + archivo.name, 3600);
+          if (res.data && res.data.signedUrl) url = res.data.signedUrl;
         }
+        html += "<div style=margin-bottom:1.25rem>";
+        html += "<div style=font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;margin-bottom:8px>" + etiquetas[tipo] + "</div>";
+        if (url) { html += "<img src=" + url + " style=width:100%;border-radius:10px;max-height:220px;object-fit:cover;border:1px solid var(--border)>"; }
+        else { html += "<div style=padding:1rem;background:var(--surface);border-radius:8px;font-size:13px;color:var(--muted);text-align:center>No subido</div>"; }
+        html += "</div>";
       }
-
-      html += `<div style="margin-bottom:1.25rem">
-        <div style="font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">
-          ${etiquetas[tipo]}
-        </div>
-        ${urlEncontrada
-          ? `<img src="${urlEncontrada}"
-              style="width:100%;border-radius:10px;border:1px solid var(--border);max-height:220px;object-fit:cover;display:block"
-              onerror="this.outerHTML='<div style=padding:1rem;background:var(--surface);border-radius:8px;font-size:13px;color:var(--muted);text-align:center><i class=ti ti-photo-off style=font-size:24px></i><br>No se pudo cargar la imagen</div>'">`
-          : `<div style="padding:1.25rem;background:var(--surface);border-radius:10px;font-size:13px;color:var(--muted);text-align:center;border:1px dashed var(--border)">
-               <i class="ti ti-upload" style="font-size:20px;display:block;margin-bottom:4px"></i>
-               No subido aún
-             </div>`
-        }
-      </div>`;
     }
-
-    html += `<div style="display:flex;gap:8px;margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border)">
-      <button class="btn-sm primary" onclick="aprobarVerif('${userId}','${nombre.replace(/'/g,"\\'")}');cerrarModal('modal-usuario')"
-        style="flex:1;justify-content:center;padding:10px">
-        <i class="ti ti-circle-check"></i> Aprobar cuenta
-      </button>
-      <button class="btn-sm" onclick="rechazarVerif('${userId}');cerrarModal('modal-usuario')"
-        style="border-color:var(--mx);color:var(--mx);padding:10px">
-        <i class="ti ti-x"></i> Rechazar
-      </button>
-    </div>`;
-
-    document.getElementById('modal-usuario-body').innerHTML = html;
+    html += "<div style=display:flex;gap:8px;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)>";
+    html += "<button class=btn-sm onclick=aprobarVerif(\x27" + userId + "\x27,\x27" + nombre + "\x27);cerrarModal(\x27modal-usuario\x27) style=flex:1;justify-content:center;background:var(--green);color:white;border-color:var(--green)>Aprobar cuenta</button>";
+    html += "<button class=btn-sm onclick=rechazarVerif(\x27" + userId + "\x27);cerrarModal(\x27modal-usuario\x27) style=border-color:var(--mx);color:var(--mx)>Rechazar</button>";
+    html += "</div>";
+    document.getElementById("modal-usuario-body").innerHTML = html;
   }
 
   async function aprobarVerif(id, nombre) {
