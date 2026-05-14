@@ -1175,12 +1175,72 @@
     await sb.auth.signOut(); currentUser = null; goPage('landing');
   }
 
-  function showDashboard() {
+  async function showDashboard() {
     const meta = currentUser?.user_metadata;
     const name = meta?.full_name || meta?.name || meta?.display_name || currentUser?.email?.split('@')[0] || 'Usuario';
     document.getElementById('dash-username').textContent = name + ' 👋';
-    goPage('dashboard');
-    cargarPedidosHome();
+
+    // Verificar estado de aprobación
+    const { data: perfil } = await sb.from('perfiles').select('docs_estado, docs_motivo, nombre').eq('id', currentUser.id).single();
+    const estado = perfil?.docs_estado || 'pendiente';
+    const motivo = perfil?.docs_motivo || '';
+
+    if (estado === 'aprobado') {
+      ocultarBannerRevision();
+      goPage('dashboard');
+      cargarPedidosHome();
+    } else {
+      goPage('dashboard');
+      mostrarBannerRevision(estado, motivo);
+      cargarPedidosHome();
+    }
+  }
+
+  function mostrarBannerRevision(estado, motivo) {
+    document.getElementById('bn-envio').style.pointerEvents = 'none';
+    document.getElementById('bn-envio').style.opacity = '0.4';
+    document.getElementById('bn-repartir').style.pointerEvents = 'none';
+    document.getElementById('bn-repartir').style.opacity = '0.4';
+
+    let icono, titulo, msg, btn = '';
+    if (estado === 'en_revision') {
+      icono = 'ti-clock-hour-3'; titulo = 'Cuenta en revisión';
+      msg = 'Tus documentos están siendo verificados. Este proceso toma menos de 24 horas. Te contactaremos cuando esté listo.';
+    } else if (estado === 'rechazado') {
+      icono = 'ti-x'; titulo = 'Documentos rechazados';
+      msg = motivo ? 'Motivo: ' + motivo + '. Por favor sube los documentos nuevamente.' : 'Tus documentos no fueron aprobados. Por favor sube los documentos nuevamente.';
+      btn = `<button onclick="goPage('register')" style="margin-top:10px;background:var(--mx);color:white;border:none;border-radius:var(--radius-sm);padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body)">Subir documentos nuevamente</button>`;
+    } else {
+      icono = 'ti-shield-lock'; titulo = 'Verificación pendiente';
+      msg = 'Debes completar la verificación de identidad para empezar a usar Maxikia.';
+      btn = `<button onclick="goPage('register')" style="margin-top:10px;background:var(--mx);color:white;border:none;border-radius:var(--radius-sm);padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body)">Completar verificación</button>`;
+    }
+
+    document.getElementById('home-pedidos').insertAdjacentHTML('beforebegin', `
+      <div id="banner-revision" style="background:var(--mx-light);border:1px solid rgba(212,0,26,0.2);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.25rem;text-align:center">
+        <i class="ti ${icono}" style="font-size:32px;color:var(--mx);display:block;margin-bottom:8px"></i>
+        <div style="font-family:var(--font-head);font-weight:700;font-size:15px;margin-bottom:6px">${titulo}</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.6">${msg}</div>
+        ${btn}
+      </div>
+    `);
+
+    document.querySelectorAll('.qa-item').forEach((item, i) => {
+      if (i === 0 || i === 1) {
+        item.style.opacity = '0.4';
+        item.style.pointerEvents = 'none';
+      }
+    });
+  }
+
+  function ocultarBannerRevision() {
+    const b = document.getElementById('banner-revision');
+    if (b) b.remove();
+    // Restaurar tabs
+    ['bn-envio','bn-repartir'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.style.pointerEvents = ''; el.style.opacity = ''; }
+    });
   }
 
   // ── HISTORIAL ──
