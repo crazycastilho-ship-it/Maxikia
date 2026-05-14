@@ -1308,6 +1308,28 @@
     docsSubidos[tipo] = true;
   }
 
+
+  // ── COMPRIMIR IMAGEN ──
+  function comprimirImagen(file, maxWidth, calidad) {
+    maxWidth = maxWidth || 1200; calidad = calidad || 0.75;
+    return new Promise(function(resolve) {
+      var reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = function(e) {
+        var img = new Image();
+        img.src = e.target.result;
+        img.onload = function() {
+          var canvas = document.createElement("canvas");
+          var w = img.width, h = img.height;
+          if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+          canvas.toBlob(function(blob) { resolve(blob); }, "image/jpeg", calidad);
+        };
+      };
+    });
+  }
+
   async function subirDocs() {
     const alerta = document.getElementById('id-alert');
     const faltantes = [];
@@ -1324,7 +1346,7 @@
     alerta.innerHTML = '';
     const btn = document.getElementById('btn-id');
     btn.disabled = true;
-    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Subiendo...';
+    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Procesando...';
 
     const uid = currentUser.id;
     const archivos = [
@@ -1337,33 +1359,28 @@
       const file = document.getElementById(a.inputId)?.files[0];
       if (!file) continue;
 
-      // Nombre fijo con timestamp para evitar conflictos de caché
-      const ruta = `${uid}/${a.nombre}.jpg`;
+      alerta.innerHTML = '<div style="font-size:13px;color:var(--muted);text-align:center">Comprimiendo ' + a.nombre + '...</div>';
+
+      // Comprimir imagen a máximo 800KB
+      const blob = await comprimirImagen(file, 1000, 0.70);
+      const ruta = uid + '/' + a.nombre + '.jpg';
+
+      alerta.innerHTML = '<div style="font-size:13px;color:var(--muted);text-align:center">Subiendo ' + a.nombre + '...</div>';
 
       const { error } = await sb.storage
         .from('documentos')
-        .upload(ruta, file, {
-          upsert: true,
-          cacheControl: '3600',
-          contentType: file.type || 'image/jpeg'
-        });
+        .upload(ruta, blob, { upsert: true, contentType: 'image/jpeg' });
 
       if (error) {
-        console.error(a.nombre, error);
         btn.disabled = false;
         btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
-        alerta.innerHTML = `<div class="alert error">
-          Error subiendo ${a.nombre}: ${error.message}<br>
-          <small>Código: ${error.statusCode || 'desconocido'}</small>
-        </div>`;
+        alerta.innerHTML = '<div class="alert error">Error en ' + a.nombre + ': ' + error.message + ' | Código: ' + (error.statusCode || 'N/A') + '</div>';
         return;
       }
     }
 
-    // Actualizar perfil
     await sb.from('perfiles').upsert({
-      id: uid,
-      docs_enviados: true,
+      id: uid, docs_enviados: true,
       docs_estado: 'en_revision',
       updated_at: new Date().toISOString()
     });
