@@ -1153,6 +1153,10 @@
 
     const { data: pedido } = await sb.from('pedidos').select('precio,descripcion,origen').eq('id', pedidoId).single();
     const ganancia = pedido ? Math.round(pedido.precio * COMISION_REPARTIDOR) : 0;
+
+    // Notificar al cliente por WhatsApp
+    await notificarCambioEstado(pedidoId, 'aceptado');
+
     alert('¡Pedido aceptado! 🎉\n\nVe a recoger: ' + (pedido?.descripcion || '') + '\nEn: ' + (pedido?.origen || '') + '\n\nGanarás: $' + ganancia.toLocaleString('es-CO') + ' al entregar.');
     disponibleComoRepartidor = false;
     document.getElementById('tsw')?.classList.remove('on');
@@ -1210,6 +1214,9 @@
         entregas_completadas: (repPerfil?.entregas_completadas || 0) + 1
       }).eq('id', pedido.repartidor_id);
     }
+
+    // Notificar al cliente — entrega completada
+    await notificarCambioEstado(pedidoId, 'entregado');
 
     // Cerrar modal
     const modal = document.getElementById('modal-entrega');
@@ -1289,6 +1296,7 @@
       estado: 'recogido',
       recogido_at: new Date().toISOString()
     }).eq('id', pedidoId);
+    await notificarCambioEstado(pedidoId, 'recogido');
     cargarPedidosHome();
   }
 
@@ -1788,6 +1796,9 @@
 
     document.getElementById('dash-username').textContent = name + ' 👋';
 
+    // Iniciar notificaciones push
+    iniciarNotificaciones();
+
     const estado = perfil?.docs_estado || 'pendiente';
     const motivo = perfil?.docs_motivo || '';
 
@@ -2184,7 +2195,111 @@
         <span style="font-size:11px;padding:3px 8px;border-radius:20px;font-weight:500;background:${colores[r.estado]}22;color:${colores[r.estado]}">${r.estado}</span>
       </div>`).join('');
   }
-  function previewFotoEntrega(input) {
+  // ── NOTIFICACIONES PUSH ──
+  const VAPID_PUBLIC = ''; // Opcional — funciona sin VAPID para notificaciones locales
+
+  async function pedirPermisoNotificaciones() {
+    if (!('Notification' in window)) return false;
+    if (Notification.permission === 'granted') return true;
+    if (Notification.permission === 'denied') return false;
+    const perm = await Notification.requestPermission();
+    return perm === 'granted';
+  }
+
+  async function mostrarNotificacion(titulo, cuerpo, url) {
+    const ok = await pedirPermisoNotificaciones();
+    if (!ok) return;
+    if ('serviceWorker' in navigator) {
+      const reg = await navigator.serviceWorker.ready;
+      reg.showNotification(titulo, {
+        body: cuerpo,
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        vibrate: [200, 100, 200],
+        data: { url: url || '/' },
+        actions: [{ action: 'ver', title: 'Ver pedido' }]
+      });
+    } else {
+      new Notification(titulo, { body: cuerpo, icon: '/icon-192.png' });
+    }
+  }
+
+  // Pedir permisos al entrar al dashboard
+  async function iniciarNotificaciones() {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'default') {
+      // Mostrar banner suave primero
+      setTimeout(async () => {
+        await pedirPermisoNotificaciones();
+      }, 3000);
+    }
+  }
+
+  // ── WHATSAPP NOTIFICACIÓN ──
+  function notificarWhatsApp(telefono, mensaje) {
+    if (!telefono) return;
+    // Limpiar número
+    const num = telefono.replace(/\D/g, '');
+    const numCompleto = num.startsWith('57') ? num : '57' + num;
+    const url = 'https://wa.me/' + numCompleto + '?text=' + encodeURIComponent(mensaje);
+    window.open(url, '_blank');
+  }
+
+  // ── NOTIFICAR CAMBIO DE ESTADO ──
+  async function notificarCambioEstado(pedidoId, nuevoEstado) {
+    // Obtener datos del pedido y cliente
+    const { data: pedido } = await sb.from('pedidos')
+      .select('*, perfiles!pedidos_usuario_id_fkey(telefono, nombre)')
+      .eq('id', pedidoId).single();
+    if (!pedido) return;
+
+    const mensajes = {
+      aceptado: `✅ *Maxi⋊ia Express*\n\nHola ${pedido.perfiles?.nombre || 'cliente'}, tu pedido *"${pedido.descripcion}"* fue aceptado por un repartidor.\n\nEl repartidor está en camino a recogerlo. 🏃`,
+      recogido: `📦 *Maxi⋊ia Express*\n\nTu paquete *"${pedido.descripcion}"* fue recogido y está en camino al destino.\n\nPronto llegará. 🛵`,
+      entregado: `🎉 *Maxi⋊ia Express*\n\nTu pedido *"${pedido.descripcion}"* fue entregado exitosamente.\n\n¡Gracias por usar Maxikia! ⭐`
+    };
+
+    const msg = mensajes[nuevoEstado];
+    if (!msg) return;
+
+    // Notificación push para el cliente (si está en la app)
+    // Esto se envía a todos los clientes conectados via polling
+    
+    // WhatsApp manual — abrir para el repartidor
+    const telefono = pedido.perfiles?.telefono;
+    if (telefono && msg) {
+      // Guardar en localStorage para que el repartidor lo envíe
+      localStorage.setItem('mx_wa_pending', JSON.stringify({ telefono, msg, estado: nuevoEstado }));
+      mostrarBannerWA(telefono, msg);
+    }
+  }
+
+  function mostrarBannerWA(telefono, msg) {
+    // Mostrar banner con botón de WhatsApp
+    const banner = document.createElement('div');
+    banner.id = 'wa-notif-banner';
+    banner.style.cssText = 'position:fixed;bottom:80px;left:1rem;right:1rem;z-index:300;background:var(--dark);border-radius:var(--radius);padding:1rem;box-shadow:0 8px 32px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08)';
+    banner.innerHTML = `
+      <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:10px">
+        <i class="ti ti-brand-whatsapp" style="color:#25D366"></i>
+        Notifica al cliente por WhatsApp
+      </div>
+      <div style="display:flex;gap:8px">
+        <a href="https://wa.me/57${telefono.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}" target="_blank"
+          style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:#25D366;color:white;padding:10px;border-radius:var(--radius-sm);text-decoration:none;font-size:13px;font-weight:500;font-family:var(--font-body)">
+          <i class="ti ti-brand-whatsapp"></i> Enviar mensaje
+        </a>
+        <button onclick="document.getElementById('wa-notif-banner').remove()"
+          style="background:rgba(255,255,255,0.1);border:none;color:white;padding:10px 14px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px">
+          Omitir
+        </button>
+      </div>`;
+    // Remover banner anterior si existe
+    document.getElementById('wa-notif-banner')?.remove();
+    document.body.appendChild(banner);
+    // Auto-ocultar después de 30 segundos
+    setTimeout(() => banner.remove(), 30000);
+  }
     if (!input.files || !input.files[0]) return;
     const file = input.files[0];
     const reader = new FileReader();
