@@ -1038,25 +1038,13 @@
     // Mostrar pedidos activos como ingresos pendientes
     if (activos && activos.length > 0) {
       const pendiente = activos.reduce((s, p) => s + (p.precio * COMISION), 0);
-      const existingTotal = document.getElementById('ing-total').textContent;
-      document.getElementById('ing-total').insertAdjacentHTML('afterend',
-        `<div style="font-size:11px;color:var(--muted);margin-top:2px">+ $${Math.round(pendiente).toLocaleString('es-CO')} pendientes (${activos.length} activos)</div>`);
+      const subEl = document.querySelector('#ing-total + div');
+      if (subEl) subEl.textContent = '+ $' + Math.round(pendiente).toLocaleString('es-CO') + ' pendientes';
     }
   }
-    document.getElementById('ing-mes-pedidos').textContent = mesPedidos + ' pedidos';
-
-    tbody.innerHTML = data.slice(0,20).map(p => `<tr>
-      <td style="font-size:12px">${new Date(p.created_at).toLocaleString('es-CO')}</td>
-      <td>${p.descripcion}</td>
-      <td>$${p.precio.toLocaleString('es-CO')}</td>
-      <td style="color:var(--green);font-weight:500">$${Math.round(p.precio * COMISION).toLocaleString('es-CO')}</td>
-    </tr>`).join('');
-  }
-
   // ── MODAL ──
   function cerrarModal(id) { document.getElementById(id).classList.remove('open'); }
   document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
-
   document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal-bg.open').forEach(m => m.classList.remove('open')); });
   document.getElementById('adm-pass').addEventListener('keydown', e => { if (e.key === 'Enter') adminLogin(); });
 </script>
