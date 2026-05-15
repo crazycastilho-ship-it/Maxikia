@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maxikia — Rápido como tú lo necesitas</title>
-  <meta name="description" content="Entregas express en menos de 6 horas. Cualquier persona puede ser cliente o repartidor en Maxikia.">
+  <title>Maxikia Express — Mandados y entregas urgentes en Bogotá</title>
+  <meta name="description" content="Documentos urgentes, cosas olvidadas, medicamentos, encargos del día. Maxikia hace entregas en el mismo día en Bogotá desde $6.000.">
 
   <!-- PWA -->
   <link rel="manifest" href="/manifest.json">
@@ -279,20 +279,20 @@
   <section class="hero">
     <div class="hero-inner">
       <div>
-        <div class="hero-badge"><i class="ti ti-bolt"></i> Entregas express · menos de 6 horas</div>
-        <h1>Rápido como<br><em>tú lo necesitas.</em></h1>
-        <p class="hero-sub">La plataforma donde cualquiera puede enviar o repartir. Sin flota propia, sin intermediarios — solo personas reales cumpliendo en tu ciudad.</p>
+        <div class="hero-badge"><i class="ti ti-bolt"></i> Entregas en el mismo día · Bogotá</div>
+        <h1>Lo que necesitas,<br><em>cuando lo necesitas.</em></h1>
+        <p class="hero-sub">¿Se te olvidó algo? ¿Un documento urgente? ¿Un encargo que no puede esperar? Maxikia lo recoge y lo entrega hoy.</p>
         <div class="hero-ctas">
-          <button class="btn-primary" onclick="goPage('register')"><i class="ti ti-package"></i> Enviar ahora</button>
-          <button class="btn-secondary" onclick="goPage('register')"><i class="ti ti-motorbike"></i> Quiero repartir y ganar</button>
+          <button class="btn-primary" onclick="goPage('register')"><i class="ti ti-bolt"></i> Necesito un mandado</button>
+          <button class="btn-secondary" onclick="goPage('register')"><i class="ti ti-run"></i> Quiero repartir y ganar</button>
           <button id="btn-instalar-pwa" onclick="instalarPWA()" style="display:none;align-items:center;gap:8px;background:rgba(255,255,255,0.12);color:white;border:1px solid rgba(255,255,255,0.25);font-family:var(--font-body);font-size:14px;font-weight:500;padding:11px 18px;border-radius:var(--radius-sm);cursor:pointer">
             <i class="ti ti-download"></i> Instalar app
           </button>
         </div>
         <div class="hero-trust">
-          <span><i class="ti ti-shield-check"></i> Identidad verificada</span>
-          <span><i class="ti ti-fingerprint"></i> Acceso por huella</span>
-          <span><i class="ti ti-coin"></i> Pago inmediato</span>
+          <span><i class="ti ti-clock-hour-3"></i> Mismo día</span>
+          <span><i class="ti ti-shield-check"></i> Personas verificadas</span>
+          <span><i class="ti ti-map-pin"></i> Bogotá</span>
         </div>
       </div>
       <div class="hero-visual">
@@ -300,63 +300,116 @@
         <div class="hero-card">
           <div class="hc-top"><span class="hc-badge live"><span class="dot"></span> En camino</span><span class="hc-eta">ETA: 28 min</span></div>
           <div class="hc-route">
-            <div class="hc-point"><div class="point-dot origin"></div><div><div class="point-label">Recogida</div><div class="point-addr">Pizza Napoli, Chapinero</div></div></div>
+            <div class="hc-point"><div class="point-dot origin"></div><div><div class="point-label">Recogida</div><div class="point-addr">Oficina Chapinero</div></div></div>
             <div class="hc-line"></div>
             <div class="hc-point"><div class="point-dot dest"></div><div><div class="point-label">Entrega</div><div class="point-addr">Cra 15 #93-10, Usaquén</div></div></div>
           </div>
           <div class="hc-rep">
             <div class="rep-av">JM</div>
             <div><div class="rep-name">Julián M.</div><div class="rep-rating"><i class="ti ti-star-filled" style="color:#F5C842;font-size:11px"></i> 4.9 · 340 entregas</div></div>
-            <div class="rep-price">$18.000</div>
+            <div class="rep-price">$12.000</div>
           </div>
         </div>
       </div>
     </div>
   </section>
-  <section class="stats-section">
-    <div class="stats-inner">
-      <div class="stat"><span class="stat-n">3km</span><span class="stat-l">Radio de búsqueda</span></div>
-      <div class="stat"><span class="stat-n">$6k</span><span class="stat-l">Precio mínimo</span></div>
-      <div class="stat"><span class="stat-n">24/7</span><span class="stat-l">Disponible siempre</span></div>
-      <div class="stat"><span class="stat-n">100%</span><span class="stat-l">Usuarios verificados</span></div>
-    </div>
-  </section>
-  <section class="section">
-    <div class="container">
-      <div class="section-label">Cómo funciona</div>
-      <h2>En 3 pasos, tu paquete viaja</h2>
-      <div class="steps-grid">
-        <div class="step-card"><div class="step-num">01</div><div class="step-icon"><i class="ti ti-map-pin"></i></div><h3>Publica tu envío</h3><p>Indica origen y destino. Calculamos el precio según distancia, peso y tipo de paquete automáticamente.</p></div>
-        <div class="step-card"><div class="step-num">02</div><div class="step-icon"><i class="ti ti-user-check"></i></div><h3>Un repartidor lo acepta</h3><p>Buscamos repartidores verificados en un radio de hasta 3km. Ves su nombre y calificación.</p></div>
-        <div class="step-card"><div class="step-num">03</div><div class="step-icon"><i class="ti ti-circle-check"></i></div><h3>Entrega confirmada</h3><p>El destinatario confirma la entrega. El repartidor recibe su pago al instante en su billetera.</p></div>
+
+  <!-- CASOS DE USO -->
+  <section style="background:#1A0000;padding:0">
+    <div style="max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.06)">
+      <div style="padding:1.25rem 1.5rem;border-right:1px solid rgba(255,255,255,.06);text-align:center">
+        <div style="font-size:24px;margin-bottom:6px">📄</div>
+        <div style="font-size:13px;font-weight:600;color:white;margin-bottom:3px">Documentos urgentes</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.35)">Contratos, facturas, notariales</div>
+      </div>
+      <div style="padding:1.25rem 1.5rem;border-right:1px solid rgba(255,255,255,.06);text-align:center">
+        <div style="font-size:24px;margin-bottom:6px">🔑</div>
+        <div style="font-size:13px;font-weight:600;color:white;margin-bottom:3px">Cosas olvidadas</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.35)">Llaves, gafas, cargadores</div>
+      </div>
+      <div style="padding:1.25rem 1.5rem;border-right:1px solid rgba(255,255,255,.06);text-align:center">
+        <div style="font-size:24px;margin-bottom:6px">💊</div>
+        <div style="font-size:13px;font-weight:600;color:white;margin-bottom:3px">Medicamentos</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.35)">Farmacia a domicilio express</div>
+      </div>
+      <div style="padding:1.25rem 1.5rem;text-align:center">
+        <div style="font-size:24px;margin-bottom:6px">📦</div>
+        <div style="font-size:13px;font-weight:600;color:white;margin-bottom:3px">Cualquier encargo</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.35)">Si cabe, lo llevamos</div>
       </div>
     </div>
   </section>
+
+  <section class="stats-section">
+    <div class="stats-inner">
+      <div class="stat"><span class="stat-n">Hoy</span><span class="stat-l">Entrega en el mismo día</span></div>
+      <div class="stat"><span class="stat-n">$6k</span><span class="stat-l">Precio mínimo</span></div>
+      <div class="stat"><span class="stat-n">24/7</span><span class="stat-l">Disponible siempre</span></div>
+      <div class="stat"><span class="stat-n">100%</span><span class="stat-l">Personas verificadas</span></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-label">Para qué sirve Maxikia</div>
+      <h2>Lo que Rappi no resuelve,<br>Maxikia sí lo hace</h2>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-num">01</div>
+          <div class="step-icon"><i class="ti ti-bolt"></i></div>
+          <h3>Urgencias reales</h3>
+          <p>Documentos que vencen hoy, llaves olvidadas en casa, medicamentos que necesitas ahora. Para eso somos.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">02</div>
+          <div class="step-icon"><i class="ti ti-user-check"></i></div>
+          <h3>Personas verificadas</h3>
+          <p>Cada repartidor pasa por verificación de identidad manual. Sabes quién lleva tu encargo.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">03</div>
+          <div class="step-icon"><i class="ti ti-circle-check"></i></div>
+          <h3>Confirmación con foto</h3>
+          <p>Al entregar se toma una foto de prueba. El cliente recibe notificación inmediata de la entrega.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="section section-dark">
     <div class="container">
       <div class="section-label light">Para repartidores</div>
-      <h2 class="light">Gana dinero con lo que ya tienes</h2>
+      <h2 class="light">Gana dinero ayudando<br>a personas reales</h2>
       <div class="earn-grid">
-        <div class="earn-item"><i class="ti ti-clock-hour-3"></i><div><h4>Tus horarios</h4><p>Conecta cuando quieras. No hay turnos fijos ni jefes.</p></div></div>
-        <div class="earn-item"><i class="ti ti-motorbike"></i><div><h4>Cualquier vehículo</h4><p>Moto, bici, carro o a pie para distancias cortas.</p></div></div>
-        <div class="earn-item"><i class="ti ti-coin"></i><div><h4>Pago inmediato</h4><p>Al confirmar la entrega el dinero llega a tu billetera Maxikia.</p></div></div>
-        <div class="earn-item"><i class="ti ti-map-pin"></i><div><h4>Radio de 3km</h4><p>Solo recibes pedidos cerca de donde estás. Sin viajes largos innecesarios.</p></div></div>
+        <div class="earn-item"><i class="ti ti-run"></i><div><h4>Sin vehículo requerido</h4><p>A pie, en bici, moto o carro. Lo que tengas sirve.</p></div></div>
+        <div class="earn-item"><i class="ti ti-clock-hour-3"></i><div><h4>Tus horarios</h4><p>Conecta cuando quieras. Pedidos todo el día en Bogotá.</p></div></div>
+        <div class="earn-item"><i class="ti ti-coin"></i><div><h4>75% es tuyo</h4><p>La comisión más alta del mercado. Sin descuentos raros.</p></div></div>
+        <div class="earn-item"><i class="ti ti-map-pin"></i><div><h4>Solo cerca de ti</h4><p>Pedidos a máximo 3km. Sin cruzar la ciudad.</p></div></div>
       </div>
-      <div style="text-align:center;margin-top:2.5rem"><button class="btn-primary" onclick="goPage('register')">Quiero ser repartidor</button></div>
+      <div style="text-align:center;margin-top:2.5rem">
+        <button class="btn-primary" onclick="goPage('register')">Quiero ser repartidor</button>
+      </div>
     </div>
   </section>
+
   <section class="section" style="background:var(--mx-light);border-top:1px solid rgba(212,0,26,.1);text-align:center">
     <div class="container">
-      <h2>¿Listo para empezar?</h2>
-      <p style="color:var(--muted);margin-bottom:2rem;font-size:1.05rem">Regístrate gratis en menos de 3 minutos.</p>
-      <button class="btn-primary lg" onclick="goPage('register')"><i class="ti ti-user-plus"></i> Crear cuenta gratis</button>
+      <h2>¿Tienes un encargo urgente?</h2>
+      <p style="color:var(--muted);margin-bottom:2rem;font-size:1.05rem">Regístrate gratis y pide tu primer envío en menos de 3 minutos.</p>
+      <button class="btn-primary lg" onclick="goPage('register')"><i class="ti ti-bolt"></i> Solicitar mandado ahora</button>
     </div>
   </section>
+
   <footer class="footer">
     <div class="footer-inner container">
       <div class="logo" onclick="goPage('landing')">Maxi<span>⋊</span>ia<span class="express">Express</span></div>
-      <div class="footer-links"><a href="#">Términos</a><a href="#">Privacidad</a><a href="#">Contacto</a></div>
-      <div class="footer-copy">© 2025 Maxikia. Todos los derechos reservados.</div>
+      <div class="footer-links">
+        <a href="/terminos.html">Términos</a>
+        <a href="/privacidad.html">Privacidad</a>
+        <a href="/repartidores.html">Repartidores</a>
+        <a href="https://wa.me/573243334302" target="_blank">WhatsApp</a>
+      </div>
+      <div class="footer-copy">© 2026 Maxikia Express · Bogotá, Colombia</div>
     </div>
   </footer>
 </div>
