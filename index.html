@@ -202,6 +202,9 @@
     .oi { flex: 1; } .on { font-weight: 500; font-size: 14px; } .om { font-size: 12px; color: var(--muted); margin-top: 2px; }
     .or { text-align: right; flex-shrink: 0; } .op { font-weight: 500; font-size: 14px; }
     .pill { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 500; margin-top: 3px; display: inline-block; }
+    .pp { background: #FFF0E8; color: #C43D00; }
+    .pa { background: var(--green-light); color: var(--green); }
+    .pd { background: #F1EFE8; color: var(--muted); }
     .pa { background: #E1F5EE; color: var(--green); } .pp { background: var(--mx-light); color: var(--mx); } .pd { background: #F1EFE8; color: var(--muted); }
     #map-envio { height: 220px; border-radius: var(--radius); margin-bottom: 1rem; background: #E0EAF0; }
     .price-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--mx-light); border-radius: var(--radius-sm); margin-bottom: 1rem; }
@@ -1141,16 +1144,21 @@
 
   async function aceptarPedido(pedidoId, clienteId) {
     const { error } = await sb.from('pedidos').update({
-      estado: 'en_camino', repartidor_id: currentUser.id, aceptado_at: new Date().toISOString()
+      estado: 'aceptado',
+      repartidor_id: currentUser.id,
+      aceptado_at: new Date().toISOString()
     }).eq('id', pedidoId).eq('estado', 'buscando');
 
     if (error) { alert('No se pudo aceptar — alguien más lo tomó primero.'); cargarPedidosCercanos(); return; }
 
-    // Mostrar ganancia estimada
-    const { data: pedido } = await sb.from('pedidos').select('precio,descripcion').eq('id', pedidoId).single();
+    const { data: pedido } = await sb.from('pedidos').select('precio,descripcion,origen').eq('id', pedidoId).single();
     const ganancia = pedido ? Math.round(pedido.precio * COMISION_REPARTIDOR) : 0;
-    alert('¡Pedido aceptado! 🎉\n\nVe a recoger: ' + (pedido?.descripcion || '') + '\n\nGanarás: $' + ganancia.toLocaleString('es-CO') + ' al entregar.');
-    cargarPedidosCercanos();
+    alert('¡Pedido aceptado! 🎉\n\nVe a recoger: ' + (pedido?.descripcion || '') + '\nEn: ' + (pedido?.origen || '') + '\n\nGanarás: $' + ganancia.toLocaleString('es-CO') + ' al entregar.');
+    disponibleComoRepartidor = false;
+    document.getElementById('tsw')?.classList.remove('on');
+    if (window._repInterval) { clearInterval(window._repInterval); window._repInterval = null; }
+    dTab('home');
+    cargarPedidosHome();
   }
 
   // ── CONFIRMAR ENTREGA CON FOTO ──
@@ -1216,27 +1224,83 @@
   async function cargarPedidosHome() {
     if (!currentUser) return;
     const { data } = await sb.from('pedidos').select('*')
-      .eq('usuario_id', currentUser.id).order('created_at', { ascending: false }).limit(5);
+      .or(`usuario_id.eq.${currentUser.id},repartidor_id.eq.${currentUser.id}`)
+      .not('estado', 'in', '("entregado","cancelado")')
+      .order('created_at', { ascending: false }).limit(10);
     const cont = document.getElementById('home-pedidos');
-    if (!data || data.length === 0) return;
-    const estados = { buscando: ['pp','Buscando rep.'], en_camino: ['pa','En camino'], entregado: ['pd','Entregado'], cancelado: ['pd','Cancelado'] };
+    if (!data || data.length === 0) {
+      cont.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:14px"><i class="ti ti-package" style="font-size:32px;display:block;margin-bottom:8px;opacity:.3"></i>No tienes pedidos activos.</div>';
+      return;
+    }
+    const estados = {
+      buscando:  { cls:'pp', label:'Buscando repartidor', icon:'ti-clock' },
+      aceptado:  { cls:'pa', label:'Repartidor va a recoger', icon:'ti-motorbike' },
+      recogido:  { cls:'pa', label:'Paquete en camino', icon:'ti-truck' },
+      entregado: { cls:'pd', label:'Entregado', icon:'ti-circle-check' },
+      cancelado: { cls:'pd', label:'Cancelado', icon:'ti-x' }
+    };
     cont.innerHTML = data.map(p => {
-      const [cls, label] = estados[p.estado] || ['pd', p.estado];
       const esRepartidor = p.repartidor_id === currentUser.id;
+      const { cls, label, icon } = estados[p.estado] || { cls:'pd', label:p.estado, icon:'ti-package' };
       const ganancia = Math.round(p.precio * COMISION_REPARTIDOR);
-      return `<div class="orow">
-        <div class="oico ${esRepartidor ? 'store' : 'pkg'}"><i class="ti ti-${esRepartidor ? 'motorbike' : 'package'}"></i></div>
-        <div class="oi">
-          <div class="on">${p.descripcion}</div>
-          <div class="om">${p.origen} → ${p.destino}</div>
-          ${esRepartidor && p.estado === 'en_camino' ? `<button onclick="confirmarEntrega('${p.id}')" style="margin-top:6px;background:var(--green);color:white;border:none;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:var(--font-body)">✓ Confirmar entrega</button>` : ''}
+      let botones = '';
+      if (esRepartidor) {
+        if (p.estado === 'aceptado') {
+          botones = `<button onclick="marcarRecogido('${p.id}')" style="margin-top:8px;width:100%;background:var(--mx);color:white;border:none;border-radius:6px;padding:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body)"><i class="ti ti-package-import"></i> Confirmé la recogida del paquete</button>`;
+        } else if (p.estado === 'recogido') {
+          botones = `<button onclick="confirmarEntrega('${p.id}')" style="margin-top:8px;width:100%;background:var(--green);color:white;border:none;border-radius:6px;padding:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body)"><i class="ti ti-circle-check"></i> Confirmar entrega al cliente</button>`;
+        }
+      } else {
+        if (p.estado === 'aceptado') {
+          botones = `<div style="margin-top:8px;background:#E6F1FB;border-radius:6px;padding:8px 12px;font-size:12px;color:#378ADD;text-align:center"><i class="ti ti-motorbike"></i> El repartidor va a recoger tu paquete</div>`;
+        } else if (p.estado === 'recogido') {
+          botones = `<div style="margin-top:8px;background:var(--green-light);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--green);text-align:center"><i class="ti ti-truck"></i> Tu paquete está en camino</div>`;
+        } else if (p.estado === 'buscando') {
+          botones = `<button onclick="cancelarPedidoCliente('${p.id}')" style="margin-top:8px;background:none;border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;color:var(--muted);font-family:var(--font-body)">Cancelar pedido</button>`;
+        }
+      }
+      return `<div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:8px">
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <div style="width:36px;height:36px;border-radius:8px;background:var(--mx-light);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="ti ${icon}" style="color:var(--mx);font-size:18px"></i>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:14px;margin-bottom:2px">${p.descripcion}</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px">${p.origen} → ${p.destino}</div>
+            <span class="pill ${cls}">${label}</span>
+          </div>
+          <div style="font-weight:700;font-size:15px;color:${esRepartidor ? 'var(--green)' : 'var(--text)'};flex-shrink:0">
+            ${esRepartidor ? '+$' + ganancia.toLocaleString('es-CO') : '$' + p.precio.toLocaleString('es-CO')}
+          </div>
         </div>
-        <div class="or">
-          <div class="op">$${esRepartidor ? ganancia.toLocaleString('es-CO') : p.precio.toLocaleString('es-CO')}</div>
-          <span class="pill ${cls}">${label}</span>
-        </div>
+        ${botones}
       </div>`;
     }).join('');
+
+    if (!window._homePolling) {
+      window._homePolling = setInterval(() => {
+        if (document.getElementById('dp-home')?.classList.contains('active')) cargarPedidosHome();
+      }, 10000);
+    }
+  }
+
+  async function marcarRecogido(pedidoId) {
+    await sb.from('pedidos').update({
+      estado: 'recogido',
+      recogido_at: new Date().toISOString()
+    }).eq('id', pedidoId);
+    cargarPedidosHome();
+  }
+
+  async function cancelarPedidoCliente(pedidoId) {
+    if (!confirm('¿Cancelar este pedido? Se devolverá el saldo a tu billetera.')) return;
+    const { data: pedido } = await sb.from('pedidos').select('precio,usuario_id').eq('id', pedidoId).single();
+    if (pedido) {
+      const { data: perfil } = await sb.from('perfiles').select('saldo').eq('id', pedido.usuario_id).single();
+      await sb.from('perfiles').update({ saldo: (perfil?.saldo || 0) + pedido.precio }).eq('id', pedido.usuario_id);
+    }
+    await sb.from('pedidos').update({ estado: 'cancelado' }).eq('id', pedidoId);
+    cargarPedidosHome();
   }
 
   // ── DISTANCIA HAVERSINE ──
