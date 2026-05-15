@@ -736,14 +736,18 @@
     const { data: { session } } = await sb.auth.getSession();
     if (session) {
       currentUser = session.user;
-      const ultimaAuth = parseInt(localStorage.getItem('mx_last_auth') || '0');
-      const ahorita = Date.now();
-      const cincMinutos = 5 * 60 * 1000;
-      const loginReciente = (ahorita - ultimaAuth) < cincMinutos;
 
-      if (loginReciente) {
+      // Si hay sesión activa — siempre entrar directo al dashboard
+      // Solo pedir contraseña si llevan más de 24 horas sin usar la app
+      const ultimaAuth = parseInt(localStorage.getItem('mx_last_auth') || '0');
+      const horasInactivo = (Date.now() - ultimaAuth) / (1000 * 60 * 60);
+
+      if (horasInactivo < 24) {
+        // Menos de 24h — entrar directo
+        localStorage.setItem('mx_last_auth', Date.now().toString());
         await showDashboard();
       } else {
+        // Más de 24h inactivo — pedir autenticación
         mostrarBienvenida();
       }
     }
@@ -756,7 +760,6 @@
         localStorage.removeItem('mx_last_auth');
         goPage('landing');
       }
-      // SIGNED_IN no debe redirigir — puede ser renovación automática
     });
   })();
 
@@ -1150,40 +1153,73 @@
   }
 
   // ── REPARTIDOR DISPONIBLE ──
-  async function toggleDisponible() {
-    disponibleComoRepartidor = !disponibleComoRepartidor;
+  async function activarDisponible(forzar) {
+    disponibleComoRepartidor = true;
     const tsw = document.getElementById('tsw');
     const txt = document.getElementById('rep-status-txt');
-    tsw.classList.toggle('on', disponibleComoRepartidor);
+    if (tsw) tsw.classList.add('on');
 
-    if (disponibleComoRepartidor) {
-      txt.textContent = 'Estás disponible — buscando pedidos cercanos';
-      navigator.geolocation.getCurrentPosition(async pos => {
-        ubicacionActual = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        await sb.from('perfiles').upsert({
-          id: currentUser.id, disponible: true,
-          lat: ubicacionActual.lat, lng: ubicacionActual.lng,
-          updated_at: new Date().toISOString()
-        });
-        initMapRepartir();
-        cargarPedidosCercanos();
-        // Actualizar pedidos cada 15 segundos
-        if (!window._repInterval) {
-          window._repInterval = setInterval(cargarPedidosCercanos, 15000);
-        }
-      }, () => {
-        // Sin GPS — cargar pedidos igual
-        ubicacionActual = null;
-        cargarPedidosCercanos();
-        if (!window._repInterval) {
-          window._repInterval = setInterval(cargarPedidosCercanos, 15000);
-        }
-        txt.textContent = 'Disponible — activa el GPS para ver distancias';
+    txt && (txt.textContent = 'Estás disponible — buscando pedidos');
+
+    // Guardar disponibilidad en Supabase y localStorage
+    localStorage.setItem('mx_disponible', '1');
+
+    navigator.geolocation.getCurrentPosition(async pos => {
+      ubicacionActual = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      await sb.from('perfiles').upsert({
+        id: currentUser.id, disponible: true,
+        lat: ubicacionActual.lat, lng: ubicacionActual.lng,
+        updated_at: new Date().toISOString()
       });
+      initMapRepartir();
+      cargarPedidosCercanos();
+      if (!window._repInterval) {
+        window._repInterval = setInterval(cargarPedidosCercanos, 15000);
+      }
+    }, async () => {
+      ubicacionActual = null;
+      await sb.from('perfiles').upsert({
+        id: currentUser.id, disponible: true,
+        updated_at: new Date().toISOString()
+      });
+      cargarPedidosCercanos();
+      if (!window._repInterval) {
+        window._repInterval = setInterval(cargarPedidosCercanos, 15000);
+      }
+      txt && (txt.textContent = 'Disponible — activa el GPS para ver distancias');
+    });
+  }
+
+  async function desactivarDisponible() {
+    disponibleComoRepartidor = false;
+    const tsw = document.getElementById('tsw');
+    const txt = document.getElementById('rep-status-txt');
+    if (tsw) tsw.classList.remove('on');
+    txt && (txt.textContent = 'Inactivo — activa para recibir pedidos');
+    localStorage.removeItem('mx_disponible');
+    if (window._repInterval) { clearInterval(window._repInterval); window._repInterval = null; }
+    if (currentUser) await sb.from('perfiles').upsert({ id: currentUser.id, disponible: false });
+    const cont = document.getElementById('pedidos-cercanos');
+    if (cont) cont.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:14px">Activa el interruptor para ver pedidos disponibles.</div>';
+  }
+
+  async function toggleDisponible() {
+    if (disponibleComoRepartidor) {
+      await desactivarDisponible();
     } else {
-      txt.textContent = 'Activa para recibir pedidos cercanos';
-      if (window._repInterval) { clearInterval(window._repInterval); window._repInterval = null; }
-      if (currentUser) await sb.from('perfiles').upsert({ id: currentUser.id, disponible: false });
+      await activarDisponible();
+    }
+  }
+
+  // Restaurar disponibilidad al cargar el dashboard
+  async function restaurarDisponibilidad() {
+    if (!currentUser) return;
+    const { data: perfil } = await sb.from('perfiles')
+      .select('disponible').eq('id', currentUser.id).single();
+    const eraDisponible = perfil?.disponible || localStorage.getItem('mx_disponible') === '1';
+    if (eraDisponible) {
+      // Auto-activar sin esperar
+      setTimeout(() => activarDisponible(true), 1000);
     }
   }
 
@@ -1247,26 +1283,60 @@
   const COMISION_REPARTIDOR = 0.75; // 75% repartidor
 
   async function aceptarPedido(pedidoId, clienteId) {
-    const { error } = await sb.from('pedidos').update({
-      estado: 'aceptado',
-      repartidor_id: currentUser.id,
-      aceptado_at: new Date().toISOString()
-    }).eq('id', pedidoId).eq('estado', 'buscando');
+    const btn = event?.target;
+    if (btn) { btn.disabled = true; btn.textContent = 'Aceptando...'; }
 
-    if (error) { alert('No se pudo aceptar — alguien más lo tomó primero.'); cargarPedidosCercanos(); return; }
+    // UPDATE atómico — solo funciona si estado sigue siendo 'buscando'
+    // Si otro repartidor ya lo aceptó, rowsAffected = 0
+    const { data, error } = await sb.from('pedidos')
+      .update({
+        estado: 'aceptado',
+        repartidor_id: currentUser.id,
+        aceptado_at: new Date().toISOString()
+      })
+      .eq('id', pedidoId)
+      .eq('estado', 'buscando') // condición atómica
+      .select();
 
-    const { data: pedido } = await sb.from('pedidos').select('precio,descripcion,origen').eq('id', pedidoId).single();
-    const ganancia = pedido ? Math.round(pedido.precio * COMISION_REPARTIDOR) : 0;
+    if (error || !data || data.length === 0) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Aceptar'; }
+      alert('⚡ Este pedido ya fue tomado por otro repartidor. Espera el próximo.');
+      cargarPedidosCercanos();
+      return;
+    }
 
-    // Notificar al cliente por WhatsApp
+    const pedido = data[0];
+    const ganancia = Math.round(pedido.precio * COMISION_REPARTIDOR);
+
+    // Notificar al cliente
     await notificarCambioEstado(pedidoId, 'aceptado');
 
-    alert('¡Pedido aceptado! 🎉\n\nVe a recoger: ' + (pedido?.descripcion || '') + '\nEn: ' + (pedido?.origen || '') + '\n\nGanarás: $' + ganancia.toLocaleString('es-CO') + ' al entregar.');
-    disponibleComoRepartidor = false;
-    document.getElementById('tsw')?.classList.remove('on');
-    if (window._repInterval) { clearInterval(window._repInterval); window._repInterval = null; }
+    alert('¡Pedido aceptado! 🎉\n\nVe a recoger: ' + pedido.descripcion + '\nEn: ' + pedido.origen + '\n\nGanarás: $' + ganancia.toLocaleString('es-CO'));
+
+    // Desactivar disponibilidad mientras atiende este pedido
+    await desactivarDisponible();
     dTab('home');
     cargarPedidosHome();
+  }
+
+  // ── SONIDO/VIBRACIÓN para nuevo pedido ──
+  function alertarNuevoPedido() {
+    // Vibración en móvil
+    if (navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 300]);
+    // Sonido usando AudioContext
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.setValueAtTime(660, ctx.currentTime + 0.2);
+      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.4);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.6);
+    } catch(e) {}
   }
 
   // ── CONFIRMAR ENTREGA CON FOTO ──
@@ -1385,7 +1455,8 @@
         // Nuevo pedido disponible — notificar al repartidor si está activo
         if (disponibleComoRepartidor) {
           cargarPedidosCercanos();
-          mostrarNotificacion('¡Nuevo pedido!', '📦 Hay un pedido disponible cerca de ti');
+          alertarNuevoPedido();
+          mostrarNotificacion('¡Nuevo pedido disponible!', '📦 Hay un pedido cerca de ti — ¡acepta rápido!');
         }
       })
       .subscribe();
@@ -1961,6 +2032,8 @@
     iniciarNotificaciones();
     // Iniciar realtime para actualizaciones instantáneas
     iniciarRealtime();
+    // Restaurar disponibilidad del repartidor
+    restaurarDisponibilidad();
 
     const estado = perfil?.docs_estado || 'pendiente';
     const motivo = perfil?.docs_motivo || '';
