@@ -1225,7 +1225,7 @@
     if (!currentUser) return;
     const { data } = await sb.from('pedidos').select('*')
       .or(`usuario_id.eq.${currentUser.id},repartidor_id.eq.${currentUser.id}`)
-      .not('estado', 'in', '("entregado","cancelado")')
+      .in('estado', ['buscando','aceptado','recogido'])
       .order('created_at', { ascending: false }).limit(10);
     const cont = document.getElementById('home-pedidos');
     if (!data || data.length === 0) {

@@ -134,7 +134,11 @@
     tbody tr:hover { background: var(--surface); }
     .pill { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 500; display: inline-block; }
     .p-buscando { background: #FFF0E8; color: #C43D00; }
+    .p-aceptado { background: #E6F1FB; color: #378ADD; }
+    .p-recogido { background: #E8F5E9; color: #2E7D32; }
     .p-en_camino { background: var(--green-light); color: var(--green); }
+    .p-entregado { background: #F1EFE8; color: var(--muted); }
+    .p-cancelado { background: var(--mx-light); color: var(--mx); }
     .p-entregado { background: #F1EFE8; color: var(--muted); }
     .p-cancelado { background: var(--mx-light); color: var(--mx); }
     .p-pendiente { background: #FFF0E8; color: #C43D00; }
@@ -327,7 +331,8 @@
               <select id="filtro-estado" class="field-input" style="width:auto;padding:6px 10px;font-size:13px" onchange="cargarPedidos()">
                 <option value="">Todos</option>
                 <option value="buscando">Buscando</option>
-                <option value="en_camino">En camino</option>
+                <option value="aceptado">Aceptado</option>
+                <option value="recogido">Recogido</option>
                 <option value="entregado">Entregado</option>
                 <option value="cancelado">Cancelado</option>
               </select>
@@ -673,20 +678,49 @@
       <td>
         <button class="action-btn" onclick="verPedido(${JSON.stringify(p).replace(/"/g,'&quot;')})">Ver</button>
         ${p.estado === 'buscando' ? `<button class="action-btn reject" onclick="cancelarPedido('${p.id}')">Cancelar</button>` : ''}
-        ${p.estado === 'en_camino' ? `<button class="action-btn approve" onclick="marcarEntregado('${p.id}')">Marcar entregado</button>` : ''}
+        ${p.estado === 'aceptado' ? `<button class="action-btn approve" onclick="cambiarEstadoPedido('${p.id}','recogido')">→ Recogido</button>` : ''}
+        ${p.estado === 'recogido' ? `<button class="action-btn approve" onclick="cambiarEstadoPedido('${p.id}','entregado')">→ Entregado</button>` : ''}
+        ${(p.estado === 'aceptado' || p.estado === 'recogido') ? `<button class="action-btn reject" onclick="cancelarPedido('${p.id}')">Cancelar</button>` : ''}
+        ${p.estado === 'en_camino' ? `<button class="action-btn approve" onclick="cambiarEstadoPedido('${p.id}','entregado')">Marcar entregado</button>` : ''}
       </td>
     </tr>`).join('');
   }
 
   async function cancelarPedido(id) {
-    if (!confirm('¿Cancelar este pedido?')) return;
+    if (!confirm('¿Cancelar este pedido? Se devolverá el saldo al cliente.')) return;
+    // Devolver saldo al cliente
+    const { data: p } = await sb.from('pedidos').select('precio,usuario_id').eq('id', id).single();
+    if (p) {
+      const { data: perfil } = await sb.from('perfiles').select('saldo').eq('id', p.usuario_id).single();
+      await sb.from('perfiles').update({ saldo: (perfil?.saldo || 0) + p.precio }).eq('id', p.usuario_id);
+    }
     await sb.from('pedidos').update({ estado: 'cancelado' }).eq('id', id);
     cargarPedidos();
   }
 
-  async function marcarEntregado(id) {
-    await sb.from('pedidos').update({ estado: 'entregado', entregado_at: new Date().toISOString() }).eq('id', id);
+  async function cambiarEstadoPedido(id, nuevoEstado) {
+    const updates = { estado: nuevoEstado };
+    if (nuevoEstado === 'recogido') updates.recogido_at = new Date().toISOString();
+    if (nuevoEstado === 'entregado') updates.entregado_at = new Date().toISOString();
+
+    await sb.from('pedidos').update(updates).eq('id', id);
+
+    // Si entregado, acreditar al repartidor
+    if (nuevoEstado === 'entregado') {
+      const { data: p } = await sb.from('pedidos').select('precio,repartidor_id').eq('id', id).single();
+      if (p?.repartidor_id) {
+        const { data: rep } = await sb.from('perfiles').select('saldo,entregas_completadas').eq('id', p.repartidor_id).single();
+        await sb.from('perfiles').update({
+          saldo: (rep?.saldo || 0) + Math.round(p.precio * 0.75),
+          entregas_completadas: (rep?.entregas_completadas || 0) + 1
+        }).eq('id', p.repartidor_id);
+      }
+    }
     cargarPedidos();
+  }
+
+  async function marcarEntregado(id) {
+    await cambiarEstadoPedido(id, 'entregado');
   }
 
   function verPedido(p) {
