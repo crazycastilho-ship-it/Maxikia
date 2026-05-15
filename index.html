@@ -1421,6 +1421,20 @@
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
+        table: 'perfiles',
+        filter: `id=eq.${currentUser.id}`
+      }, payload => {
+        // Saldo actualizado en tiempo real
+        const saldo = payload.new.saldo || 0;
+        const fmt = '$' + saldo.toLocaleString('es-CO');
+        const el1 = document.getElementById('dash-saldo');
+        const el2 = document.getElementById('wallet-saldo');
+        if (el1) el1.textContent = fmt;
+        if (el2) el2.textContent = fmt;
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
         table: 'pedidos',
         filter: `usuario_id=eq.${currentUser.id}`
       }, payload => {
@@ -2034,6 +2048,8 @@
     iniciarRealtime();
     // Restaurar disponibilidad del repartidor
     restaurarDisponibilidad();
+    // Cargar saldo inmediatamente
+    cargarSaldoInicial();
 
     const estado = perfil?.docs_estado || 'pendiente';
     const motivo = perfil?.docs_motivo || '';
@@ -2667,6 +2683,18 @@
     await procesarEntrega(pedidoId, fotoFile);
     btn.disabled = false;
     btn.innerHTML = '<i class="ti ti-circle-check"></i> Confirmar entrega';
+  }
+
+  async function cargarSaldoInicial() {
+    if (!currentUser) return;
+    const { data } = await sb.from('perfiles')
+      .select('saldo').eq('id', currentUser.id).single();
+    const saldo = data?.saldo || 0;
+    const fmt = '$' + saldo.toLocaleString('es-CO');
+    const el1 = document.getElementById('dash-saldo');
+    const el2 = document.getElementById('wallet-saldo');
+    if (el1) el1.textContent = fmt;
+    if (el2) el2.textContent = fmt;
   }
 
   async function cargarWallet() {
