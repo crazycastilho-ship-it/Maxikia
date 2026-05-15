@@ -731,23 +731,19 @@
   let ubicacionActual = null;
   let disponibleComoRepartidor = false;
 
-  // ── INIT — siempre pedir autenticación al cargar la página ──
+  // ── INIT ──
   (async () => {
     const { data: { session } } = await sb.auth.getSession();
     if (session) {
       currentUser = session.user;
-
-      // Verificar si viene de un login reciente (menos de 2 segundos)
       const ultimaAuth = parseInt(localStorage.getItem('mx_last_auth') || '0');
       const ahorita = Date.now();
-      const dosSegundos = 2 * 1000;
-      const loginMuyReciente = (ahorita - ultimaAuth) < dosSegundos;
+      const cincMinutos = 5 * 60 * 1000;
+      const loginReciente = (ahorita - ultimaAuth) < cincMinutos;
 
-      if (loginMuyReciente) {
-        // Acaba de hacer login — entrar directo
+      if (loginReciente) {
         await showDashboard();
       } else {
-        // Cualquier otro caso — pedir autenticación
         mostrarBienvenida();
       }
     }
@@ -760,6 +756,7 @@
         localStorage.removeItem('mx_last_auth');
         goPage('landing');
       }
+      // SIGNED_IN no debe redirigir — puede ser renovación automática
     });
   })();
 
@@ -827,26 +824,111 @@
   function loadGoogleMaps(cb) {
     if (window.google && window.google.maps) { cb(); return; }
     const s = document.createElement('script');
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${GMAPS_KEY}&libraries=places&language=es&region=CO`;
-    s.onload = cb;
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${GMAPS_KEY}&libraries=places&language=es&region=CO&callback=__gmapsReady`;
+    s.onerror = () => {
+      console.warn('Google Maps no disponible — usando OpenStreetMap');
+      window.__gmapsFailed = true;
+      cb();
+    };
+    window.__gmapsReady = () => { window.__gmapsFailed = false; cb(); };
     document.head.appendChild(s);
+  }
+
+  // Autocomplete con OpenStreetMap (Nominatim) como fallback
+  function setupFallbackAutocomplete(inputId, tipo) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    let timer = null;
+    let dropdown = null;
+
+    input.addEventListener('input', () => {
+      clearTimeout(timer);
+      const q = input.value.trim();
+      if (q.length < 4) { if (dropdown) dropdown.remove(); return; }
+      timer = setTimeout(async () => {
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q+', Bogotá, Colombia')}&format=json&limit=5&countrycodes=co&addressdetails=1`, {
+            headers: { 'Accept-Language': 'es' }
+          });
+          const data = await res.json();
+          if (dropdown) dropdown.remove();
+          if (!data.length) return;
+          dropdown = document.createElement('div');
+          dropdown.style.cssText = 'position:absolute;background:white;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.15);z-index:1000;width:100%;max-height:200px;overflow-y:auto';
+          data.forEach(place => {
+            const item = document.createElement('div');
+            item.style.cssText = 'padding:10px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border)';
+            item.textContent = place.display_name.split(',').slice(0,3).join(',');
+            item.addEventListener('click', () => {
+              input.value = item.textContent;
+              if (tipo === 'origen') {
+                coordOrigen = { lat: parseFloat(place.lat), lng: parseFloat(place.lon) };
+              } else {
+                coordDestino = { lat: parseFloat(place.lat), lng: parseFloat(place.lon) };
+              }
+              dropdown.remove(); dropdown = null;
+              if (coordOrigen && coordDestino) calcularPrecioFallback();
+            });
+            item.addEventListener('mouseover', () => item.style.background = 'var(--surface)');
+            item.addEventListener('mouseout', () => item.style.background = 'white');
+            dropdown.appendChild(item);
+          });
+          const parent = input.parentElement;
+          parent.style.position = 'relative';
+          parent.appendChild(dropdown);
+        } catch(e) {}
+      }, 400);
+    });
+
+    document.addEventListener('click', e => {
+      if (dropdown && !input.contains(e.target)) { dropdown.remove(); dropdown = null; }
+    });
+  }
+
+  async function calcularPrecioFallback() {
+    if (!coordOrigen || !coordDestino) return;
+    const R = 6371;
+    const dLat = (coordDestino.lat - coordOrigen.lat) * Math.PI / 180;
+    const dLon = (coordDestino.lng - coordOrigen.lng) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(coordOrigen.lat*Math.PI/180) * Math.cos(coordDestino.lat*Math.PI/180) * Math.sin(dLon/2)**2;
+    const distKm = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    window._distanciaKm = distKm;
+    const pesos = [0, 2000, 5000];
+    const precio = Math.max(PRECIO_BASE, Math.round(PRECIO_BASE + (800 * distKm) + pesos[pesoSel]));
+    window._precioCalculado = precio;
+    const el = document.getElementById('precio-calculado');
+    if (el) el.innerHTML = `<div style="background:var(--green-light);border-radius:8px;padding:10px;font-size:14px;color:var(--green);margin-top:8px">
+      <strong>$${precio.toLocaleString('es-CO')}</strong> · ${distKm.toFixed(1)} km estimado
+    </div>`;
   }
 
   function initMapEnvio() {
     loadGoogleMaps(() => {
+      // Si Google Maps falló, usar OpenStreetMap
+      if (window.__gmapsFailed || !window.google?.maps) {
+        setupFallbackAutocomplete('env-origen', 'origen');
+        setupFallbackAutocomplete('env-destino', 'destino');
+        return;
+      }
       if (mapEnvio) return;
       const center = { lat: 4.711, lng: -74.0721 };
-      mapEnvio = new google.maps.Map(document.getElementById('map-envio'), {
-        zoom: 12, center,
-        disableDefaultUI: true, zoomControl: true,
-        styles: [{ featureType: 'poi', stylers: [{ visibility: 'off' }] }]
-      });
-      const oInput = document.getElementById('env-origen');
-      const dInput = document.getElementById('env-destino');
-      new google.maps.places.Autocomplete(oInput, { componentRestrictions: { country: 'co' } })
-        .addListener('place_changed', () => setTimeout(() => geocodeAddress('origen'), 100));
-      new google.maps.places.Autocomplete(dInput, { componentRestrictions: { country: 'co' } })
-        .addListener('place_changed', () => setTimeout(() => geocodeAddress('destino'), 100));
+      try {
+        mapEnvio = new google.maps.Map(document.getElementById('map-envio'), {
+          zoom: 12, center,
+          disableDefaultUI: true, zoomControl: true,
+          styles: [{ featureType: 'poi', stylers: [{ visibility: 'off' }] }]
+        });
+        const oInput = document.getElementById('env-origen');
+        const dInput = document.getElementById('env-destino');
+        new google.maps.places.Autocomplete(oInput, { componentRestrictions: { country: 'co' } })
+          .addListener('place_changed', () => setTimeout(() => geocodeAddress('origen'), 100));
+        new google.maps.places.Autocomplete(dInput, { componentRestrictions: { country: 'co' } })
+          .addListener('place_changed', () => setTimeout(() => geocodeAddress('destino'), 100));
+      } catch(e) {
+        // Si falla al inicializar, usar fallback
+        setupFallbackAutocomplete('env-origen', 'origen');
+        setupFallbackAutocomplete('env-destino', 'destino');
+      }
     });
   }
 
@@ -1042,7 +1124,29 @@
           <i class="ti ti-brand-whatsapp"></i> Seguimiento por WhatsApp
         </a>
       </div>`;
+
+    // Limpiar formulario para evitar pedidos duplicados
+    document.getElementById('env-origen').value = '';
+    document.getElementById('env-destino').value = '';
+    document.getElementById('env-desc').value = '';
+    document.getElementById('env-notas').value = '';
+    coordOrigen = null; coordDestino = null;
+    window._precioCalculado = null; window._distanciaKm = null;
+    pesoSel = 0;
+    // Resetear pills de peso
+    document.querySelectorAll('.peso-opt').forEach((p, i) => {
+      p.classList.toggle('active', i === 0);
+    });
+    // Limpiar precio mostrado
+    const precioEl = document.getElementById('precio-calculado');
+    if (precioEl) precioEl.textContent = '';
+
     cargarPedidosHome();
+    // Ir al home después de 3 segundos
+    setTimeout(() => {
+      dTab('home');
+      document.getElementById('resultado-busqueda').innerHTML = '';
+    }, 3000);
   }
 
   // ── REPARTIDOR DISPONIBLE ──
@@ -1236,6 +1340,57 @@
   }
 
   // ── PEDIDOS HOME ──
+  // ── REALTIME — actualizaciones instantáneas de pedidos ──
+  let realtimeChannel = null;
+
+  function iniciarRealtime() {
+    if (realtimeChannel) realtimeChannel.unsubscribe();
+    if (!currentUser) return;
+
+    realtimeChannel = sb.channel('pedidos-realtime')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'pedidos',
+        filter: `usuario_id=eq.${currentUser.id}`
+      }, payload => {
+        // Pedido del cliente cambió de estado
+        const p = payload.new;
+        cargarPedidosHome();
+        // Notificación push al cliente
+        const msgs = {
+          aceptado: '🛵 Un repartidor aceptó tu pedido y va en camino a recogerlo',
+          recogido: '📦 Tu paquete fue recogido y está en camino',
+          entregado: '✅ Tu pedido fue entregado exitosamente',
+          cancelado: '❌ Tu pedido fue cancelado'
+        };
+        if (msgs[p.estado]) {
+          mostrarNotificacion('Maxi⋊ia Express', msgs[p.estado]);
+        }
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'pedidos',
+        filter: `repartidor_id=eq.${currentUser.id}`
+      }, payload => {
+        // Pedido del repartidor cambió
+        cargarPedidosHome();
+      })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'pedidos'
+      }, payload => {
+        // Nuevo pedido disponible — notificar al repartidor si está activo
+        if (disponibleComoRepartidor) {
+          cargarPedidosCercanos();
+          mostrarNotificacion('¡Nuevo pedido!', '📦 Hay un pedido disponible cerca de ti');
+        }
+      })
+      .subscribe();
+  }
+
   async function cargarPedidosHome() {
     if (!currentUser) return;
     const { data } = await sb.from('pedidos').select('*')
@@ -1295,12 +1450,6 @@
         ${botones}
       </div>`;
     }).join('');
-
-    if (!window._homePolling) {
-      window._homePolling = setInterval(() => {
-        if (document.getElementById('dp-home')?.classList.contains('active')) cargarPedidosHome();
-      }, 10000);
-    }
   }
 
   async function marcarRecogido(pedidoId) {
@@ -1810,6 +1959,8 @@
 
     // Iniciar notificaciones push
     iniciarNotificaciones();
+    // Iniciar realtime para actualizaciones instantáneas
+    iniciarRealtime();
 
     const estado = perfil?.docs_estado || 'pendiente';
     const motivo = perfil?.docs_motivo || '';
