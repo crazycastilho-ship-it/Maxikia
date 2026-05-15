@@ -609,27 +609,44 @@
   async function cargarMetricas() {
     const hoy = new Date(); hoy.setHours(0,0,0,0);
 
-    const [{ count: totalPedidos }, { data: pedidosHoy }, { data: perfiles }, { data: repartidores }] = await Promise.all([
+    const [
+      { count: totalPedidos },
+      { data: pedidosHoy },
+      { count: totalUsuarios },
+      { count: repartidores },
+      { data: entregadosHoy }
+    ] = await Promise.all([
       sb.from('pedidos').select('*', { count: 'exact', head: true }),
-      sb.from('pedidos').select('precio').gte('created_at', hoy.toISOString()),
+      sb.from('pedidos').select('id,precio,estado').gte('created_at', hoy.toISOString()),
       sb.from('perfiles').select('*', { count: 'exact', head: true }),
-      sb.from('perfiles').select('*', { count: 'exact', head: true }).eq('disponible', true)
+      sb.from('perfiles').select('*', { count: 'exact', head: true }).eq('disponible', true),
+      sb.from('pedidos').select('precio').eq('estado', 'entregado').gte('entregado_at', hoy.toISOString())
     ]);
 
-    const ingresosHoy = (pedidosHoy || []).reduce((s, p) => s + (p.precio * COMISION), 0);
+    // Ingresos = solo pedidos entregados hoy × 25%
+    const ingresosHoy = (entregadosHoy || []).reduce((s, p) => s + (p.precio * COMISION), 0);
 
     document.getElementById('m-pedidos-hoy').textContent = pedidosHoy?.length || 0;
     document.getElementById('m-pedidos-total').textContent = (totalPedidos || 0) + ' pedidos en total';
-    document.getElementById('m-usuarios').textContent = perfiles?.count || 0;
+    document.getElementById('m-usuarios').textContent = totalUsuarios || 0;
     document.getElementById('m-usuarios-nuevos').textContent = 'usuarios registrados';
     document.getElementById('m-ingresos-hoy').textContent = '$' + Math.round(ingresosHoy).toLocaleString('es-CO');
-    document.getElementById('m-repartidores').textContent = repartidores?.count || 0;
+    document.getElementById('m-repartidores').textContent = repartidores || 0;
 
-    const verif = await sb.from('perfiles').select('*', { count: 'exact', head: true }).eq('docs_estado', 'en_revision');
-    if (verif.count > 0) {
-      const b = document.getElementById('badge-verif');
-      b.textContent = verif.count; b.style.display = 'inline';
-    }
+    // Badge verificaciones pendientes
+    const { count: pendVerif } = await sb.from('perfiles')
+      .select('*', { count: 'exact', head: true })
+      .in('docs_estado', ['en_revision', 'pendiente']);
+    const b = document.getElementById('badge-verif');
+    if (pendVerif > 0) { b.textContent = pendVerif; b.style.display = 'inline'; }
+    else b.style.display = 'none';
+
+    // Badge retiros pendientes
+    const { count: pendRetiros } = await sb.from('retiros')
+      .select('*', { count: 'exact', head: true }).eq('estado', 'pendiente');
+    const br = document.getElementById('badge-retiros');
+    if (br && pendRetiros > 0) { br.textContent = pendRetiros; br.style.display = 'inline'; }
+    else if (br) br.style.display = 'none';
   }
 
   // ── DASHBOARD LISTAS ──
@@ -973,34 +990,59 @@
 
   // ── INGRESOS ──
   async function cargarIngresos() {
-    const { data } = await sb.from('pedidos').select('*').eq('estado', 'entregado').order('created_at', { ascending: false });
-    const tbody = document.getElementById('ingresos-tbody');
+    // Todos los pedidos entregados + pedidos activos (ingresos potenciales)
+    const { data: entregados } = await sb.from('pedidos')
+      .select('*').eq('estado', 'entregado')
+      .order('entregado_at', { ascending: false });
+    const { data: activos } = await sb.from('pedidos')
+      .select('id,descripcion,precio,estado,created_at')
+      .in('estado', ['buscando','aceptado','recogido'])
+      .order('created_at', { ascending: false });
 
-    if (!data || data.length === 0) {
+    const tbody = document.getElementById('ingresos-tbody');
+    const data = entregados || [];
+
+    if (data.length === 0) {
       tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><i class="ti ti-chart-bar"></i>Sin pedidos completados aún</div></td></tr>';
       ['ing-total','ing-semana','ing-mes'].forEach(id => document.getElementById(id).textContent = '$0');
-      return;
+    } else {
+      const ahora = new Date();
+      const inicioSemana = new Date(ahora); inicioSemana.setDate(ahora.getDate() - 7);
+      const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+
+      let totalIngresos = 0, semanaIngresos = 0, mesIngresos = 0;
+      let semanaPedidos = 0, mesPedidos = 0;
+
+      data.forEach(p => {
+        const comision = p.precio * COMISION;
+        totalIngresos += comision;
+        const fecha = new Date(p.entregado_at || p.created_at);
+        if (fecha >= inicioSemana) { semanaIngresos += comision; semanaPedidos++; }
+        if (fecha >= inicioMes) { mesIngresos += comision; mesPedidos++; }
+      });
+
+      document.getElementById('ing-total').textContent = '$' + Math.round(totalIngresos).toLocaleString('es-CO');
+      document.getElementById('ing-semana').textContent = '$' + Math.round(semanaIngresos).toLocaleString('es-CO');
+      document.getElementById('ing-semana-pedidos').textContent = semanaPedidos + ' pedidos';
+      document.getElementById('ing-mes').textContent = '$' + Math.round(mesIngresos).toLocaleString('es-CO');
+      document.getElementById('ing-mes-pedidos').textContent = mesPedidos + ' pedidos';
+
+      tbody.innerHTML = data.slice(0,30).map(p => `<tr>
+        <td style="font-size:12px">${new Date(p.entregado_at || p.created_at).toLocaleString('es-CO')}</td>
+        <td>${p.descripcion}</td>
+        <td>$${p.precio.toLocaleString('es-CO')}</td>
+        <td style="color:var(--green);font-weight:500">$${Math.round(p.precio * COMISION).toLocaleString('es-CO')}</td>
+      </tr>`).join('');
     }
 
-    const ahora = new Date();
-    const inicioSemana = new Date(ahora); inicioSemana.setDate(ahora.getDate() - 7);
-    const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
-
-    let totalIngresos = 0, semanaIngresos = 0, mesIngresos = 0;
-    let semanaPedidos = 0, mesPedidos = 0;
-
-    data.forEach(p => {
-      const comision = p.precio * COMISION;
-      totalIngresos += comision;
-      const fecha = new Date(p.created_at);
-      if (fecha >= inicioSemana) { semanaIngresos += comision; semanaPedidos++; }
-      if (fecha >= inicioMes) { mesIngresos += comision; mesPedidos++; }
-    });
-
-    document.getElementById('ing-total').textContent = '$' + Math.round(totalIngresos).toLocaleString('es-CO');
-    document.getElementById('ing-semana').textContent = '$' + Math.round(semanaIngresos).toLocaleString('es-CO');
-    document.getElementById('ing-semana-pedidos').textContent = semanaPedidos + ' pedidos';
-    document.getElementById('ing-mes').textContent = '$' + Math.round(mesIngresos).toLocaleString('es-CO');
+    // Mostrar pedidos activos como ingresos pendientes
+    if (activos && activos.length > 0) {
+      const pendiente = activos.reduce((s, p) => s + (p.precio * COMISION), 0);
+      const existingTotal = document.getElementById('ing-total').textContent;
+      document.getElementById('ing-total').insertAdjacentHTML('afterend',
+        `<div style="font-size:11px;color:var(--muted);margin-top:2px">+ $${Math.round(pendiente).toLocaleString('es-CO')} pendientes (${activos.length} activos)</div>`);
+    }
+  }
     document.getElementById('ing-mes-pedidos').textContent = mesPedidos + ' pedidos';
 
     tbody.innerHTML = data.slice(0,20).map(p => `<tr>
