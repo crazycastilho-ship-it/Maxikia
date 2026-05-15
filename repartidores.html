@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gana dinero repartiendo — Maxikia Express Bogotá</title>
+<meta name="description" content="Gana hasta $150.000 diarios haciendo domicilios en Bogotá. Sin jefe, sin horario fijo. Regístrate gratis en Maxikia Express.">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--mx:#D4001A;--mx2:#FF1F38;--dark:#0E0D0D;--surface:#F4F3F0;--text:#1A1212;--muted:#8A7F7F;--green:#1D9E75;--green-light:#E1F5EE}
+body{font-family:'DM Sans',sans-serif;background:#fff;color:var(--text)}
+/* NAV */
+nav{background:var(--dark);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:white;text-decoration:none}
+.logo span{color:var(--mx2)}
+.nav-cta{background:var(--mx);color:white;border:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:none}
+/* HERO */
+.hero{background:var(--dark);padding:5rem 2rem;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(212,0,26,.3),transparent 70%)}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(212,0,26,.2);border:1px solid rgba(212,0,26,.3);color:var(--mx2);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;margin-bottom:1.5rem}
+.hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(36px,6vw,64px);color:white;line-height:1.1;margin-bottom:1.25rem}
+.hero h1 span{color:var(--mx2)}
+.hero p{font-size:18px;color:rgba(255,255,255,.6);max-width:560px;margin:0 auto 2.5rem}
+.hero-cta{display:inline-flex;align-items:center;gap:10px;background:var(--mx);color:white;padding:16px 32px;border-radius:10px;font-size:17px;font-weight:600;text-decoration:none;font-family:'DM Sans',sans-serif}
+.hero-cta:hover{background:#B0001A}
+.hero-stats{display:flex;align-items:center;justify-content:center;gap:3rem;margin-top:3rem;flex-wrap:wrap}
+.hs{text-align:center}
+.hs-n{font-family:'Syne',sans-serif;font-weight:800;font-size:32px;color:white}
+.hs-l{font-size:13px;color:rgba(255,255,255,.4)}
+/* EARNINGS */
+.earnings{background:var(--surface);padding:5rem 2rem}
+.section-title{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(24px,4vw,36px);text-align:center;margin-bottom:.75rem}
+.section-sub{text-align:center;color:var(--muted);font-size:16px;margin-bottom:3rem}
+.earn-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;max-width:800px;margin:0 auto}
+.earn-card{background:white;border-radius:16px;padding:1.5rem;text-align:center;border:1px solid rgba(0,0,0,.06)}
+.earn-icon{width:56px;height:56px;border-radius:12px;background:var(--mx-light,#FFF0F2);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:24px;color:var(--mx)}
+.earn-n{font-family:'Syne',sans-serif;font-weight:800;font-size:28px;color:var(--mx)}
+.earn-l{font-size:13px;color:var(--muted);margin-top:4px}
+/* HOW */
+.how{padding:5rem 2rem}
+.steps{max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:0}
+.step{display:flex;gap:1.5rem;padding:1.5rem 0;border-bottom:1px solid rgba(0,0,0,.06)}
+.step:last-child{border-bottom:none}
+.step-num{width:48px;height:48px;border-radius:50%;background:var(--mx);color:white;font-family:'Syne',sans-serif;font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-title{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;margin-bottom:4px}
+.step-desc{font-size:14px;color:var(--muted)}
+/* BENEFITS */
+.benefits{background:var(--dark);padding:5rem 2rem}
+.benefits .section-title{color:white}
+.benefits .section-sub{color:rgba(255,255,255,.4)}
+.ben-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem;max-width:900px;margin:0 auto}
+.ben-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.5rem}
+.ben-icon{font-size:28px;color:var(--mx2);margin-bottom:.75rem;display:block}
+.ben-title{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:white;margin-bottom:6px}
+.ben-desc{font-size:13px;color:rgba(255,255,255,.4);line-height:1.6}
+/* FAQ */
+.faq{padding:5rem 2rem;background:var(--surface)}
+.faq-list{max-width:700px;margin:0 auto}
+.faq-item{background:white;border-radius:12px;margin-bottom:12px;overflow:hidden}
+.faq-q{padding:1.25rem 1.5rem;font-weight:500;font-size:15px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.faq-a{padding:0 1.5rem 1.25rem;font-size:14px;color:var(--muted);line-height:1.7;display:none}
+.faq-item.open .faq-a{display:block}
+.faq-item.open .faq-q i{transform:rotate(180deg)}
+/* CTA FINAL */
+.cta-final{background:var(--mx);padding:5rem 2rem;text-align:center}
+.cta-final h2{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(28px,5vw,48px);color:white;margin-bottom:1rem}
+.cta-final p{color:rgba(255,255,255,.7);font-size:16px;margin-bottom:2rem}
+.cta-btn{display:inline-flex;align-items:center;gap:10px;background:white;color:var(--mx);padding:16px 32px;border-radius:10px;font-size:17px;font-weight:700;text-decoration:none;font-family:'DM Sans',sans-serif}
+footer{background:var(--dark);padding:2rem;text-align:center;font-size:13px;color:rgba(255,255,255,.3)}
+footer a{color:rgba(255,255,255,.5);text-decoration:none}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">Maxi<span>⋊</span>ia Express</a>
+  <a href="/#register" class="nav-cta">Registrarme gratis</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge"><i class="ti ti-motorbike"></i> Bogotá · Abierto a repartidores</div>
+  <h1>Gana dinero<br>a tu <span>ritmo</span></h1>
+  <p>Haz domicilios cuando quieras. Sin jefe, sin horario, sin cuotas. Tú decides cuánto y cuándo trabajar.</p>
+  <a href="/" class="hero-cta"><i class="ti ti-arrow-right"></i> Empieza ahora — es gratis</a>
+  <div class="hero-stats">
+    <div class="hs"><div class="hs-n">75%</div><div class="hs-l">de cada envío es tuyo</div></div>
+    <div class="hs"><div class="hs-n">$6.000+</div><div class="hs-l">por entrega mínima</div></div>
+    <div class="hs"><div class="hs-n">24h</div><div class="hs-l">para retirar tus ganancias</div></div>
+  </div>
+</section>
+
+<!-- EARNINGS -->
+<section class="earnings">
+  <div class="section-title">¿Cuánto puedes ganar?</div>
+  <div class="section-sub">Estimados reales según horas trabajadas en Bogotá</div>
+  <div class="earn-grid">
+    <div class="earn-card">
+      <div class="earn-icon"><i class="ti ti-clock"></i></div>
+      <div class="earn-n">$45.000</div>
+      <div class="earn-l">Trabajando 3 horas</div>
+    </div>
+    <div class="earn-card">
+      <div class="earn-icon"><i class="ti ti-sun"></i></div>
+      <div class="earn-n">$90.000</div>
+      <div class="earn-l">Jornada de 6 horas</div>
+    </div>
+    <div class="earn-card">
+      <div class="earn-icon"><i class="ti ti-rocket"></i></div>
+      <div class="earn-n">$150.000</div>
+      <div class="earn-l">Día completo activo</div>
+    </div>
+  </div>
+  <p style="text-align:center;font-size:13px;color:var(--muted);margin-top:1.5rem">* Estimados basados en promedio de 5 entregas por hora a $6.000–$15.000 cada una</p>
+</section>
+
+<!-- HOW -->
+<section class="how">
+  <div class="section-title">¿Cómo funciona?</div>
+  <div class="section-sub">En 4 pasos estás ganando dinero</div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div><div class="step-title">Regístrate gratis</div><div class="step-desc">Crea tu cuenta en maxikia.com con tu correo. Solo toma 2 minutos.</div></div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div><div class="step-title">Verifica tu identidad</div><div class="step-desc">Sube foto de tu cédula y una selfie. Aprobamos en menos de 24 horas.</div></div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div><div class="step-title">Activa el modo repartidor</div><div class="step-desc">Enciende el interruptor y empieza a ver pedidos cerca de ti.</div></div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div><div class="step-title">Acepta y entrega</div><div class="step-desc">Acepta el pedido, recoge el paquete, entrégalo y el dinero cae en tu billetera inmediatamente.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- BENEFITS -->
+<section class="benefits">
+  <div class="section-title">¿Por qué Maxikia?</div>
+  <div class="section-sub">La plataforma hecha para el repartidor colombiano</div>
+  <div class="ben-grid">
+    <div class="ben-card"><i class="ti ti-coin ben-icon"></i><div class="ben-title">75% es tuyo</div><div class="ben-desc">La comisión más alta del mercado. Rappi y otros te pagan mucho menos.</div></div>
+    <div class="ben-card"><i class="ti ti-calendar-off ben-icon"></i><div class="ben-title">Sin horario fijo</div><div class="ben-desc">Trabajas cuando quieres. Un rato, un día entero, o solo los fines de semana.</div></div>
+    <div class="ben-card"><i class="ti ti-wallet ben-icon"></i><div class="ben-title">Retiro en 24 horas</div><div class="ben-desc">Pide tu retiro y en menos de 24 horas hábiles te llegará al Nequi o cuenta.</div></div>
+    <div class="ben-card"><i class="ti ti-shield-check ben-icon"></i><div class="ben-title">Comunidad verificada</div><div class="ben-desc">Todos los clientes están verificados. Ambientes seguros para trabajar.</div></div>
+    <div class="ben-card"><i class="ti ti-map-pin ben-icon"></i><div class="ben-title">Solo en tu zona</div><div class="ben-desc">Ves pedidos cercanos a ti. Sin desplazamientos innecesarios por la ciudad.</div></div>
+    <div class="ben-card"><i class="ti ti-headset ben-icon"></i><div class="ben-title">Soporte por WhatsApp</div><div class="ben-desc">¿Algún problema? Te atendemos directo por WhatsApp sin bots.</div></div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq">
+  <div class="section-title">Preguntas frecuentes</div>
+  <div class="section-sub">Todo lo que necesitas saber antes de empezar</div>
+  <div class="faq-list">
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">¿Necesito moto o bicicleta? <i class="ti ti-chevron-down"></i></div>
+      <div class="faq-a">No necesariamente. Puedes hacer entregas caminando, en bicicleta, moto o carro. Sin embargo, con moto o bici puedes atender más pedidos y ganar más.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">¿Cuánto tiempo tarda la verificación? <i class="ti ti-chevron-down"></i></div>
+      <div class="faq-a">Normalmente menos de 24 horas hábiles. Una vez aprobado recibirás una notificación y podrás empezar inmediatamente.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">¿Cómo recibo mi dinero? <i class="ti ti-chevron-down"></i></div>
+      <div class="faq-a">El dinero se acumula en tu billetera Maxikia. Puedes pedirlo cuando quieras (mínimo $10.000) y te lo enviamos por Nequi, Daviplata o transferencia bancaria en menos de 24 horas hábiles.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">¿Qué pasa si el cliente no está cuando llego? <i class="ti ti-chevron-down"></i></div>
+      <div class="faq-a">Si el cliente no responde después de esperar razonablemente, puedes reportarlo a través de la app. El equipo de Maxikia te orientará sobre cómo proceder y garantizará tu pago.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">¿Hay un mínimo de horas o pedidos? <i class="ti ti-chevron-down"></i></div>
+      <div class="faq-a">Absolutamente no. Puedes hacer 1 pedido al mes o 20 al día. Tú decides completamente tu dedicación. No hay penalidades por inactividad.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">¿En qué zonas de Bogotá funciona? <i class="ti ti-chevron-down"></i></div>
+      <div class="faq-a">En toda Bogotá. Estamos creciendo con más repartidores cada día en todas las localidades.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-final">
+  <h2>¿Listo para empezar?</h2>
+  <p>Únete a los repartidores que ya están ganando dinero en Bogotá con Maxikia Express</p>
+  <a href="/" class="cta-btn"><i class="ti ti-motorbike"></i> Registrarme gratis ahora</a>
+</section>
+
+<footer>
+  © 2026 Maxikia Express · Bogotá, Colombia ·
+  <a href="/terminos.html">Términos</a> ·
+  <a href="/privacidad.html">Privacidad</a> ·
+  <a href="https://wa.me/573243334302" target="_blank">WhatsApp</a>
+</footer>
+
+</body>
+</html>

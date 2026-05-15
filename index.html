@@ -1218,11 +1218,19 @@
     // Notificar al cliente — entrega completada
     await notificarCambioEstado(pedidoId, 'entregado');
 
-    // Cerrar modal
+    // Cerrar modal de entrega
     const modal = document.getElementById('modal-entrega');
     if (modal) modal.style.display = 'none';
 
     alert('✓ Entrega confirmada.\n\n$' + gananciaRepartidor.toLocaleString('es-CO') + ' acreditados a tu billetera Maxikia.');
+
+    // Mostrar modal de calificación al cliente
+    if (pedido.usuario_id !== currentUser.id) {
+      setTimeout(() => mostrarCalificacion(pedidoId, pedido.usuario_id, 'cliente'), 500);
+    } else {
+      setTimeout(() => mostrarCalificacion(pedidoId, pedido.repartidor_id, 'repartidor'), 500);
+    }
+
     cargarPedidosHome();
     dTab('home');
   }
@@ -1253,15 +1261,19 @@
       let botones = '';
       if (esRepartidor) {
         if (p.estado === 'aceptado') {
-          botones = `<button onclick="marcarRecogido('${p.id}')" style="margin-top:8px;width:100%;background:var(--mx);color:white;border:none;border-radius:6px;padding:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body)"><i class="ti ti-package-import"></i> Confirmé la recogida del paquete</button>`;
+          botones = `<button onclick="marcarRecogido('${p.id}')" style="margin-top:8px;width:100%;background:var(--mx);color:white;border:none;border-radius:6px;padding:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body)"><i class="ti ti-package-import"></i> Confirmé la recogida del paquete</button>
+          <button onclick="abrirChat('${p.id}')" style="margin-top:6px;width:100%;background:none;border:1px solid var(--border);border-radius:6px;padding:8px;font-size:12px;cursor:pointer;color:var(--muted);font-family:var(--font-body)"><i class="ti ti-message"></i> Chat con el cliente</button>`;
         } else if (p.estado === 'recogido') {
-          botones = `<button onclick="confirmarEntrega('${p.id}')" style="margin-top:8px;width:100%;background:var(--green);color:white;border:none;border-radius:6px;padding:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body)"><i class="ti ti-circle-check"></i> Confirmar entrega al cliente</button>`;
+          botones = `<button onclick="confirmarEntrega('${p.id}')" style="margin-top:8px;width:100%;background:var(--green);color:white;border:none;border-radius:6px;padding:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body)"><i class="ti ti-circle-check"></i> Confirmar entrega al cliente</button>
+          <button onclick="abrirChat('${p.id}')" style="margin-top:6px;width:100%;background:none;border:1px solid var(--border);border-radius:6px;padding:8px;font-size:12px;cursor:pointer;color:var(--muted);font-family:var(--font-body)"><i class="ti ti-message"></i> Chat con el cliente</button>`;
         }
       } else {
         if (p.estado === 'aceptado') {
-          botones = `<div style="margin-top:8px;background:#E6F1FB;border-radius:6px;padding:8px 12px;font-size:12px;color:#378ADD;text-align:center"><i class="ti ti-motorbike"></i> El repartidor va a recoger tu paquete</div>`;
+          botones = `<div style="margin-top:8px;background:#E6F1FB;border-radius:6px;padding:8px 12px;font-size:12px;color:#378ADD;text-align:center"><i class="ti ti-motorbike"></i> El repartidor va a recoger tu paquete</div>
+          <button onclick="abrirChat('${p.id}')" style="margin-top:6px;width:100%;background:none;border:1px solid var(--border);border-radius:6px;padding:8px;font-size:12px;cursor:pointer;color:var(--muted);font-family:var(--font-body)"><i class="ti ti-message"></i> Mensaje al repartidor</button>`;
         } else if (p.estado === 'recogido') {
-          botones = `<div style="margin-top:8px;background:var(--green-light);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--green);text-align:center"><i class="ti ti-truck"></i> Tu paquete está en camino</div>`;
+          botones = `<div style="margin-top:8px;background:var(--green-light);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--green);text-align:center"><i class="ti ti-truck"></i> Tu paquete está en camino</div>
+          <button onclick="abrirChat('${p.id}')" style="margin-top:6px;width:100%;background:none;border:1px solid var(--border);border-radius:6px;padding:8px;font-size:12px;cursor:pointer;color:var(--muted);font-family:var(--font-body)"><i class="ti ti-message"></i> Mensaje al repartidor</button>`;
         } else if (p.estado === 'buscando') {
           botones = `<button onclick="cancelarPedidoCliente('${p.id}')" style="margin-top:8px;background:none;border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;color:var(--muted);font-family:var(--font-body)">Cancelar pedido</button>`;
         }
@@ -2301,7 +2313,112 @@
     setTimeout(() => banner.remove(), 30000);
   }
 
-  function previewFotoEntrega(input) {
+  // ── CALIFICACIONES ──
+  let _calPedidoId = null, _calUsuarioId = null, _calEstrellas = 5;
+
+  function mostrarCalificacion(pedidoId, usuarioId, rol) {
+    _calPedidoId = pedidoId;
+    _calUsuarioId = usuarioId;
+    _calEstrellas = 5;
+    const modal = document.getElementById('modal-calificacion');
+    const titulo = document.getElementById('cal-titulo');
+    if (titulo) titulo.textContent = rol === 'repartidor' ? '¿Cómo fue tu repartidor?' : '¿Cómo fue la experiencia?';
+    if (modal) { modal.style.display = 'flex'; actualizarEstrellas(5); }
+  }
+
+  function actualizarEstrellas(n) {
+    _calEstrellas = n;
+    for (let i = 1; i <= 5; i++) {
+      const star = document.getElementById('star-' + i);
+      if (star) star.style.color = i <= n ? '#F5C842' : '#DDD';
+    }
+  }
+
+  async function enviarCalificacion() {
+    if (!_calPedidoId || !_calUsuarioId) return;
+    const comentario = document.getElementById('cal-comentario')?.value || '';
+    const { data: perfil } = await sb.from('perfiles').select('calificacion,entregas_completadas').eq('id', _calUsuarioId).single();
+    const total = perfil?.entregas_completadas || 1;
+    const anterior = perfil?.calificacion || 5;
+    const nueva = ((anterior * (total - 1)) + _calEstrellas) / total;
+    await sb.from('perfiles').update({ calificacion: Math.round(nueva * 10) / 10 }).eq('id', _calUsuarioId);
+    document.getElementById('modal-calificacion').style.display = 'none';
+    if (_calEstrellas >= 4) {
+      alert('¡Gracias por calificar! ⭐'.repeat(_calEstrellas));
+    }
+  }
+
+  // ── CHAT EN TIEMPO REAL ──
+  let chatPedidoId = null, chatSubscription = null;
+
+  async function abrirChat(pedidoId) {
+    chatPedidoId = pedidoId;
+    const modal = document.getElementById('modal-chat');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    document.getElementById('chat-messages').innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);font-size:13px">Cargando mensajes...</div>';
+    await cargarMensajes(pedidoId);
+    // Suscribir a nuevos mensajes en tiempo real
+    if (chatSubscription) chatSubscription.unsubscribe();
+    chatSubscription = sb.channel('chat-' + pedidoId)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensajes', filter: 'pedido_id=eq.' + pedidoId },
+        payload => agregarMensaje(payload.new))
+      .subscribe();
+  }
+
+  async function cargarMensajes(pedidoId) {
+    const { data } = await sb.from('mensajes').select('*, perfiles(nombre)')
+      .eq('pedido_id', pedidoId).order('created_at', { ascending: true }).limit(50);
+    const cont = document.getElementById('chat-messages');
+    if (!data || data.length === 0) {
+      cont.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:13px">Inicia la conversación con el repartidor</div>';
+      return;
+    }
+    cont.innerHTML = data.map(m => renderMensaje(m)).join('');
+    cont.scrollTop = cont.scrollHeight;
+  }
+
+  function renderMensaje(m) {
+    const esMio = m.usuario_id === currentUser?.id;
+    const nombre = m.perfiles?.nombre || 'Usuario';
+    const hora = new Date(m.created_at).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+    return `<div style="display:flex;flex-direction:column;align-items:${esMio ? 'flex-end' : 'flex-start'};margin-bottom:10px">
+      <div style="max-width:75%;background:${esMio ? 'var(--mx)' : 'white'};color:${esMio ? 'white' : 'var(--text)'};padding:8px 12px;border-radius:${esMio ? '12px 12px 4px 12px' : '12px 12px 12px 4px'};font-size:14px;border:1px solid ${esMio ? 'transparent' : 'var(--border)'}">
+        ${!esMio ? `<div style="font-size:11px;font-weight:600;margin-bottom:3px;opacity:.7">${nombre}</div>` : ''}
+        ${m.texto}
+        <div style="font-size:10px;opacity:.6;margin-top:4px;text-align:right">${hora}</div>
+      </div>
+    </div>`;
+  }
+
+  function agregarMensaje(m) {
+    const cont = document.getElementById('chat-messages');
+    if (!cont) return;
+    const placeholder = cont.querySelector('div[style*="Inicia la conversación"]');
+    if (placeholder) placeholder.remove();
+    cont.insertAdjacentHTML('beforeend', renderMensaje(m));
+    cont.scrollTop = cont.scrollHeight;
+  }
+
+  async function enviarMensaje() {
+    const input = document.getElementById('chat-input');
+    const texto = input?.value.trim();
+    if (!texto || !chatPedidoId || !currentUser) return;
+    input.value = '';
+    await sb.from('mensajes').insert({
+      pedido_id: chatPedidoId,
+      usuario_id: currentUser.id,
+      texto,
+      created_at: new Date().toISOString()
+    });
+  }
+
+  function cerrarChat() {
+    document.getElementById('modal-chat').style.display = 'none';
+    if (chatSubscription) { chatSubscription.unsubscribe(); chatSubscription = null; }
+  }
+
+
     if (!input.files || !input.files[0]) return;
     const file = input.files[0];
     const reader = new FileReader();
@@ -2525,6 +2642,47 @@
     </button>
     <div style="text-align:center">
       <span onclick="cerrarSesionWelcome()" style="font-size:13px;color:rgba(255,255,255,0.3);cursor:pointer">No soy yo — cambiar cuenta</span>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CALIFICACIÓN -->
+<div id="modal-calificacion" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:400;align-items:flex-end;justify-content:center">
+  <div style="background:white;border-radius:16px 16px 0 0;width:100%;max-width:440px;padding:1.5rem;margin:0 auto;text-align:center">
+    <div style="font-family:var(--font-head);font-weight:700;font-size:17px;margin-bottom:.5rem" id="cal-titulo">¿Cómo fue tu repartidor?</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:1.25rem">Tu calificación ayuda a mejorar el servicio</div>
+    <div style="display:flex;justify-content:center;gap:8px;margin-bottom:1.25rem">
+      <i class="ti ti-star-filled" id="star-1" style="font-size:36px;color:#F5C842;cursor:pointer" onclick="actualizarEstrellas(1)"></i>
+      <i class="ti ti-star-filled" id="star-2" style="font-size:36px;color:#F5C842;cursor:pointer" onclick="actualizarEstrellas(2)"></i>
+      <i class="ti ti-star-filled" id="star-3" style="font-size:36px;color:#F5C842;cursor:pointer" onclick="actualizarEstrellas(3)"></i>
+      <i class="ti ti-star-filled" id="star-4" style="font-size:36px;color:#F5C842;cursor:pointer" onclick="actualizarEstrellas(4)"></i>
+      <i class="ti ti-star-filled" id="star-5" style="font-size:36px;color:#F5C842;cursor:pointer" onclick="actualizarEstrellas(5)"></i>
+    </div>
+    <textarea id="cal-comentario" placeholder="Comentario opcional..." style="width:100%;border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px;font-family:var(--font-body);font-size:14px;resize:none;height:80px;margin-bottom:1rem;outline:none"></textarea>
+    <button onclick="enviarCalificacion()" style="width:100%;background:var(--mx);color:white;border:none;border-radius:var(--radius-sm);padding:13px;font-family:var(--font-body);font-size:15px;font-weight:500;cursor:pointer;margin-bottom:10px">
+      Enviar calificación
+    </button>
+    <button onclick="document.getElementById('modal-calificacion').style.display='none'" style="width:100%;background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;font-family:var(--font-body);font-size:14px;cursor:pointer;color:var(--muted)">
+      Omitir
+    </button>
+  </div>
+</div>
+
+<!-- MODAL CHAT -->
+<div id="modal-chat" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:400;align-items:flex-end;justify-content:center">
+  <div style="background:white;border-radius:16px 16px 0 0;width:100%;max-width:440px;height:70vh;display:flex;flex-direction:column;margin:0 auto">
+    <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:var(--font-head);font-weight:700;font-size:16px">Chat del pedido</div>
+      <button onclick="cerrarChat()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted)"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="chat-messages" style="flex:1;overflow-y:auto;padding:1rem;background:var(--surface)"></div>
+    <div style="padding:.75rem;border-top:1px solid var(--border);display:flex;gap:8px">
+      <input type="text" id="chat-input" placeholder="Escribe un mensaje..."
+        style="flex:1;border:1px solid var(--border);border-radius:20px;padding:10px 14px;font-family:var(--font-body);font-size:14px;outline:none"
+        onkeydown="if(event.key==='Enter')enviarMensaje()">
+      <button onclick="enviarMensaje()" style="width:40px;height:40px;border-radius:50%;background:var(--mx);color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <i class="ti ti-send"></i>
+      </button>
     </div>
   </div>
 </div>
