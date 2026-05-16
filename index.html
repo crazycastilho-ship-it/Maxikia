@@ -397,7 +397,7 @@
     <div class="container">
       <div class="section-label">Tipos de envío</div>
       <h2>Tres formas de enviar,<br>una sola app</h2>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem" class="tipos-grid">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem" class="tipos-grid">
 
         <div style="border:2px solid var(--border);border-radius:var(--radius);padding:1.5rem;text-align:center">
           <div style="width:56px;height:56px;border-radius:12px;background:var(--mx-light);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:26px">⚡</div>
@@ -426,10 +426,18 @@
           </div>
         </div>
 
-      </div>
-      <div style="text-align:center;margin-top:2rem">
-        <button class="btn-primary" onclick="goPage('register')"><i class="ti ti-bolt"></i> Pedir ahora</button>
-      </div>
+        <div style="border:2px solid #0EA5E9;border-radius:var(--radius);padding:1.5rem;text-align:center;background:#F0F9FF">
+          <div style="width:56px;height:56px;border-radius:12px;background:#E0F2FE;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:26px">🚛</div>
+          <div style="font-family:var(--font-head);font-weight:700;font-size:17px;margin-bottom:6px">Mudanzas</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.6">Acarreos, fletes y mudanzas completas. Te conectamos con el transportador.</div>
+          <div style="background:#E0F2FE;border-radius:8px;padding:8px;font-size:12px;color:#0369A1;font-weight:600">
+            Cotización gratis<br>Precio a negociar con transportador
+          </div>
+        </div>
+
+        <div style="grid-column:1/-1;text-align:center;margin-top:.5rem">
+          <button class="btn-primary" onclick="goPage('register')"><i class="ti ti-bolt"></i> Pedir ahora</button>
+        </div>
     </div>
   </section>
 
@@ -493,6 +501,7 @@
           <div class="role-grid">
             <div class="role-card sel" id="rc-both" onclick="selR('both')"><i class="ti ti-arrows-exchange"></i><div class="rn">Ambos</div><div class="rd">Envío y reparto</div></div>
             <div class="role-card" id="rc-client" onclick="selR('client')"><i class="ti ti-package"></i><div class="rn">Solo cliente</div><div class="rd">Solo envíos</div></div>
+            <div class="role-card" id="rc-transportista" onclick="selR('transportista')"><i class="ti ti-truck"></i><div class="rn">Transportista</div><div class="rd">Mudanzas y fletes</div></div>
           </div>
           <div class="field-group"><label class="field-label">Nombre completo</label><input type="text" class="field-input" id="reg-name" placeholder="Tu nombre y apellido"></div>
           <div class="field-group"><label class="field-label">Correo electrónico</label><input type="email" class="field-input" id="reg-email" placeholder="tu@correo.com"></div>
@@ -619,7 +628,7 @@
         <!-- TIPO DE ENVÍO -->
         <div class="field-group">
           <label class="field-label">¿Qué tipo de envío necesitas?</label>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
 
             <div class="tipo-envio-btn active" id="tipo-express" onclick="selTipoEnvio('express')">
               <i class="ti ti-bolt" style="font-size:22px;color:var(--mx)"></i>
@@ -631,7 +640,7 @@
             <div class="tipo-envio-btn" id="tipo-especial" onclick="selTipoEnvio('especial')">
               <i class="ti ti-sofa" style="font-size:22px;color:#8B5CF6"></i>
               <div style="font-weight:700;font-size:13px;margin-top:4px">Acólitamos</div>
-              <div style="font-size:10px;color:var(--muted);margin-top:2px">Hasta 500m</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">Hasta 500m · Máx 10 prod.</div>
               <div style="font-size:10px;color:#8B5CF6;margin-top:4px;font-weight:600">Desde $1.000</div>
             </div>
 
@@ -640,6 +649,13 @@
               <div style="font-weight:700;font-size:13px;margin-top:4px">Comercial</div>
               <div style="font-size:10px;color:var(--muted);margin-top:2px">Local a domicilio</div>
               <div style="font-size:10px;color:#F59E0B;margin-top:4px;font-weight:600">Desde $1.000</div>
+            </div>
+
+            <div class="tipo-envio-btn" id="tipo-mudanza" onclick="selTipoEnvio('mudanza')">
+              <i class="ti ti-truck" style="font-size:22px;color:#0EA5E9"></i>
+              <div style="font-weight:700;font-size:13px;margin-top:4px">Mudanza</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">Acarreo · Flete</div>
+              <div style="font-size:10px;color:#0EA5E9;margin-top:4px;font-weight:600">Cotización gratis</div>
             </div>
 
           </div>
@@ -685,6 +701,115 @@
         <div class="field-group" id="campo-local" style="display:none">
           <label class="field-label">Nombre del local que te envía</label>
           <input type="text" class="field-input" id="env-local" placeholder="Ej: Tienda Don Jorge, Restaurante La Casa...">
+        </div>
+
+        <!-- Campos para Mudanza -->
+        <div id="campo-mudanza" style="display:none">
+
+          <div class="field-group">
+            <label class="field-label">¿Qué tipo de mudanza necesitas?</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="mudanza-tipos">
+              <div class="tipo-envio-btn active-blue" id="mud-estudio" onclick="selMudanzaTipo('estudio',this)" style="border:2px solid #0EA5E9;background:#F0F9FF">
+                <div style="font-size:20px">🏠</div>
+                <div style="font-weight:700;font-size:12px;margin-top:4px">Estudio / Apto pequeño</div>
+                <div style="font-size:10px;color:var(--muted)">1-2 habitaciones</div>
+              </div>
+              <div class="tipo-envio-btn" id="mud-apto" onclick="selMudanzaTipo('apto',this)">
+                <div style="font-size:20px">🏢</div>
+                <div style="font-weight:700;font-size:12px;margin-top:4px">Apartamento</div>
+                <div style="font-size:10px;color:var(--muted)">2-3 habitaciones</div>
+              </div>
+              <div class="tipo-envio-btn" id="mud-casa" onclick="selMudanzaTipo('casa',this)">
+                <div style="font-size:20px">🏡</div>
+                <div style="font-weight:700;font-size:12px;margin-top:4px">Casa completa</div>
+                <div style="font-size:10px;color:var(--muted)">3+ habitaciones</div>
+              </div>
+              <div class="tipo-envio-btn" id="mud-oficina" onclick="selMudanzaTipo('oficina',this)">
+                <div style="font-size:20px">🏪</div>
+                <div style="font-weight:700;font-size:12px;margin-top:4px">Local / Oficina</div>
+                <div style="font-size:10px;color:var(--muted)">Negocio / comercio</div>
+              </div>
+              <div class="tipo-envio-btn" id="mud-acarreo" onclick="selMudanzaTipo('acarreo',this)">
+                <div style="font-size:20px">📦</div>
+                <div style="font-weight:700;font-size:12px;margin-top:4px">Acarreo / Flete</div>
+                <div style="font-size:10px;color:var(--muted)">Pocas cosas sueltas</div>
+              </div>
+              <div class="tipo-envio-btn" id="mud-especial" onclick="selMudanzaTipo('especial',this)">
+                <div style="font-size:20px">🛋️</div>
+                <div style="font-weight:700;font-size:12px;margin-top:4px">Objeto especial</div>
+                <div style="font-size:10px;color:var(--muted)">Piano, nevera, mueble</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tarifa referencia -->
+          <div id="mudanza-tarifa-ref" style="background:#F0F9FF;border:1px solid rgba(14,165,233,.2);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:1rem">
+            <div style="font-size:11px;font-weight:700;color:#0369A1;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">💡 Tarifa de referencia en Bogotá</div>
+            <div id="mudanza-precio-ref" style="font-size:14px;color:#0369A1"></div>
+            <div style="font-size:11px;color:#0369A1;opacity:.7;margin-top:4px">⚠️ Precio final lo acuerda el cliente con el transportador. Maxikia solo conecta.</div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">¿Tienes escaleras o ascensor? (opcional)</label>
+            <div style="display:flex;gap:8px">
+              <div class="peso-btn" id="acc-asc" onclick="selAcceso('ascensor',this)" style="flex:1;text-align:center">🛗 Ascensor</div>
+              <div class="peso-btn" id="acc-esc" onclick="selAcceso('escaleras',this)" style="flex:1;text-align:center">🪜 Escaleras</div>
+              <div class="peso-btn sel" id="acc-pb" onclick="selAcceso('primer_piso',this)" style="flex:1;text-align:center">🚪 Primer piso</div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">¿Piso número? (opcional)</label>
+            <input type="number" class="field-input" id="env-piso" placeholder="Ej: 3" min="1" max="30" style="width:120px">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">¿Hay objetos muy pesados o grandes?</label>
+            <textarea class="field-input" id="env-objetos-especiales" placeholder="Ej: Nevera grande, sofá de 3 puestos, escritorio metálico..." style="height:70px;resize:none"></textarea>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">¿Cuánto ofreces pagar? (opcional)</label>
+            <div style="background:#F0F9FF;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:12px;color:#0369A1">
+              💡 El transportador verá tu oferta. Puedes negociar directamente con él.
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:18px;font-weight:700;color:var(--muted)">$</span>
+              <input type="number" class="field-input" id="env-precio-oferta" placeholder="Ej: 150000" min="0" style="flex:1">
+              <span style="font-size:12px;color:var(--muted)">COP</span>
+            </div>
+            <div id="mudanza-oferta-ref" style="font-size:11px;color:var(--muted);margin-top:4px">Referencia de mercado se actualiza al elegir el tipo de mudanza</div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">¿Cuándo necesitas la mudanza?</label>
+            <input type="date" class="field-input" id="env-fecha-mudanza" min="">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Hora preferida</label>
+            <select class="field-input" id="env-hora-mudanza">
+              <option value="">Seleccionar hora...</option>
+              <option value="07:00">7:00 AM</option>
+              <option value="08:00">8:00 AM</option>
+              <option value="09:00">9:00 AM</option>
+              <option value="10:00">10:00 AM</option>
+              <option value="12:00">12:00 PM</option>
+              <option value="14:00">2:00 PM</option>
+              <option value="16:00">4:00 PM</option>
+            </select>
+          </div>
+
+          <!-- Aviso importante -->
+          <div style="background:#FFF7ED;border:1px solid rgba(245,158,11,.3);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:1rem;font-size:12px;color:#92400E">
+            <div style="font-weight:700;margin-bottom:4px">📋 ¿Cómo funciona?</div>
+            <div>1. Publicas tu solicitud con los detalles</div>
+            <div>2. Los transportadores disponibles ven tu pedido</div>
+            <div>3. Te contactan para confirmar precio y condiciones</div>
+            <div>4. Tú eliges con quién hacer la mudanza</div>
+            <div style="margin-top:6px;font-weight:600">Maxikia conecta — el precio final lo acuerdan entre ustedes.</div>
+          </div>
+
         </div>
 
         <div class="field-group">
@@ -750,6 +875,26 @@
       </div>
 
       <!-- BILLETERA -->
+      <!-- ── TRANSPORTISTA ── -->
+      <div class="dp" id="dp-transportista">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+          <h3>Mudanzas disponibles</h3>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span id="trans-status-txt" style="font-size:12px;color:var(--muted)">Inactivo</span>
+            <div class="toggle-sw" id="tsw-trans" onclick="toggleTransportista()"></div>
+          </div>
+        </div>
+
+        <!-- Banner disponibilidad -->
+        <div id="trans-banner" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;text-align:center;font-size:13px;color:var(--muted)">
+          <i class="ti ti-truck" style="font-size:28px;display:block;margin-bottom:6px;opacity:.3"></i>
+          Activa el interruptor para ver solicitudes de mudanza disponibles
+        </div>
+
+        <!-- Lista de mudanzas -->
+        <div id="mudanzas-cercanas"></div>
+      </div>
+
       <div class="dp" id="dp-billetera">
         <div class="br"><button onclick="dTab('home')"><i class="ti ti-arrow-left" style="font-size:22px;color:var(--text)"></i></button><h3>Mi billetera</h3></div>
 
@@ -873,6 +1018,7 @@
       <button class="bitem active" id="bn-home" onclick="dTab('home')"><i class="ti ti-home"></i><span>Inicio</span></button>
       <button class="bitem" id="bn-envio" onclick="dTab('envio')"><i class="ti ti-package"></i><span>Envíos</span></button>
       <button class="bitem" id="bn-repartir" onclick="dTab('repartir')"><i class="ti ti-motorbike"></i><span>Repartir</span></button>
+      <button class="bitem" id="bn-transportista" onclick="dTab('transportista')" style="display:none"><i class="ti ti-truck"></i><span>Mudanzas</span></button>
       <button class="bitem" id="bn-billetera" onclick="dTab('billetera')"><i class="ti ti-wallet"></i><span>Billetera</span></button>
     </div>
   </div>
@@ -1249,7 +1395,67 @@
     const precio = window._precioCalculado || PRECIO_BASE;
     const distancia = window._distanciaKm || 0;
 
-    // Validar distancia máxima para envíos cortos
+    // Para mudanzas — flujo diferente (cotización, no precio fijo)
+    if (tipoEnvio === 'mudanza') {
+      const fecha = document.getElementById('env-fecha-mudanza').value;
+      const hora = document.getElementById('env-hora-mudanza').value;
+      const objetos = document.getElementById('env-objetos-especiales').value;
+      if (!fecha) { alerta.innerHTML = '<div class="alert error">Selecciona la fecha de la mudanza.</div>'; return; }
+      if (!origen) { alerta.innerHTML = '<div class="alert error">Ingresa la dirección de origen.</div>'; return; }
+      if (!destino) { alerta.innerHTML = '<div class="alert error">Ingresa la dirección de destino.</div>'; return; }
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Publicando solicitud...';
+
+      const t = TARIFAS_MUDANZA[mudanzaTipo];
+      const descMudanza = `🚛 [MUDANZA - ${t.label}] ${desc || 'Mudanza'} | Acceso: ${mudanzaAcceso} | Piso: ${document.getElementById('env-piso').value || 'N/A'} | ${objetos ? 'Objetos especiales: ' + objetos : ''} | Fecha: ${fecha} ${hora}`;
+
+      const { data: saldo } = await sb.from('perfiles').select('saldo').eq('id', currentUser.id).single();
+      const precioOferta = parseInt(document.getElementById('env-precio-oferta')?.value || '0') || 0;
+
+      const { data: pedido, error } = await sb.from('pedidos').insert({
+        usuario_id: currentUser.id,
+        origen, destino,
+        descripcion: descMudanza,
+        tipo_envio: 'mudanza',
+        lat_origen: coordOrigen?.lat, lng_origen: coordOrigen?.lng,
+        lat_destino: coordDestino?.lat, lng_destino: coordDestino?.lng,
+        distancia_km: window._distanciaKm || 0,
+        precio: 0,
+        precio_oferta: precioOferta,
+        estado: 'buscando',
+        notas: `Mudanza ${t.label} · ${fecha} ${hora} · Ref: $${t.min.toLocaleString('es-CO')}–$${t.max.toLocaleString('es-CO')}${precioOferta > 0 ? ' · Oferta cliente: $' + precioOferta.toLocaleString('es-CO') : ''}`,
+        created_at: new Date().toISOString()
+      }).select().single();
+
+      btn.disabled = false;
+      btn.innerHTML = 'Solicitar cotización <i class="ti ti-truck"></i>';
+
+      if (error) { alerta.innerHTML = '<div class="alert error">Error al publicar. Intenta de nuevo.</div>'; return; }
+
+      document.getElementById('resultado-busqueda').innerHTML = `
+        <div style="background:var(--green-light);border:1px solid rgba(29,158,117,.2);border-radius:var(--radius);padding:1.25rem">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <i class="ti ti-circle-check" style="color:var(--green);font-size:22px"></i>
+            <div style="font-weight:600;color:#0F6E56">¡Solicitud publicada!</div>
+          </div>
+          <div style="font-size:13px;color:#0F6E56;margin-bottom:8px">Los transportadores disponibles verán tu solicitud y te contactarán para cotizar.</div>
+          <div style="font-size:12px;color:var(--muted);background:white;border-radius:8px;padding:10px">
+            💰 Referencia de precio: <strong>$${t.min.toLocaleString('es-CO')} – $${t.max.toLocaleString('es-CO')}</strong><br>
+            📋 El precio final lo acuerdan con el transportador<br>
+            📅 Fecha: ${fecha} ${hora ? '· ' + hora : ''}
+          </div>
+          <a href="https://wa.me/${WHATSAPP}?text=Hola%20Maxikia%2C%20solicité%20mudanza%20ID%3A%20${pedido.id}" target="_blank"
+            style="display:flex;align-items:center;gap:6px;margin-top:12px;background:#25D366;color:white;padding:10px;border-radius:var(--radius-sm);text-decoration:none;font-size:13px;font-weight:500;justify-content:center">
+            <i class="ti ti-brand-whatsapp"></i> Contactar a Maxikia para seguimiento
+          </a>
+        </div>`;
+
+      // Limpiar formulario
+      selTipoEnvio('express');
+      setTimeout(() => { dTab('home'); document.getElementById('resultado-busqueda').innerHTML = ''; }, 4000);
+      return;
+    }
     if (tipoEnvio !== 'express' && distancia > 0.5) {
       alerta.innerHTML = `<div class="alert error">
         Los envíos <strong>${tipoEnvio === 'especial' ? 'Acólitamos' : 'Comerciales'}</strong> son solo hasta 500 metros.<br>
@@ -1380,8 +1586,54 @@
     }, 3000);
   }
 
-  // ── TIPO DE ENVÍO ──
-  let tipoEnvio = 'express'; // 'express' | 'especial' | 'comercial'
+  // ── MUDANZAS ──
+  let mudanzaTipo = 'estudio';
+  let mudanzaAcceso = 'primer_piso';
+
+  const TARIFAS_MUDANZA = {
+    estudio:  { min: 120000,  max: 250000,  label: 'Estudio/Apto pequeño',  ref: 'Mercado informal: $120k–$200k · Empresa: $200k–$350k' },
+    apto:     { min: 200000,  max: 400000,  label: 'Apartamento 2-3 hab.',   ref: 'Mercado informal: $200k–$350k · Empresa: $350k–$600k' },
+    casa:     { min: 350000,  max: 700000,  label: 'Casa completa',          ref: 'Mercado informal: $350k–$600k · Empresa: $600k–$1.200k' },
+    oficina:  { min: 250000,  max: 600000,  label: 'Local/Oficina',          ref: 'Mercado informal: $250k–$500k · Empresa: $500k–$900k' },
+    acarreo:  { min: 50000,   max: 150000,  label: 'Acarreo/Flete',          ref: 'Mercado informal: $50k–$120k · Empresa: $120k–$250k' },
+    especial: { min: 80000,   max: 200000,  label: 'Objeto especial',        ref: 'Mercado informal: $80k–$150k · Empresa: $150k–$350k' }
+  };
+
+  function selMudanzaTipo(tipo, el) {
+    mudanzaTipo = tipo;
+    document.querySelectorAll('#mudanza-tipos .tipo-envio-btn').forEach(b => {
+      b.style.border = ''; b.style.background = '';
+    });
+    el.style.border = '2px solid #0EA5E9';
+    el.style.background = '#F0F9FF';
+    const t = TARIFAS_MUDANZA[tipo];
+    if (t) {
+      document.getElementById('mudanza-precio-ref').innerHTML =
+        `<strong>$${t.min.toLocaleString('es-CO')} – $${t.max.toLocaleString('es-CO')}</strong><br>
+        <span style="font-size:12px">${t.ref}</span>`;
+      const ofertaRef = document.getElementById('mudanza-oferta-ref');
+      if (ofertaRef) ofertaRef.textContent = `Referencia: $${t.min.toLocaleString('es-CO')} – $${t.max.toLocaleString('es-CO')}`;
+    }
+  }
+
+  function selAcceso(tipo, el) {
+    mudanzaAcceso = tipo;
+    document.querySelectorAll('#acc-asc,#acc-esc,#acc-pb').forEach(b => b.className = 'peso-btn');
+    el.className = 'peso-btn sel';
+  }
+
+  // Inicializar tarifa al cargar mudanza
+  function initMudanza() {
+    const t = TARIFAS_MUDANZA['estudio'];
+    const ref = document.getElementById('mudanza-precio-ref');
+    if (ref) ref.innerHTML = `<strong>$${t.min.toLocaleString('es-CO')} – $${t.max.toLocaleString('es-CO')}</strong><br><span style="font-size:12px">${t.ref}</span>`;
+    // Fecha mínima = hoy
+    const dateInput = document.getElementById('env-fecha-mudanza');
+    if (dateInput) dateInput.min = new Date().toISOString().split('T')[0];
+    // Seleccionar primer tipo por defecto
+    const primero = document.getElementById('mud-estudio');
+    if (primero) { primero.style.border = '2px solid #0EA5E9'; primero.style.background = '#F0F9FF'; }
+  }
 
   const TARIFAS_CORTAS = [
     { max: 0.02,  precio: 1000 },  // 0-20m
@@ -1413,6 +1665,15 @@
     campoMandado.style.display = 'none';
     campoLocal.style.display = 'none';
     document.getElementById('acolita-limits')?.remove();
+    document.getElementById('campo-mudanza').style.display = 'none';
+    document.getElementById('map-envio').style.display = 'block';
+    document.getElementById('env-destino').closest('.field-group').style.display = 'block';
+    document.getElementById('campo-peso').style.display = 'none';
+    document.getElementById('price-row').style.display = 'flex';
+
+    // Reset tipo-mudanza button
+    const tipoMudBtn = document.getElementById('tipo-mudanza');
+    if (tipoMudBtn) tipoMudBtn.className = 'tipo-envio-btn';
 
     if (tipo === 'express') {
       document.getElementById('tipo-express').className = 'tipo-envio-btn active';
@@ -1436,7 +1697,6 @@
       labelDestino.textContent = 'Dirección de entrega (máx 500m)';
       labelDesc.textContent = 'Descripción del mandado';
       btnBuscar.innerHTML = 'Solicitar acólito <i class="ti ti-sofa"></i>';
-      // Aviso de límites
       document.getElementById('acolita-limits')?.remove();
       campoMandado.insertAdjacentHTML('afterend',
         '<div id="acolita-limits" style="background:#F5F3FF;border:1px solid rgba(139,92,246,.2);border-radius:8px;padding:10px 12px;font-size:12px;color:#7C3AED;margin-bottom:.75rem">' +
@@ -1454,6 +1714,22 @@
       labelDestino.textContent = 'Tu dirección de entrega (máx 500m)';
       labelDesc.textContent = '¿Qué te envía el local?';
       btnBuscar.innerHTML = 'Solicitar domicilio <i class="ti ti-building-store"></i>';
+
+    } else if (tipo === 'mudanza') {
+      document.getElementById('tipo-mudanza').className = 'tipo-envio-btn';
+      document.getElementById('tipo-mudanza').style.border = '2px solid #0EA5E9';
+      document.getElementById('tipo-mudanza').style.background = '#F0F9FF';
+      desc.style.background = '#F0F9FF'; desc.style.color = '#0369A1'; desc.style.borderColor = 'rgba(14,165,233,.2)';
+      desc.innerHTML = '<i class="ti ti-truck"></i> <strong>Mudanza / Acarreo</strong> — Te conectamos con transportadores. El precio final lo acuerdan entre ustedes.';
+      tabla.style.display = 'none';
+      campoPeso.style.display = 'none';
+      document.getElementById('campo-mudanza').style.display = 'block';
+      document.getElementById('price-row').style.display = 'none';
+      labelOrigen.textContent = 'Dirección de origen (donde está todo)';
+      labelDestino.textContent = 'Dirección de destino';
+      labelDesc.textContent = 'Descripción general (¿qué hay que mover?)';
+      btnBuscar.innerHTML = 'Solicitar cotización <i class="ti ti-truck"></i>';
+      initMudanza();
     }
 
     // Recalcular precio con nuevo tipo
@@ -1952,6 +2228,7 @@
       }
     }
     if (t === 'repartir') initMapRepartir();
+    if (t === 'transportista') cargarMudanzasDisponibles();
     if (t === 'historial') cargarHistorial();
     if (t === 'billetera') cargarWallet();
   }
@@ -2415,6 +2692,8 @@
     iniciarRealtime();
     // Restaurar disponibilidad del repartidor
     restaurarDisponibilidad();
+    // Restaurar transportista si aplica
+    restaurarTransportista();
     // Cargar saldo inmediatamente
     cargarSaldoInicial();
 
@@ -2920,7 +3199,163 @@
     setTimeout(() => banner.remove(), 30000);
   }
 
-  // ── CALIFICACIÓN DEL CLIENTE al repartidor ──
+  // ── TRANSPORTISTA ──
+  let disponibleComoTransportista = false;
+
+  function mostrarTabTransportista() {
+    const btn = document.getElementById('bn-transportista');
+    if (btn) btn.style.display = 'flex';
+  }
+
+  async function toggleTransportista() {
+    disponibleComoTransportista = !disponibleComoTransportista;
+    const tsw = document.getElementById('tsw-trans');
+    const txt = document.getElementById('trans-status-txt');
+    tsw?.classList.toggle('on', disponibleComoTransportista);
+
+    if (disponibleComoTransportista) {
+      txt.textContent = 'Disponible — buscando mudanzas';
+      localStorage.setItem('mx_trans_disponible', '1');
+      await sb.from('perfiles').upsert({
+        id: currentUser.id, disponible_mudanza: true,
+        updated_at: new Date().toISOString()
+      });
+      cargarMudanzasDisponibles();
+      if (!window._transInterval) {
+        window._transInterval = setInterval(cargarMudanzasDisponibles, 20000);
+      }
+    } else {
+      txt.textContent = 'Inactivo';
+      localStorage.removeItem('mx_trans_disponible');
+      await sb.from('perfiles').upsert({ id: currentUser.id, disponible_mudanza: false });
+      if (window._transInterval) { clearInterval(window._transInterval); window._transInterval = null; }
+      document.getElementById('mudanzas-cercanas').innerHTML = '';
+      document.getElementById('trans-banner').style.display = 'block';
+    }
+  }
+
+  async function restaurarTransportista() {
+    if (!currentUser) return;
+    const { data: perfil } = await sb.from('perfiles')
+      .select('rol,disponible_mudanza').eq('id', currentUser.id).single();
+    // Mostrar tab si es transportista o both
+    if (perfil?.rol === 'transportista' || perfil?.rol === 'both') {
+      mostrarTabTransportista();
+    }
+    if (perfil?.disponible_mudanza || localStorage.getItem('mx_trans_disponible') === '1') {
+      setTimeout(() => {
+        disponibleComoTransportista = true;
+        document.getElementById('tsw-trans')?.classList.add('on');
+        document.getElementById('trans-status-txt').textContent = 'Disponible';
+        cargarMudanzasDisponibles();
+        if (!window._transInterval) {
+          window._transInterval = setInterval(cargarMudanzasDisponibles, 20000);
+        }
+      }, 1500);
+    }
+  }
+
+  async function cargarMudanzasDisponibles() {
+    if (!disponibleComoTransportista) return;
+    const banner = document.getElementById('trans-banner');
+    const cont = document.getElementById('mudanzas-cercanas');
+    if (banner) banner.style.display = 'none';
+
+    const { data, error } = await sb.from('pedidos')
+      .select('*').eq('tipo_envio', 'mudanza').eq('estado', 'buscando')
+      .order('created_at', { ascending: false }).limit(20);
+
+    if (error || !data || data.length === 0) {
+      cont.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--muted);font-size:14px">
+        <i class="ti ti-truck" style="font-size:32px;display:block;margin-bottom:8px;opacity:.3"></i>
+        No hay solicitudes de mudanza ahora.<br>Espera un momento.
+      </div>`;
+      return;
+    }
+
+    cont.innerHTML = data.map(p => {
+      const notas = p.notas || '';
+      const precioRef = p.precio_oferta || 0;
+      // Extraer tipo de mudanza de la descripción
+      const tipoMatch = p.descripcion?.match(/MUDANZA - ([^\]]+)/);
+      const tipoMud = tipoMatch ? tipoMatch[1] : 'Mudanza';
+
+      return `<div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px">
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
+          <div style="width:40px;height:40px;border-radius:8px;background:#E0F2FE;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">🚛</div>
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:14px;color:#0369A1;margin-bottom:2px">${tipoMud}</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px">
+              📍 <strong>Origen:</strong> ${p.origen}<br>
+              🏁 <strong>Destino:</strong> ${p.destino}
+            </div>
+            ${notas ? `<div style="font-size:11px;color:var(--muted);background:var(--surface);padding:6px 8px;border-radius:6px;margin-top:4px">${notas}</div>` : ''}
+          </div>
+        </div>
+
+        <!-- Precio ofertado por el cliente -->
+        <div style="background:#F0F9FF;border-radius:8px;padding:10px 12px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:11px;color:#0369A1;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Valor ofrecido por el cliente</div>
+            <div style="font-size:20px;font-weight:800;color:#0369A1;margin-top:2px">
+              ${precioRef > 0 ? '$' + precioRef.toLocaleString('es-CO') : '<span style="font-size:14px">A negociar</span>'}
+            </div>
+          </div>
+          <div style="font-size:11px;color:#0369A1;text-align:right">
+            ${p.distancia_km > 0 ? p.distancia_km.toFixed(1) + ' km' : ''}
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px">
+          <button onclick="aceptarMudanza('${p.id}','${p.usuario_id}',${precioRef})"
+            style="flex:1;background:#0EA5E9;color:white;border:none;border-radius:6px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">
+            <i class="ti ti-check"></i> Acepto esta mudanza
+          </button>
+          <button onclick="contactarClienteMudanza('${p.usuario_id}','${p.id}')"
+            style="background:none;border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:13px;cursor:pointer;color:var(--muted);font-family:var(--font-body)">
+            <i class="ti ti-brand-whatsapp" style="color:#25D366"></i>
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function aceptarMudanza(pedidoId, clienteId, precioRef) {
+    const { error } = await sb.from('pedidos').update({
+      estado: 'aceptado',
+      repartidor_id: currentUser.id,
+      aceptado_at: new Date().toISOString()
+    }).eq('id', pedidoId).eq('estado', 'buscando');
+
+    if (error) {
+      alert('Esta mudanza ya fue tomada por otro transportador.');
+      cargarMudanzasDisponibles();
+      return;
+    }
+
+    // Notificar al cliente
+    await notificarCambioEstado(pedidoId, 'aceptado');
+
+    alert('✅ ¡Mudanza aceptada!\n\nEl cliente recibirá una notificación.\nCoordina los detalles finales directamente con él.');
+
+    disponibleComoTransportista = false;
+    document.getElementById('tsw-trans')?.classList.remove('on');
+    document.getElementById('trans-status-txt').textContent = 'Inactivo';
+    if (window._transInterval) { clearInterval(window._transInterval); window._transInterval = null; }
+    dTab('home');
+    cargarPedidosHome();
+  }
+
+  async function contactarClienteMudanza(clienteId, pedidoId) {
+    const { data } = await sb.from('perfiles').select('telefono,nombre').eq('id', clienteId).single();
+    if (data?.telefono) {
+      const num = data.telefono.replace(/\D/g, '');
+      const msg = encodeURIComponent(`Hola ${data.nombre || ''}, soy transportador de Maxikia. Vi tu solicitud de mudanza (ID: ${pedidoId.slice(0,8)}) y me interesa. ¿Podemos coordinar los detalles?`);
+      window.open(`https://wa.me/57${num}?text=${msg}`, '_blank');
+    } else {
+      alert('El cliente no tiene teléfono registrado. Espera a que te contacte por la app.');
+    }
+  }
   async function mostrarCalificacionCliente(pedido) {
     _calPedidoId = pedido.id;
     _calUsuarioId = pedido.repartidor_id;
