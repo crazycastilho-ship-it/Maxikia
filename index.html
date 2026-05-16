@@ -234,6 +234,11 @@
     .bitem.active i { color: var(--mx); } .bitem.active span { color: var(--mx); font-weight: 500; }
     .logout-btn { background: none; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.6); font-family: var(--font-body); font-size: 12px; padding: 5px 12px; border-radius: var(--radius-sm); cursor: pointer; }
     .peso-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 1rem; }
+    .tipo-envio-btn { border: 2px solid var(--border); border-radius: var(--radius); padding: 12px 8px; text-align: center; cursor: pointer; transition: all 0.15s; background: white; }
+    .tipo-envio-btn:hover { border-color: var(--mx); }
+    .tipo-envio-btn.active { border-color: var(--mx); background: var(--mx-light); }
+    .tipo-envio-btn.active-purple { border-color: #8B5CF6; background: #F5F3FF; }
+    .tipo-envio-btn.active-amber { border-color: #F59E0B; background: #FFFBEB; }
     .peso-btn { padding: 10px 6px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: white; font-size: 12px; font-family: var(--font-body); cursor: pointer; text-align: center; transition: all 0.15s; }
     .peso-btn.sel { border-color: var(--mx); background: var(--mx-light); color: var(--mx); font-weight: 500; }
     .repartidor-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border: 1px solid var(--green); border-radius: var(--radius); margin-bottom: 8px; animation: fadeIn 0.3s ease; }
@@ -557,20 +562,85 @@
       <!-- NUEVO ENVÍO -->
       <div class="dp" id="dp-envio">
         <div class="br"><button onclick="dTab('home')"><i class="ti ti-arrow-left" style="font-size:22px;color:var(--text)"></i></button><h3>Nuevo envío</h3></div>
-        <div id="map-envio"></div>
+
+        <!-- TIPO DE ENVÍO -->
         <div class="field-group">
-          <label class="field-label">Dirección de recogida</label>
+          <label class="field-label">¿Qué tipo de envío necesitas?</label>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+
+            <div class="tipo-envio-btn active" id="tipo-express" onclick="selTipoEnvio('express')">
+              <i class="ti ti-bolt" style="font-size:22px;color:var(--mx)"></i>
+              <div style="font-weight:700;font-size:13px;margin-top:4px">Express</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">Cualquier distancia</div>
+              <div style="font-size:10px;color:var(--mx);margin-top:4px;font-weight:600">Desde $6.000</div>
+            </div>
+
+            <div class="tipo-envio-btn" id="tipo-especial" onclick="selTipoEnvio('especial')">
+              <i class="ti ti-sofa" style="font-size:22px;color:#8B5CF6"></i>
+              <div style="font-weight:700;font-size:13px;margin-top:4px">Acólitamos</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">Hasta 500m</div>
+              <div style="font-size:10px;color:#8B5CF6;margin-top:4px;font-weight:600">Desde $1.000</div>
+            </div>
+
+            <div class="tipo-envio-btn" id="tipo-comercial" onclick="selTipoEnvio('comercial')">
+              <i class="ti ti-building-store" style="font-size:22px;color:#F59E0B"></i>
+              <div style="font-weight:700;font-size:13px;margin-top:4px">Comercial</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">Local a domicilio</div>
+              <div style="font-size:10px;color:#F59E0B;margin-top:4px;font-weight:600">Desde $1.000</div>
+            </div>
+
+          </div>
+
+          <!-- Descripción del tipo seleccionado -->
+          <div id="tipo-desc" style="margin-top:10px;padding:10px 12px;border-radius:var(--radius-sm);font-size:12px;background:var(--mx-light);color:var(--mx);border:1px solid rgba(212,0,26,.15)">
+            <i class="ti ti-bolt"></i> <strong>Envío Express</strong> — Documentos urgentes, cosas olvidadas, medicamentos. Bogotá completa.
+          </div>
+
+          <!-- Tarifas por distancia para especial/comercial -->
+          <div id="tabla-tarifas" style="display:none;margin-top:10px;background:white;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
+            <div style="background:var(--surface);padding:8px 12px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Tarifas por distancia</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;font-size:12px">
+              <div style="padding:8px 12px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);color:var(--muted)">1 – 20 metros</div><div style="padding:8px 12px;border-bottom:1px solid var(--border);font-weight:600">$1.000</div>
+              <div style="padding:8px 12px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);color:var(--muted)">20 – 50 metros</div><div style="padding:8px 12px;border-bottom:1px solid var(--border);font-weight:600">$2.500</div>
+              <div style="padding:8px 12px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);color:var(--muted)">50 – 100 metros</div><div style="padding:8px 12px;border-bottom:1px solid var(--border);font-weight:600">$3.000</div>
+              <div style="padding:8px 12px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);color:var(--muted)">100 – 250 metros</div><div style="padding:8px 12px;border-bottom:1px solid var(--border);font-weight:600">$4.000</div>
+              <div style="padding:8px 12px;border-right:1px solid var(--border);color:var(--muted)">250 – 500 metros</div><div style="padding:8px 12px;font-weight:600">$7.000</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CAMPOS DINÁMICOS -->
+        <div id="map-envio"></div>
+
+        <div class="field-group">
+          <label class="field-label" id="label-origen">Dirección de recogida</label>
           <input type="text" class="field-input" id="env-origen" placeholder="Escribe la dirección de recogida" oninput="geocodeDebounce('origen')">
         </div>
+
         <div class="field-group">
-          <label class="field-label">Dirección de entrega</label>
+          <label class="field-label" id="label-destino">Dirección de entrega</label>
           <input type="text" class="field-input" id="env-destino" placeholder="Escribe la dirección de entrega" oninput="geocodeDebounce('destino')">
         </div>
+
+        <!-- Campo especial para Acólitamos -->
+        <div class="field-group" id="campo-mandado" style="display:none">
+          <label class="field-label">¿Qué necesitas que te acoliten? 😄</label>
+          <input type="text" class="field-input" id="env-mandado" placeholder="Ej: Que me bajen a la tienda, que me traigan las llaves...">
+        </div>
+
+        <!-- Campo para Comercial -->
+        <div class="field-group" id="campo-local" style="display:none">
+          <label class="field-label">Nombre del local que te envía</label>
+          <input type="text" class="field-input" id="env-local" placeholder="Ej: Tienda Don Jorge, Restaurante La Casa...">
+        </div>
+
         <div class="field-group">
-          <label class="field-label">¿Qué es el paquete?</label>
+          <label class="field-label" id="label-desc">¿Qué es el paquete?</label>
           <input type="text" class="field-input" id="env-desc" placeholder="Comida, documentos, ropa, medicamentos...">
         </div>
-        <div class="field-group">
+
+        <!-- Peso solo para Express -->
+        <div class="field-group" id="campo-peso">
           <label class="field-label">Peso aproximado</label>
           <div class="peso-grid">
             <div class="peso-btn sel" id="p0" onclick="selPeso(0,this)">Liviano<br><span style="font-size:10px;color:var(--muted)">Menos de 1kg</span></div>
@@ -578,10 +648,12 @@
             <div class="peso-btn" id="p2" onclick="selPeso(2,this)">Pesado<br><span style="font-size:10px;color:var(--muted)">Más de 5kg</span></div>
           </div>
         </div>
+
         <div class="field-group">
           <label class="field-label">Instrucciones (opcional)</label>
           <input type="text" class="field-input" id="env-notas" placeholder="Frágil, llamar al llegar, código de acceso...">
         </div>
+
         <div class="price-row" id="price-row">
           <div>
             <div class="price-lbl">Precio estimado</div>
@@ -589,8 +661,11 @@
           </div>
           <div class="price-val" id="price-val">—</div>
         </div>
+
         <div id="envio-alert" style="margin-bottom:1rem"></div>
-        <button class="btn-primary btn-full" id="btn-buscar" onclick="buscarRepartidor()">Buscar repartidor <i class="ti ti-motorbike"></i></button>
+        <button class="btn-primary btn-full" id="btn-buscar" onclick="buscarRepartidor()">
+          Buscar repartidor <i class="ti ti-run"></i>
+        </button>
         <div id="resultado-busqueda" style="margin-top:1rem"></div>
       </div>
 
@@ -1054,16 +1129,19 @@
 
   // ── PRECIO ──
   function calcularPrecio() {
-    if (!coordOrigen || !coordDestino || !window.google) return;
+    if (!coordOrigen || !coordDestino) return;
+    // Para envíos cortos usar tarifa plana
+    if (tipoEnvio !== 'express') { calcularPrecioCorto(); return; }
+    if (!window.google) { calcularPrecioFallback(); return; }
     const svc = new google.maps.DistanceMatrixService();
     svc.getDistanceMatrix({
       origins: [coordOrigen], destinations: [coordDestino],
       travelMode: google.maps.TravelMode.DRIVING,
       unitSystem: google.maps.UnitSystem.METRIC
     }, (res, status) => {
-      if (status !== 'OK') return;
+      if (status !== 'OK') { calcularPrecioFallback(); return; }
       const elem = res.rows[0].elements[0];
-      if (elem.status !== 'OK') return;
+      if (elem.status !== 'OK') { calcularPrecioFallback(); return; }
       const distKm = elem.distance.value / 1000;
       const durMin = Math.ceil(elem.duration.value / 60);
       let precio = PRECIO_BASE + Math.ceil(distKm) * PRECIO_KM + PRECIO_PESO[pesoSel];
@@ -1107,8 +1185,22 @@
     const precio = window._precioCalculado || PRECIO_BASE;
     const distancia = window._distanciaKm || 0;
 
-    if (distancia > 20) {
-      alerta.innerHTML = '<div class="alert error">La distancia supera los 20km. Solo hacemos envíos dentro de la ciudad.</div>'; return;
+    // Validar distancia máxima para envíos cortos
+    if (tipoEnvio !== 'express' && distancia > 0.5) {
+      alerta.innerHTML = `<div class="alert error">
+        Los envíos <strong>${tipoEnvio === 'especial' ? 'Acólitamos' : 'Comerciales'}</strong> son solo hasta 500 metros.<br>
+        La distancia calculada es ${Math.round(distancia * 1000)}m.<br>
+        Usa <strong>Envío Express</strong> para distancias mayores.
+      </div>`;
+      return;
+    }
+
+    // Validar campos específicos por tipo
+    if (tipoEnvio === 'especial' && !document.getElementById('env-mandado').value.trim()) {
+      alerta.innerHTML = '<div class="alert error">Describe qué necesitas que te acoliten.</div>'; return;
+    }
+    if (tipoEnvio === 'comercial' && !document.getElementById('env-local').value.trim()) {
+      alerta.innerHTML = '<div class="alert error">Escribe el nombre del local que te envía.</div>'; return;
     }
 
     // ── VERIFICAR SALDO ──
@@ -1144,13 +1236,24 @@
 
     btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Publicando pedido...';
 
+    // Construir descripción completa según tipo
+    const mandado = tipoEnvio === 'especial' ? (document.getElementById('env-mandado')?.value || '') : '';
+    const local = tipoEnvio === 'comercial' ? (document.getElementById('env-local')?.value || '') : '';
+    const descCompleta = tipoEnvio === 'especial'
+      ? '🛋️ [Acólitamos] ' + (mandado || desc)
+      : tipoEnvio === 'comercial'
+      ? '🏪 [Comercial - ' + local + '] ' + desc
+      : desc;
+
     const { data: pedido, error } = await sb.from('pedidos').insert({
       usuario_id: currentUser.id,
-      origen, destino, descripcion: desc,
+      origen, destino,
+      descripcion: descCompleta,
+      tipo_envio: tipoEnvio,
       lat_origen: coordOrigen.lat, lng_origen: coordOrigen.lng,
       lat_destino: coordDestino.lat, lng_destino: coordDestino.lng,
       distancia_km: distancia,
-      peso: ['liviano','mediano','pesado'][pesoSel],
+      peso: tipoEnvio === 'express' ? ['liviano','mediano','pesado'][pesoSel] : 'liviano',
       precio, estado: 'buscando',
       notas: document.getElementById('env-notas').value,
       created_at: new Date().toISOString()
@@ -1181,14 +1284,17 @@
         </a>
       </div>`;
 
-    // Limpiar formulario para evitar pedidos duplicados
+    // Limpiar formulario y resetear tipo
     document.getElementById('env-origen').value = '';
     document.getElementById('env-destino').value = '';
     document.getElementById('env-desc').value = '';
     document.getElementById('env-notas').value = '';
+    document.getElementById('env-mandado').value = '';
+    document.getElementById('env-local').value = '';
     coordOrigen = null; coordDestino = null;
     window._precioCalculado = null; window._distanciaKm = null;
     pesoSel = 0;
+    selTipoEnvio('express');
     // Resetear pills de peso
     document.querySelectorAll('.peso-opt').forEach((p, i) => {
       p.classList.toggle('active', i === 0);
@@ -1205,7 +1311,112 @@
     }, 3000);
   }
 
-  // ── REPARTIDOR DISPONIBLE ──
+  // ── TIPO DE ENVÍO ──
+  let tipoEnvio = 'express'; // 'express' | 'especial' | 'comercial'
+
+  const TARIFAS_CORTAS = [
+    { max: 0.02,  precio: 1000 },  // 0-20m
+    { max: 0.05,  precio: 2500 },  // 20-50m
+    { max: 0.10,  precio: 3000 },  // 50-100m
+    { max: 0.25,  precio: 4000 },  // 100-250m
+    { max: 0.50,  precio: 7000 }   // 250-500m
+  ];
+
+  function selTipoEnvio(tipo) {
+    tipoEnvio = tipo;
+
+    // Reset todos los botones
+    document.getElementById('tipo-express').className = 'tipo-envio-btn';
+    document.getElementById('tipo-especial').className = 'tipo-envio-btn';
+    document.getElementById('tipo-comercial').className = 'tipo-envio-btn';
+
+    const desc = document.getElementById('tipo-desc');
+    const tabla = document.getElementById('tabla-tarifas');
+    const campoPeso = document.getElementById('campo-peso');
+    const campoMandado = document.getElementById('campo-mandado');
+    const campoLocal = document.getElementById('campo-local');
+    const labelOrigen = document.getElementById('label-origen');
+    const labelDestino = document.getElementById('label-destino');
+    const labelDesc = document.getElementById('label-desc');
+    const btnBuscar = document.getElementById('btn-buscar');
+
+    // Reset campos opcionales
+    campoMandado.style.display = 'none';
+    campoLocal.style.display = 'none';
+
+    if (tipo === 'express') {
+      document.getElementById('tipo-express').className = 'tipo-envio-btn active';
+      desc.style.background = '#FFF0F2'; desc.style.color = 'var(--mx)'; desc.style.borderColor = 'rgba(212,0,26,.15)';
+      desc.innerHTML = '<i class="ti ti-bolt"></i> <strong>Envío Express</strong> — Documentos urgentes, cosas olvidadas, medicamentos. Bogotá completa.';
+      tabla.style.display = 'none';
+      campoPeso.style.display = 'block';
+      labelOrigen.textContent = 'Dirección de recogida';
+      labelDestino.textContent = 'Dirección de entrega';
+      labelDesc.textContent = '¿Qué es el paquete?';
+      btnBuscar.innerHTML = 'Buscar repartidor <i class="ti ti-bolt"></i>';
+
+    } else if (tipo === 'especial') {
+      document.getElementById('tipo-especial').className = 'tipo-envio-btn active-purple';
+      desc.style.background = '#F5F3FF'; desc.style.color = '#7C3AED'; desc.style.borderColor = 'rgba(139,92,246,.2)';
+      desc.innerHTML = '<i class="ti ti-sofa"></i> <strong>Acólitamos tu pereza</strong> — Para mandados cortitos en tu mismo edificio, cuadra o barrio. Máximo 500 metros.';
+      tabla.style.display = 'block';
+      campoPeso.style.display = 'none';
+      campoMandado.style.display = 'block';
+      labelOrigen.textContent = 'Dirección de recogida (tu ubicación)';
+      labelDestino.textContent = 'Dirección de entrega (máx 500m)';
+      labelDesc.textContent = 'Descripción del mandado';
+      btnBuscar.innerHTML = 'Solicitar acólito <i class="ti ti-sofa"></i>';
+
+    } else if (tipo === 'comercial') {
+      document.getElementById('tipo-comercial').className = 'tipo-envio-btn active-amber';
+      desc.style.background = '#FFFBEB'; desc.style.color = '#B45309'; desc.style.borderColor = 'rgba(245,158,11,.2)';
+      desc.innerHTML = '<i class="ti ti-building-store"></i> <strong>Envío Comercial</strong> — Tu local favorito te lo envía a domicilio. Máximo 500 metros.';
+      tabla.style.display = 'block';
+      campoPeso.style.display = 'none';
+      campoLocal.style.display = 'block';
+      labelOrigen.textContent = 'Dirección del local';
+      labelDestino.textContent = 'Tu dirección de entrega (máx 500m)';
+      labelDesc.textContent = '¿Qué te envía el local?';
+      btnBuscar.innerHTML = 'Solicitar domicilio <i class="ti ti-building-store"></i>';
+    }
+
+    // Recalcular precio con nuevo tipo
+    if (coordOrigen && coordDestino) {
+      if (tipo === 'express') calcularPrecio();
+      else calcularPrecioCorto();
+    }
+  }
+
+  function calcularPrecioCorto() {
+    if (!coordOrigen || !coordDestino) return;
+    const distKm = distanciaEntrePuntos(coordOrigen.lat, coordOrigen.lng, coordDestino.lat, coordDestino.lng);
+    const distM = distKm * 1000;
+
+    // Validar máximo 500m
+    if (distM > 500) {
+      const alerta = document.getElementById('envio-alert');
+      if (alerta) alerta.innerHTML = '<div class="alert error">Este tipo de envío es solo para distancias hasta 500 metros. La distancia calculada es ' + Math.round(distM) + 'm. Usa el <strong>Envío Express</strong> para distancias mayores.</div>';
+      document.getElementById('price-val').textContent = '—';
+      document.getElementById('price-detail').textContent = 'Distancia fuera de rango';
+      window._precioCalculado = null;
+      return;
+    }
+
+    document.getElementById('envio-alert').innerHTML = '';
+
+    // Calcular precio según tabla
+    let precio = 7000; // máximo por defecto
+    for (const tarifa of TARIFAS_CORTAS) {
+      if (distKm <= tarifa.max) { precio = tarifa.precio; break; }
+    }
+
+    window._precioCalculado = precio;
+    window._distanciaKm = distKm;
+
+    document.getElementById('price-val').textContent = '$' + precio.toLocaleString('es-CO');
+    document.getElementById('price-detail').textContent = Math.round(distM) + ' metros · ' +
+      (tipoEnvio === 'especial' ? 'Acólitamos tu pereza' : 'Envío comercial');
+  }
   async function activarDisponible(forzar) {
     disponibleComoRepartidor = true;
     const tsw = document.getElementById('tsw');
