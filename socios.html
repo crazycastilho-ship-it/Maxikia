@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Socios Comerciales — Maxikia Express</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--mx:#D4001A;--mx2:#FF1F38;--dark:#0E0D0D;--surface:#F4F3F0;--text:#1A1212;--muted:#8A7F7F;--green:#1D9E75;--green-light:#E1F5EE;--border:rgba(0,0,0,0.08);--r:12px}
+body{font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--text)}
+nav{background:var(--dark);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:white;text-decoration:none}
+.logo span{color:var(--mx2)}
+.hero{background:var(--dark);padding:5rem 2rem;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(212,0,26,.25),transparent 70%)}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(212,0,26,.2);border:1px solid rgba(212,0,26,.3);color:var(--mx2);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;margin-bottom:1.5rem}
+h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(32px,5vw,56px);color:white;line-height:1.1;margin-bottom:1.25rem}
+h1 span{color:var(--mx2)}
+.hero p{font-size:18px;color:rgba(255,255,255,.6);max-width:600px;margin:0 auto 2.5rem}
+.wrap{max-width:960px;margin:0 auto;padding:4rem 2rem}
+.section-title{font-family:'Syne',sans-serif;font-weight:800;font-size:28px;margin-bottom:.5rem}
+.section-sub{color:var(--muted);font-size:15px;margin-bottom:2.5rem}
+/* TABS */
+.tabs{display:flex;background:white;border-radius:var(--r);border:1px solid var(--border);overflow:hidden;margin-bottom:2rem}
+.tab{flex:1;padding:1rem;text-align:center;font-size:14px;font-weight:600;cursor:pointer;color:var(--muted);border-right:1px solid var(--border)}
+.tab:last-child{border-right:none}
+.tab.on{background:var(--mx);color:white}
+.pane{display:none}.pane.on{display:block}
+/* CODE */
+.code-block{background:#1A1A2E;border-radius:var(--r);padding:1.5rem;margin:1rem 0;position:relative;overflow-x:auto}
+.code-block pre{color:#E2E8F0;font-family:'Courier New',monospace;font-size:13px;line-height:1.7;white-space:pre}
+.code-block .copy-btn{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.1);color:white;border:none;border-radius:6px;padding:5px 12px;font-size:11px;cursor:pointer}
+.code-block .copy-btn:hover{background:rgba(255,255,255,.2)}
+.comment{color:#718096}
+.keyword{color:#F6AD55}
+.string{color:#68D391}
+.key{color:#90CDF4}
+/* CARDS */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:2rem}
+.card{background:white;border-radius:var(--r);padding:1.5rem;border:1px solid var(--border)}
+.card-icon{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:1rem;font-size:22px}
+.card h3{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:6px}
+.card p{font-size:13px;color:var(--muted);line-height:1.6}
+/* STEP */
+.steps{display:flex;flex-direction:column;gap:0}
+.step{display:flex;gap:1.25rem;padding:1.25rem 0;border-bottom:1px solid var(--border)}
+.step:last-child{border-bottom:none}
+.step-n{width:40px;height:40px;border-radius:50%;background:var(--mx);color:white;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step h4{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:4px}
+.step p{font-size:13px;color:var(--muted);line-height:1.6}
+/* DEMO */
+.demo-preview{background:var(--dark);border-radius:var(--r);padding:2rem;text-align:center;margin:1.5rem 0}
+.demo-btn{display:inline-flex;align-items:center;gap:10px;background:var(--mx);color:white;border:none;border-radius:10px;padding:14px 24px;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:0 4px 14px rgba(212,0,26,.3)}
+/* ENDPOINT */
+.endpoint{background:white;border-radius:var(--r);border:1px solid var(--border);margin-bottom:1.25rem;overflow:hidden}
+.ep-header{padding:1rem 1.25rem;display:flex;align-items:center;gap:12px;cursor:pointer;background:var(--surface)}
+.ep-method{font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;text-transform:uppercase;letter-spacing:.5px}
+.ep-method.post{background:#DCFCE7;color:#15803D}
+.ep-method.get{background:#DBEAFE;color:#1D4ED8}
+.ep-path{font-family:'Courier New',monospace;font-size:14px;font-weight:600}
+.ep-desc{font-size:13px;color:var(--muted);margin-left:auto}
+.ep-body{padding:1.25rem;border-top:1px solid var(--border);display:none}
+.ep-body.on{display:block}
+.param{display:grid;grid-template-columns:160px 80px 1fr;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.param:last-child{border-bottom:none}
+.param .name{font-family:'Courier New',monospace;font-weight:600;color:var(--mx)}
+.param .type{color:var(--muted)}
+/* PARTNER PAGE */
+.partner-preview{background:white;border-radius:var(--r);border:2px solid var(--border);overflow:hidden;margin:1.5rem 0}
+.pp-header{background:var(--dark);padding:1rem 1.25rem;display:flex;align-items:center;gap:12px}
+.pp-logo{width:36px;height:36px;border-radius:8px;background:var(--mx);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:14px}
+.pp-name{font-weight:700;color:white}
+.pp-tag{font-size:11px;color:rgba(255,255,255,.4)}
+.pp-body{padding:1.25rem}
+.product{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);align-items:center}
+.product:last-child{border-bottom:none}
+.prod-img{width:56px;height:56px;border-radius:8px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.prod-name{font-weight:600;font-size:14px}
+.prod-price{font-size:13px;color:var(--muted)}
+.prod-btn{margin-left:auto;background:var(--mx);color:white;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+@media(max-width:768px){.grid2{grid-template-columns:1fr}.wrap{padding:2rem 1.25rem}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">Maxi<span>⋊</span>ia Express</a>
+  <a href="https://wa.me/573243334302" style="background:var(--mx);color:white;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none">Quiero integrar mi local</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge"><i class="ti ti-building-store"></i> Para negocios y locales</div>
+  <h1>Dale domicilios a<br>tu <span>negocio hoy</span></h1>
+  <p>Integra Maxikia en tu web, tienda o catálogo. Tus clientes piden y nosotros hacemos la entrega.</p>
+</div>
+
+<div class="wrap">
+
+  <div class="tabs">
+    <div class="tab on" onclick="showTab('widget')">🔌 Widget</div>
+    <div class="tab" onclick="showTab('pagina')">🏪 Página de socio</div>
+    <div class="tab" onclick="showTab('api')">⚙️ API</div>
+  </div>
+
+  <!-- WIDGET -->
+  <div class="pane on" id="pane-widget">
+    <div class="section-title">Widget embebido</div>
+    <div class="section-sub">Pega 2 líneas de código en tu web y listo. Sin registro técnico.</div>
+
+    <div class="grid2">
+      <div class="card"><div class="card-icon" style="background:#FFF0F2">⚡</div><h3>Instalación en 2 minutos</h3><p>Copia y pega el código en tu web. No necesitas saber programar.</p></div>
+      <div class="card"><div class="card-icon" style="background:#E1F5EE">🎨</div><h3>Personalizable</h3><p>Cambia el color, texto y posición del botón para que combine con tu marca.</p></div>
+      <div class="card"><div class="card-icon" style="background:#E6F1FB">📦</div><h3>Prellenado automático</h3><p>El formulario se abre con tu dirección y nombre del local ya llenos.</p></div>
+      <div class="card"><div class="card-icon" style="background:#FFFBEB">📱</div><h3>Botón flotante o inline</h3><p>Elige si el botón flota en la esquina o aparece donde lo pongas.</p></div>
+    </div>
+
+    <div class="section-title" style="font-size:20px;margin-bottom:1rem">Instalación básica</div>
+    <div class="steps">
+      <div class="step"><div class="step-n">1</div><div><h4>Copia el script</h4><p>Pega este código en el HTML de tu web, antes del cierre del &lt;/body&gt;</p></div></div>
+    </div>
+
+    <div class="code-block">
+      <button class="copy-btn" onclick="copiar(this, 'c1')">Copiar</button>
+      <pre id="c1"><span class="comment">&lt;!-- Widget Maxikia Express --&gt;</span>
+<span class="keyword">&lt;script</span>
+  <span class="key">src</span>=<span class="string">"https://maxikia.com/widget.js"</span>
+  <span class="key">data-local</span>=<span class="string">"Mi Minimarket"</span>
+  <span class="key">data-origen</span>=<span class="string">"Cra 15 #93-10, Chapinero, Bogotá"</span>
+  <span class="key">data-texto</span>=<span class="string">"🛵 Pedir domicilio"</span>
+  <span class="key">data-color</span>=<span class="string">"#D4001A"</span>
+<span class="keyword">&gt;&lt;/script&gt;</span></pre>
+    </div>
+
+    <div class="section-title" style="font-size:20px;margin-bottom:1rem;margin-top:2rem">Botón flotante (siempre visible)</div>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copiar(this, 'c2')">Copiar</button>
+      <pre id="c2"><span class="keyword">&lt;script</span>
+  <span class="key">src</span>=<span class="string">"https://maxikia.com/widget.js"</span>
+  <span class="key">data-local</span>=<span class="string">"Mi Restaurante"</span>
+  <span class="key">data-origen</span>=<span class="string">"Calle 72 #10-07, Bogotá"</span>
+  <span class="key">data-posicion</span>=<span class="string">"flotante"</span>
+  <span class="key">data-color</span>=<span class="string">"#1D9E75"</span>
+<span class="keyword">&gt;&lt;/script&gt;</span></pre>
+    </div>
+
+    <div class="demo-preview">
+      <p style="color:rgba(255,255,255,.5);font-size:13px;margin-bottom:1.25rem">Vista previa del botón</p>
+      <button class="demo-btn">🛵 Pedir domicilio con Maxikia</button>
+    </div>
+
+    <div class="section-title" style="font-size:20px;margin-bottom:1rem;margin-top:2rem">Parámetros disponibles</div>
+    <div style="background:white;border-radius:var(--r);border:1px solid var(--border);overflow:hidden">
+      <div class="param" style="background:var(--surface);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px"><span>Parámetro</span><span>Tipo</span><span>Descripción</span></div>
+      <div class="param"><span class="name">data-local</span><span class="type">texto</span><span>Nombre del local (aparece en el pedido)</span></div>
+      <div class="param"><span class="name">data-origen</span><span class="type">texto</span><span>Dirección del local (prellenada automáticamente)</span></div>
+      <div class="param"><span class="name">data-texto</span><span class="type">texto</span><span>Texto del botón (por defecto: "Pedir domicilio con Maxikia")</span></div>
+      <div class="param"><span class="name">data-color</span><span class="type">color</span><span>Color del botón en formato HEX (por defecto: #D4001A)</span></div>
+      <div class="param"><span class="name">data-posicion</span><span class="type">texto</span><span>"inline" (donde está el script) o "flotante" (esquina inferior derecha)</span></div>
+    </div>
+  </div>
+
+  <!-- PÁGINA DE SOCIO -->
+  <div class="pane" id="pane-pagina">
+    <div class="section-title">Página de socio comercial</div>
+    <div class="section-sub">Tu local tiene su propia URL en Maxikia con catálogo y botón de pedido. maxikia.com/local/tu-local</div>
+
+    <div class="grid2">
+      <div class="card"><div class="card-icon" style="background:#FFF0F2">🏪</div><h3>URL propia</h3><p>maxikia.com/local/tu-minimarket — compártela en WhatsApp, redes e Instagram.</p></div>
+      <div class="card"><div class="card-icon" style="background:#E1F5EE">🛍️</div><h3>Catálogo de productos</h3><p>Lista tus productos con foto, nombre y precio. El cliente los agrega al pedido.</p></div>
+      <div class="card"><div class="card-icon" style="background:#E6F1FB">📊</div><h3>Panel de pedidos</h3><p>Ve todos tus pedidos en tiempo real desde el panel admin de Maxikia.</p></div>
+      <div class="card"><div class="card-icon" style="background:#FFFBEB">💰</div><h3>Sin comisión adicional</h3><p>La tarifa de domicilio la paga el cliente. Tú no pagas nada extra a Maxikia.</p></div>
+    </div>
+
+    <div class="section-title" style="font-size:20px;margin-bottom:1rem">Vista previa</div>
+    <div class="partner-preview">
+      <div class="pp-header">
+        <div class="pp-logo">MM</div>
+        <div><div class="pp-name">Mini Mercado Don Jorge</div><div class="pp-tag">📍 Chapinero · Domicilios hasta 500m</div></div>
+      </div>
+      <div class="pp-body">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:1rem">Tiempo estimado: 15–30 min · Desde $1.000</div>
+        <div class="product"><div class="prod-img">🥛</div><div><div class="prod-name">Leche Alquería 1L</div><div class="prod-price">$3.800</div></div><button class="prod-btn">+ Pedir</button></div>
+        <div class="product"><div class="prod-img">🍞</div><div><div class="prod-name">Pan tajado Bimbo</div><div class="prod-price">$5.200</div></div><button class="prod-btn">+ Pedir</button></div>
+        <div class="product"><div class="prod-img">🥚</div><div><div class="prod-name">Huevos x6</div><div class="prod-price">$4.500</div></div><button class="prod-btn">+ Pedir</button></div>
+        <div class="product"><div class="prod-img">🧴</div><div><div class="prod-name">Shampoo Head &amp; Shoulders</div><div class="prod-price">$12.900</div></div><button class="prod-btn">+ Pedir</button></div>
+      </div>
+    </div>
+
+    <div class="section-title" style="font-size:20px;margin-bottom:1rem;margin-top:2rem">¿Cómo registrar tu local?</div>
+    <div class="steps">
+      <div class="step"><div class="step-n">1</div><div><h4>Escríbenos por WhatsApp</h4><p>Envía un mensaje al <strong>3243334302</strong> con el nombre y dirección de tu local.</p></div></div>
+      <div class="step"><div class="step-n">2</div><div><h4>Te creamos la página</h4><p>En menos de 24 horas tu local tiene su URL en maxikia.com/local/tu-nombre.</p></div></div>
+      <div class="step"><div class="step-n">3</div><div><h4>Agrega tus productos</h4><p>Envíanos la lista de productos con precios y fotos. Las subimos por ti.</p></div></div>
+      <div class="step"><div class="step-n">4</div><div><h4>Comparte y vende</h4><p>Comparte tu URL en WhatsApp, Instagram y ponla en tu local con un QR.</p></div></div>
+    </div>
+  </div>
+
+  <!-- API -->
+  <div class="pane" id="pane-api">
+    <div class="section-title">API de Maxikia Express</div>
+    <div class="section-sub">Integración técnica completa. Para devs que quieren control total.</div>
+
+    <div class="code-block">
+      <pre><span class="comment">Base URL:</span> <span class="string">https://maxikia.com/api/v1</span>
+<span class="comment">Auth:</span>     <span class="keyword">Bearer Token</span> <span class="comment">(solicítalo por WhatsApp)</span></pre>
+    </div>
+
+    <!-- ENDPOINT 1 -->
+    <div class="endpoint">
+      <div class="ep-header" onclick="toggleEp(this)">
+        <span class="ep-method post">POST</span>
+        <span class="ep-path">/pedidos</span>
+        <span class="ep-desc">Crear un nuevo pedido</span>
+      </div>
+      <div class="ep-body">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Crea un pedido de tipo comercial desde tu plataforma.</p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copiar(this,'c3')">Copiar</button>
+          <pre id="c3"><span class="comment">// Request</span>
+<span class="keyword">POST</span> /api/v1/pedidos
+<span class="key">Authorization:</span> <span class="string">Bearer TU_API_KEY</span>
+<span class="key">Content-Type:</span> <span class="string">application/json</span>
+
+{
+  <span class="key">"local"</span>: <span class="string">"Mini Mercado Don Jorge"</span>,
+  <span class="key">"origen"</span>: <span class="string">"Cra 15 #93-10, Chapinero, Bogotá"</span>,
+  <span class="key">"destino"</span>: <span class="string">"Cll 90 #15-20, Apto 301"</span>,
+  <span class="key">"descripcion"</span>: <span class="string">"Leche x2, Pan tajado, Huevos x6"</span>,
+  <span class="key">"valor_productos"</span>: <span class="string">17500</span>,
+  <span class="key">"tipo_envio"</span>: <span class="string">"comercial"</span>,
+  <span class="key">"telefono_cliente"</span>: <span class="string">"3001234567"</span>,
+  <span class="key">"notas"</span>: <span class="string">"Apartamento 301, llamar al llegar"</span>
+}
+
+<span class="comment">// Response 200</span>
+{
+  <span class="key">"id"</span>: <span class="string">"uuid-del-pedido"</span>,
+  <span class="key">"estado"</span>: <span class="string">"buscando"</span>,
+  <span class="key">"precio_domicilio"</span>: <span class="string">3000</span>,
+  <span class="key">"tracking_url"</span>: <span class="string">"https://maxikia.com/track/uuid"</span>,
+  <span class="key">"created_at"</span>: <span class="string">"2026-05-16T14:30:00Z"</span>
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ENDPOINT 2 -->
+    <div class="endpoint">
+      <div class="ep-header" onclick="toggleEp(this)">
+        <span class="ep-method get">GET</span>
+        <span class="ep-path">/pedidos/:id</span>
+        <span class="ep-desc">Consultar estado de un pedido</span>
+      </div>
+      <div class="ep-body">
+        <div class="code-block">
+          <button class="copy-btn" onclick="copiar(this,'c4')">Copiar</button>
+          <pre id="c4"><span class="comment">// Request</span>
+<span class="keyword">GET</span> /api/v1/pedidos/uuid-del-pedido
+<span class="key">Authorization:</span> <span class="string">Bearer TU_API_KEY</span>
+
+<span class="comment">// Response 200</span>
+{
+  <span class="key">"id"</span>: <span class="string">"uuid-del-pedido"</span>,
+  <span class="key">"estado"</span>: <span class="string">"recogido"</span>,
+  <span class="key">"repartidor"</span>: {
+    <span class="key">"nombre"</span>: <span class="string">"Carlos M."</span>,
+    <span class="key">"calificacion"</span>: <span class="string">4.8</span>
+  },
+  <span class="key">"recogido_at"</span>: <span class="string">"2026-05-16T14:45:00Z"</span>,
+  <span class="key">"eta_minutos"</span>: <span class="string">12</span>
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEBHOOK -->
+    <div class="endpoint">
+      <div class="ep-header" onclick="toggleEp(this)">
+        <span class="ep-method post">WEBHOOK</span>
+        <span class="ep-path">/tu-url/maxikia-events</span>
+        <span class="ep-desc">Recibir cambios de estado</span>
+      </div>
+      <div class="ep-body">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Maxikia llama a tu URL cuando el estado del pedido cambia.</p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copiar(this,'c5')">Copiar</button>
+          <pre id="c5"><span class="comment">// Maxikia hace POST a tu URL cuando:</span>
+<span class="comment">// - Repartidor acepta el pedido</span>
+<span class="comment">// - Paquete es recogido</span>
+<span class="comment">// - Entrega completada</span>
+
+<span class="comment">// Payload que recibes:</span>
+{
+  <span class="key">"evento"</span>: <span class="string">"entregado"</span>,
+  <span class="key">"pedido_id"</span>: <span class="string">"uuid-del-pedido"</span>,
+  <span class="key">"estado"</span>: <span class="string">"entregado"</span>,
+  <span class="key">"timestamp"</span>: <span class="string">"2026-05-16T15:02:00Z"</span>,
+  <span class="key">"foto_entrega"</span>: <span class="string">"https://..."</span>
+}
+
+<span class="comment">// Ejemplo en Node.js:</span>
+<span class="keyword">app</span>.post(<span class="string">'/maxikia-events'</span>, (req, res) => {
+  <span class="keyword">const</span> { evento, pedido_id } = req.body;
+  <span class="keyword">if</span> (evento === <span class="string">'entregado'</span>) {
+    marcarPedidoComoEntregado(pedido_id);
+  }
+  res.sendStatus(<span class="string">200</span>);
+});</pre>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--green-light);border:1px solid rgba(29,158,117,.2);border-radius:var(--r);padding:1.25rem;margin-top:1.5rem">
+      <div style="font-weight:600;color:#0F6E56;margin-bottom:6px"><i class="ti ti-key"></i> ¿Cómo obtener tu API Key?</div>
+      <div style="font-size:14px;color:#0F6E56">Escríbenos por WhatsApp al <strong>3243334302</strong> con el nombre de tu empresa. Te enviamos tu API Key en menos de 24 horas.</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  document.getElementById('pane-'+id).classList.add('on');
+  event.target.classList.add('on');
+}
+function toggleEp(el){
+  const body = el.nextElementSibling;
+  body.classList.toggle('on');
+}
+function copiar(btn, id){
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent='✓ Copiado';
+    btn.style.background='rgba(29,158,117,.3)';
+    setTimeout(()=>{ btn.textContent='Copiar'; btn.style.background=''; }, 2000);
+  });
+}
+</script>
+</body>
+</html>

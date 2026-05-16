@@ -4,10 +4,13 @@
     { "source": "/admin/", "destination": "/admin.html" },
     { "source": "/terminos", "destination": "/terminos.html" },
     { "source": "/privacidad", "destination": "/privacidad.html" },
-    { "source": "/repartidores", "destination": "/repartidores.html" }
+    { "source": "/repartidores", "destination": "/repartidores.html" },
+    { "source": "/socios", "destination": "/socios.html" },
+    { "source": "/widget.js", "destination": "/widget.js" }
   ],
   "headers": [
-    { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }, { "key": "Service-Worker-Allowed", "value": "/" }] },
-    { "source": "/manifest.json", "headers": [{ "key": "Content-Type", "value": "application/manifest+json" }] }
+    { "source": "/sw.js", "headers": [{"key":"Cache-Control","value":"no-cache"},{"key":"Service-Worker-Allowed","value":"/"}] },
+    { "source": "/manifest.json", "headers": [{"key":"Content-Type","value":"application/manifest+json"}] },
+    { "source": "/widget.js", "headers": [{"key":"Access-Control-Allow-Origin","value":"*"},{"key":"Content-Type","value":"application/javascript"}] }
   ]
 }

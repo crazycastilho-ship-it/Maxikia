@@ -464,6 +464,7 @@
         <a href="/terminos.html">Términos</a>
         <a href="/privacidad.html">Privacidad</a>
         <a href="/repartidores.html">Repartidores</a>
+        <a href="/socios.html">Socios</a>
         <a href="https://wa.me/573243334302" target="_blank">WhatsApp</a>
       </div>
       <div class="footer-copy">© 2026 Maxikia Express · Bogotá, Colombia</div>
@@ -910,6 +911,17 @@
   let geocodeTimer = null;
   let ubicacionActual = null;
   let disponibleComoRepartidor = false;
+
+  // ── URL PARAMS — integración con widget y socios ──
+  (function() {
+    const p = new URLSearchParams(window.location.search);
+    const local = p.get('local');
+    const origen = p.get('origen');
+    const tipo = p.get('tipo');
+    if (local || origen || tipo) {
+      window._widgetParams = { local, origen, tipo: tipo || 'comercial' };
+    }
+  })();
 
   // ── INIT ──
   (async () => {
@@ -1899,7 +1911,23 @@
     const bn = document.getElementById('bn-' + t);
     if (bn) bn.classList.add('active');
     else document.getElementById('bn-home').classList.add('active');
-    if (t === 'envio') initMapEnvio();
+    if (t === 'envio') {
+      initMapEnvio();
+      // Auto-rellenar si viene de widget
+      if (window._widgetParams) {
+        const wp = window._widgetParams;
+        if (wp.tipo) selTipoEnvio(wp.tipo);
+        setTimeout(() => {
+          if (wp.origen) document.getElementById('env-origen').value = wp.origen;
+          if (wp.local) {
+            const lf = document.getElementById('env-local');
+            if (lf) lf.value = wp.local;
+            const df = document.getElementById('env-desc');
+            if (df && !df.value) df.value = 'Pedido de ' + wp.local;
+          }
+        }, 300);
+      }
+    }
     if (t === 'repartir') initMapRepartir();
     if (t === 'historial') cargarHistorial();
     if (t === 'billetera') cargarWallet();
