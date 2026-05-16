@@ -614,7 +614,7 @@
         <div class="qa-grid">
           <div class="qa-item" onclick="dTab('envio')"><i class="ti ti-plus-circle"></i><span>Nuevo envío</span></div>
           <div class="qa-item" onclick="dTab('repartir')"><i class="ti ti-motorbike"></i><span>Repartir</span></div>
-          <div class="qa-item" onclick="dTab('rastrear')"><i class="ti ti-map-2"></i><span>Rastrear</span></div>
+          <div class="qa-item" onclick="dTab('transportista')"><i class="ti ti-truck"></i><span>Transportista</span></div>
           <div class="qa-item" onclick="dTab('billetera')"><i class="ti ti-wallet"></i><span>Billetera</span></div>
         </div>
         <div class="sec-row"><div class="sec-t">Mis pedidos</div><button class="see-all" onclick="dTab('historial')">Ver todos</button></div>
@@ -1024,7 +1024,6 @@
       <button class="bitem" id="bn-transportista" onclick="dTab('transportista')" style="display:none"><i class="ti ti-truck"></i><span>Transportista</span></button>
       <button class="bitem" id="bn-billetera" onclick="dTab('billetera')"><i class="ti ti-wallet"></i><span>Billetera</span></button>
     </div>
-  </div>
 </div>
 
 <script>
@@ -3206,8 +3205,11 @@
   let disponibleComoTransportista = false;
 
   function mostrarTabTransportista() {
-    const btn = document.getElementById('bn-transportista');
-    if (btn) btn.style.display = 'flex';
+    const btnTrans = document.getElementById('bn-transportista');
+    const btnBill = document.getElementById('bn-billetera');
+    if (btnTrans) btnTrans.style.display = 'flex';
+    // Ocultar Billetera del nav para mantener 4 botones — acceso por el home
+    if (btnBill) btnBill.style.display = 'none';
   }
 
   async function toggleTransportista() {
