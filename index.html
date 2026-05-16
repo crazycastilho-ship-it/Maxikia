@@ -265,6 +265,7 @@
       .earn-grid { grid-template-columns: 1fr; }
       .container { padding: 0 1.25rem; }
       .casos-grid { grid-template-columns: repeat(2,1fr) !important; }
+      .tipos-grid { grid-template-columns: 1fr !important; }
       .section { padding: 3rem 1.25rem; }
       .footer-inner { flex-direction: column; text-align: center; }
     }
@@ -392,7 +393,45 @@
     </div>
   </section>
 
-  <section class="section section-dark">
+  <section class="section" style="background:white">
+    <div class="container">
+      <div class="section-label">Tipos de envío</div>
+      <h2>Tres formas de enviar,<br>una sola app</h2>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem" class="tipos-grid">
+
+        <div style="border:2px solid var(--border);border-radius:var(--radius);padding:1.5rem;text-align:center">
+          <div style="width:56px;height:56px;border-radius:12px;background:var(--mx-light);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:26px">⚡</div>
+          <div style="font-family:var(--font-head);font-weight:700;font-size:17px;margin-bottom:6px">Express</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.6">Documentos urgentes, cosas olvidadas, medicamentos. Toda Bogotá.</div>
+          <div style="background:var(--mx-light);border-radius:8px;padding:8px;font-size:12px;color:var(--mx);font-weight:600">Desde $6.000 · Por km + peso</div>
+        </div>
+
+        <div style="border:2px solid #8B5CF6;border-radius:var(--radius);padding:1.5rem;text-align:center;background:#FDFCFF">
+          <div style="width:56px;height:56px;border-radius:12px;background:#F5F3FF;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:26px">🛋️</div>
+          <div style="font-family:var(--font-head);font-weight:700;font-size:17px;margin-bottom:6px">Acólitamos tu pereza</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.6">Mandados cortitos en tu edificio, cuadra o barrio. Máximo 500 metros.</div>
+          <div style="background:#F5F3FF;border-radius:8px;padding:8px;font-size:12px;color:#7C3AED;font-weight:600">
+            1–20m: $1.000 · 20–50m: $2.500<br>
+            50–100m: $3.000 · 100–250m: $4.000<br>
+            250–500m: $7.000
+          </div>
+        </div>
+
+        <div style="border:2px solid #F59E0B;border-radius:var(--radius);padding:1.5rem;text-align:center;background:#FFFDF5">
+          <div style="width:56px;height:56px;border-radius:12px;background:#FFFBEB;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:26px">🏪</div>
+          <div style="font-family:var(--font-head);font-weight:700;font-size:17px;margin-bottom:6px">Envío Comercial</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.6">Tu tienda, restaurante o local favorito te lo manda a domicilio. Hasta 500m.</div>
+          <div style="background:#FFFBEB;border-radius:8px;padding:8px;font-size:12px;color:#B45309;font-weight:600">
+            Mismas tarifas que Acólitamos<br>Desde $1.000
+          </div>
+        </div>
+
+      </div>
+      <div style="text-align:center;margin-top:2rem">
+        <button class="btn-primary" onclick="goPage('register')"><i class="ti ti-bolt"></i> Pedir ahora</button>
+      </div>
+    </div>
+  </section>
     <div class="container">
       <div class="section-label light">Para repartidores</div>
       <h2 class="light">Gana dinero ayudando<br>a personas reales</h2>
