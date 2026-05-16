@@ -1260,8 +1260,13 @@
     }
 
     // Validar campos específicos por tipo
-    if (tipoEnvio === 'especial' && !document.getElementById('env-mandado').value.trim()) {
-      alerta.innerHTML = '<div class="alert error">Describe qué necesitas que te acoliten.</div>'; return;
+    if (tipoEnvio === 'especial') {
+      if (!document.getElementById('env-mandado').value.trim()) {
+        alerta.innerHTML = '<div class="alert error">Describe qué necesitas que te acoliten.</div>'; return;
+      }
+      // Mostrar confirmación de límites
+      const confirmar = confirm('📦 Recuerda:\n\n• Máximo 10 productos\n• Empacados en bolsa o caja\n• Máximo 20 kg\n\n¿Tu pedido cumple estas condiciones?');
+      if (!confirmar) return;
     }
     if (tipoEnvio === 'comercial' && !document.getElementById('env-local').value.trim()) {
       alerta.innerHTML = '<div class="alert error">Escribe el nombre del local que te envía.</div>'; return;
@@ -1407,6 +1412,7 @@
     // Reset campos opcionales
     campoMandado.style.display = 'none';
     campoLocal.style.display = 'none';
+    document.getElementById('acolita-limits')?.remove();
 
     if (tipo === 'express') {
       document.getElementById('tipo-express').className = 'tipo-envio-btn active';
@@ -1430,6 +1436,12 @@
       labelDestino.textContent = 'Dirección de entrega (máx 500m)';
       labelDesc.textContent = 'Descripción del mandado';
       btnBuscar.innerHTML = 'Solicitar acólito <i class="ti ti-sofa"></i>';
+      // Aviso de límites
+      document.getElementById('acolita-limits')?.remove();
+      campoMandado.insertAdjacentHTML('afterend',
+        '<div id="acolita-limits" style="background:#F5F3FF;border:1px solid rgba(139,92,246,.2);border-radius:8px;padding:10px 12px;font-size:12px;color:#7C3AED;margin-bottom:.75rem">' +
+        '📦 Máximo <strong>10 productos</strong> debidamente empacados en bolsa o caja · ⚖️ Máximo <strong>20 kg</strong></div>'
+      );
 
     } else if (tipo === 'comercial') {
       document.getElementById('tipo-comercial').className = 'tipo-envio-btn active-amber';
@@ -1726,13 +1738,13 @@
 
     alert('✓ Entrega confirmada.\n\n$' + gananciaRepartidor.toLocaleString('es-CO') + ' acreditados a tu billetera Maxikia.');
 
-    // Mostrar modal de calificación al cliente
-    if (pedido.usuario_id !== currentUser.id) {
-      setTimeout(() => mostrarCalificacion(pedidoId, pedido.usuario_id, 'cliente'), 500);
-    } else {
-      setTimeout(() => mostrarCalificacion(pedidoId, pedido.repartidor_id, 'repartidor'), 500);
-    }
+    // Guardar pendiente de calificación para el CLIENTE
+    // El cliente la verá la próxima vez que abra la app
+    await sb.from('pedidos').update({
+      calificacion_pendiente: true
+    }).eq('id', pedidoId).catch(() => null); // Si la columna no existe, ignorar
 
+    // El repartidor NO califica — solo el cliente califica al repartidor
     cargarPedidosHome();
     dTab('home');
   }
@@ -1808,12 +1820,23 @@
     if (!currentUser) return;
     const { data } = await sb.from('pedidos').select('*')
       .or(`usuario_id.eq.${currentUser.id},repartidor_id.eq.${currentUser.id}`)
-      .in('estado', ['buscando','aceptado','recogido'])
+      .in('estado', ['buscando','aceptado','recogido','entregado'])
       .order('created_at', { ascending: false }).limit(10);
     const cont = document.getElementById('home-pedidos');
     if (!data || data.length === 0) {
       cont.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:14px"><i class="ti ti-package" style="font-size:32px;display:block;margin-bottom:8px;opacity:.3"></i>No tienes pedidos activos.</div>';
       return;
+    }
+
+    // Verificar si hay pedidos entregados pendientes de calificar (solo para el cliente)
+    const pendienteCalificar = data.find(p =>
+      p.estado === 'entregado' &&
+      p.usuario_id === currentUser.id &&
+      p.calificacion_pendiente &&
+      !p.calificado_por_cliente
+    );
+    if (pendienteCalificar) {
+      setTimeout(() => mostrarCalificacionCliente(pendienteCalificar), 800);
     }
     const estados = {
       buscando:  { cls:'pp', label:'Buscando repartidor', icon:'ti-clock' },
@@ -2897,8 +2920,39 @@
     setTimeout(() => banner.remove(), 30000);
   }
 
-  // ── CALIFICACIONES ──
-  let _calPedidoId = null, _calUsuarioId = null, _calEstrellas = 5;
+  // ── CALIFICACIÓN DEL CLIENTE al repartidor ──
+  async function mostrarCalificacionCliente(pedido) {
+    _calPedidoId = pedido.id;
+    _calUsuarioId = pedido.repartidor_id;
+    _calEstrellas = 5;
+
+    const modal = document.getElementById('modal-calificacion');
+    if (!modal) return;
+
+    // Mostrar foto de entrega si existe
+    let fotoHtml = '';
+    if (pedido.foto_entrega) {
+      const { data: signed } = await sb.storage.from('documentos')
+        .createSignedUrl(pedido.foto_entrega, 3600);
+      if (signed?.signedUrl) {
+        fotoHtml = `<div style="margin-bottom:1rem">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px;text-align:left">📸 Foto de entrega</div>
+          <img src="${signed.signedUrl}" style="width:100%;border-radius:10px;max-height:180px;object-fit:cover">
+        </div>`;
+      }
+    }
+
+    const titulo = document.getElementById('cal-titulo');
+    const body = modal.querySelector('.cal-body');
+    if (titulo) titulo.textContent = '¿Cómo estuvo el servicio?';
+
+    // Insertar foto antes de las estrellas
+    const fotoEl = document.getElementById('cal-foto');
+    if (fotoEl) fotoEl.innerHTML = fotoHtml;
+
+    actualizarEstrellas(5);
+    modal.style.display = 'flex';
+  }
 
   function mostrarCalificacion(pedidoId, usuarioId, rol) {
     _calPedidoId = pedidoId;
@@ -2906,7 +2960,7 @@
     _calEstrellas = 5;
     const modal = document.getElementById('modal-calificacion');
     const titulo = document.getElementById('cal-titulo');
-    if (titulo) titulo.textContent = rol === 'repartidor' ? '¿Cómo fue tu repartidor?' : '¿Cómo fue la experiencia?';
+    if (titulo) titulo.textContent = rol === 'repartidor' ? '¿Cómo fue tu repartidor?' : '¿Cómo fue el servicio?';
     if (modal) { modal.style.display = 'flex'; actualizarEstrellas(5); }
   }
 
@@ -2921,15 +2975,29 @@
   async function enviarCalificacion() {
     if (!_calPedidoId || !_calUsuarioId) return;
     const comentario = document.getElementById('cal-comentario')?.value || '';
-    const { data: perfil } = await sb.from('perfiles').select('calificacion,entregas_completadas').eq('id', _calUsuarioId).single();
-    const total = perfil?.entregas_completadas || 1;
+
+    // Actualizar calificación del repartidor
+    const { data: perfil } = await sb.from('perfiles')
+      .select('calificacion,entregas_completadas').eq('id', _calUsuarioId).single();
+    const total = Math.max(perfil?.entregas_completadas || 1, 1);
     const anterior = perfil?.calificacion || 5;
     const nueva = ((anterior * (total - 1)) + _calEstrellas) / total;
-    await sb.from('perfiles').update({ calificacion: Math.round(nueva * 10) / 10 }).eq('id', _calUsuarioId);
+    await sb.from('perfiles').update({
+      calificacion: Math.round(nueva * 10) / 10
+    }).eq('id', _calUsuarioId);
+
+    // Marcar pedido como calificado
+    await sb.from('pedidos').update({
+      calificado_por_cliente: true,
+      calificacion_valor: _calEstrellas,
+      calificacion_comentario: comentario
+    }).eq('id', _calPedidoId).catch(() => null);
+
     document.getElementById('modal-calificacion').style.display = 'none';
     if (_calEstrellas >= 4) {
-      alert('¡Gracias por calificar! ⭐'.repeat(_calEstrellas));
+      alert('⭐'.repeat(_calEstrellas) + '\n¡Gracias por calificar!');
     }
+    cargarPedidosHome();
   }
 
   // ── CHAT EN TIEMPO REAL ──
@@ -3245,8 +3313,9 @@
 <!-- MODAL CALIFICACIÓN -->
 <div id="modal-calificacion" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:400;align-items:flex-end;justify-content:center">
   <div style="background:white;border-radius:16px 16px 0 0;width:100%;max-width:440px;padding:1.5rem;margin:0 auto;text-align:center">
-    <div style="font-family:var(--font-head);font-weight:700;font-size:17px;margin-bottom:.5rem" id="cal-titulo">¿Cómo fue tu repartidor?</div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:1.25rem">Tu calificación ayuda a mejorar el servicio</div>
+    <div style="font-family:var(--font-head);font-weight:700;font-size:17px;margin-bottom:.5rem" id="cal-titulo">¿Cómo estuvo el servicio?</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:1rem">Tu calificación ayuda a mejorar el servicio</div>
+    <div id="cal-foto"></div>
     <div style="display:flex;justify-content:center;gap:8px;margin-bottom:1.25rem">
       <i class="ti ti-star-filled" id="star-1" style="font-size:36px;color:#F5C842;cursor:pointer" onclick="actualizarEstrellas(1)"></i>
       <i class="ti ti-star-filled" id="star-2" style="font-size:36px;color:#F5C842;cursor:pointer" onclick="actualizarEstrellas(2)"></i>
