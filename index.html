@@ -1237,14 +1237,16 @@
     const dLon = (coordDestino.lng - coordOrigen.lng) * Math.PI / 180;
     const a = Math.sin(dLat/2)**2 + Math.cos(coordOrigen.lat*Math.PI/180) * Math.cos(coordDestino.lat*Math.PI/180) * Math.sin(dLon/2)**2;
     const distKm = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    window._distanciaKm = distKm;
-    const pesos = [0, 2000, 5000];
-    const precio = Math.max(PRECIO_BASE, Math.round(PRECIO_BASE + (800 * distKm) + pesos[pesoSel]));
+    // Factor 1.3 para distancia real por vía vs línea recta
+    const distReal = distKm * 1.3;
+    window._distanciaKm = distReal;
+    const precio = Math.max(PRECIO_BASE, Math.ceil((PRECIO_BASE + PRECIO_KM * distReal + PRECIO_PESO[pesoSel]) / 500) * 500);
     window._precioCalculado = precio;
-    const el = document.getElementById('precio-calculado');
-    if (el) el.innerHTML = `<div style="background:var(--green-light);border-radius:8px;padding:10px;font-size:14px;color:var(--green);margin-top:8px">
-      <strong>$${precio.toLocaleString('es-CO')}</strong> · ${distKm.toFixed(1)} km estimado
-    </div>`;
+    // Actualizar los elementos correctos del formulario
+    const valEl = document.getElementById('price-val');
+    const detEl = document.getElementById('price-detail');
+    if (valEl) valEl.textContent = '$' + precio.toLocaleString('es-CO');
+    if (detEl) detEl.textContent = distReal.toFixed(1) + ' km estimado · ' + ['Liviano','Mediano','Pesado'][pesoSel];
   }
 
   function initMapEnvio() {
@@ -1613,13 +1615,11 @@
     window._precioCalculado = null; window._distanciaKm = null;
     pesoSel = 0;
     selTipoEnvio('express');
-    // Resetear pills de peso
-    document.querySelectorAll('.peso-opt').forEach((p, i) => {
-      p.classList.toggle('active', i === 0);
-    });
     // Limpiar precio mostrado
-    const precioEl = document.getElementById('precio-calculado');
-    if (precioEl) precioEl.textContent = '';
+    const pv = document.getElementById('price-val');
+    const pd = document.getElementById('price-detail');
+    if (pv) pv.textContent = '—';
+    if (pd) pd.textContent = 'Ingresa origen y destino';
 
     cargarPedidosHome();
     // Ir al home después de 3 segundos
