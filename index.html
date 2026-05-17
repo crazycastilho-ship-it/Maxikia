@@ -834,6 +834,11 @@
           <input type="text" class="field-input" id="env-notas" placeholder="Frágil, llamar al llegar, código de acceso...">
         </div>
 
+        <!-- Botón calcular precio -->
+        <button onclick="calcularPrecioManual()" style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px;font-family:var(--font-body);font-size:14px;font-weight:500;cursor:pointer;color:var(--text);margin-bottom:.75rem;display:flex;align-items:center;justify-content:center;gap:8px" id="btn-calcular">
+          <i class="ti ti-calculator" style="color:var(--mx)"></i> Calcular precio estimado
+        </button>
+
         <div class="price-row" id="price-row">
           <div>
             <div class="price-lbl">Precio estimado</div>
@@ -1052,6 +1057,7 @@
 
   let currentUser = null;
   let selectedRole = 'both';
+  let tipoEnvio = 'express';
   let regStep = 1;
   let docsSubidos = { frente: false, reverso: false, selfie: false };
   let pesoSel = 0;
@@ -1303,6 +1309,67 @@
   }
 
   // ── GEOCODE ──
+  async function calcularPrecioManual() {
+    const origen = document.getElementById('env-origen')?.value?.trim();
+    const destino = document.getElementById('env-destino')?.value?.trim();
+    const btn = document.getElementById('btn-calcular');
+
+    if (!origen || !destino) {
+      document.getElementById('envio-alert').innerHTML = '<div class="alert error">Ingresa ambas direcciones primero.</div>';
+      setTimeout(() => document.getElementById('envio-alert').innerHTML = '', 3000);
+      return;
+    }
+
+    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Calculando...';
+    btn.disabled = true;
+
+    // Geocodificar ambas si no tenemos coords
+    if (!coordOrigen) await geocodeManual('origen', origen);
+    if (!coordDestino) await geocodeManual('destino', destino);
+
+    btn.innerHTML = '<i class="ti ti-calculator" style="color:var(--mx)"></i> Calcular precio estimado';
+    btn.disabled = false;
+
+    if (coordOrigen && coordDestino) {
+      if (tipoEnvio === 'express') calcularPrecio();
+      else calcularPrecioCorto();
+    } else {
+      document.getElementById('envio-alert').innerHTML = '<div class="alert error">No se pudieron encontrar las direcciones. Intenta escribirlas más completas (Ej: Calle 22 #111-06, Bogotá).</div>';
+    }
+  }
+
+  async function geocodeManual(tipo, direccion) {
+    // Usar OpenStreetMap Nominatim (confiable, sin key)
+    try {
+      const q = encodeURIComponent(direccion + ', Bogotá, Colombia');
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=3&countrycodes=co&accept-language=es`,
+        { headers: { 'User-Agent': 'MaxikiaExpress/1.0' } }
+      );
+      const data = await res.json();
+      if (data?.[0]) {
+        asignarCoord(tipo, { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+        return;
+      }
+    } catch(e) {}
+
+    // Fallback: Google Geocoding API
+    if (window.google?.maps?.Geocoder) {
+      return new Promise(resolve => {
+        new google.maps.Geocoder().geocode(
+          { address: direccion + ', Bogotá, Colombia' },
+          (res, status) => {
+            if (status === 'OK' && res[0]) {
+              const loc = res[0].geometry.location;
+              asignarCoord(tipo, { lat: loc.lat(), lng: loc.lng() });
+            }
+            resolve();
+          }
+        );
+      });
+    }
+  }
+
   function geocodeDebounce(tipo) {
     clearTimeout(geocodeTimer);
     geocodeTimer = setTimeout(() => geocodeAddress(tipo), 900);
@@ -1713,6 +1780,7 @@
     document.getElementById('env-destino').closest('.field-group').style.display = 'block';
     document.getElementById('campo-peso').style.display = 'none';
     document.getElementById('price-row').style.display = 'flex';
+    document.getElementById('btn-calcular').style.display = 'flex';
 
     // Reset tipo-mudanza button
     const tipoMudBtn = document.getElementById('tipo-mudanza');
@@ -1768,6 +1836,7 @@
       campoPeso.style.display = 'none';
       document.getElementById('campo-mudanza').style.display = 'block';
       document.getElementById('price-row').style.display = 'none';
+      document.getElementById('btn-calcular').style.display = 'none';
       labelOrigen.textContent = 'Dirección de origen (donde está todo)';
       labelDestino.textContent = 'Dirección de destino';
       labelDesc.textContent = 'Descripción general (¿qué hay que mover?)';
