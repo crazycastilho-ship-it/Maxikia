@@ -1696,7 +1696,22 @@
     }, 3000);
   }
 
-  // ── MUDANZAS ──
+  function limpiarFormularioEnvio() {
+    coordOrigen = null; coordDestino = null;
+    window._precioCalculado = null; window._distanciaKm = null;
+    const pv = document.getElementById('price-val');
+    const pd = document.getElementById('price-detail');
+    const al = document.getElementById('envio-alert');
+    if (pv) pv.textContent = '—';
+    if (pd) pd.textContent = 'Ingresa origen y destino';
+    if (al) al.innerHTML = '';
+    document.getElementById('env-origen').value = '';
+    document.getElementById('env-destino').value = '';
+    document.getElementById('env-desc').value = '';
+    document.getElementById('env-notas').value = '';
+    if (document.getElementById('env-mandado')) document.getElementById('env-mandado').value = '';
+    if (document.getElementById('env-local')) document.getElementById('env-local').value = '';
+  }
   let mudanzaTipo = 'estudio';
   let mudanzaAcceso = 'primer_piso';
 
@@ -1781,6 +1796,15 @@
     document.getElementById('campo-peso').style.display = 'none';
     document.getElementById('price-row').style.display = 'flex';
     document.getElementById('btn-calcular').style.display = 'flex';
+    // Limpiar precio y alertas al cambiar tipo
+    const pv = document.getElementById('price-val');
+    const pd = document.getElementById('price-detail');
+    const al = document.getElementById('envio-alert');
+    if (pv) pv.textContent = '—';
+    if (pd) pd.textContent = 'Ingresa origen y destino';
+    if (al) al.innerHTML = '';
+    coordOrigen = null; coordDestino = null;
+    window._precioCalculado = null; window._distanciaKm = null;
 
     // Reset tipo-mudanza button
     const tipoMudBtn = document.getElementById('tipo-mudanza');
@@ -2323,6 +2347,7 @@
     if (bn) bn.classList.add('active');
     else document.getElementById('bn-home').classList.add('active');
     if (t === 'envio') {
+      limpiarFormularioEnvio();
       initMapEnvio();
       // Auto-rellenar si viene de widget
       if (window._widgetParams) {
