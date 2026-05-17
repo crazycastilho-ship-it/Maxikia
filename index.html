@@ -35,6 +35,11 @@
     html { scroll-behavior: smooth; }
     body { font-family: var(--font-body); background: var(--surface); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; }
     .page { display: none; } .page.active { display: block; }
+    /* iOS safe area support */
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+      body { padding-bottom: env(safe-area-inset-bottom); }
+    }
+    #page-dashboard .dp { padding-bottom: 80px; }
     .nav { position: sticky; top: 0; z-index: 100; background: rgba(14,13,13,0.97); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
     .nav-inner { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 62px; }
     .logo { font-family: var(--font-head); font-weight: 800; font-size: 22px; color: white; text-decoration: none; letter-spacing: -0.5px; cursor: pointer; }
@@ -231,9 +236,9 @@
     .br { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; }
     .br button { background: none; border: none; cursor: pointer; padding: 0; }
     .br h3 { font-family: var(--font-head); font-weight: 700; font-size: 17px; }
-    .bbar { background: white; border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(4,1fr); padding: 8px 0 12px; position: sticky; bottom: 0; }
-    .bitem { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; border: none; background: none; padding: 5px; }
-    .bitem i { font-size: 22px; color: var(--muted); } .bitem span { font-size: 10px; color: var(--muted); }
+    .bbar { background: white; border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(4,1fr); padding: 8px 0; padding-bottom: max(12px, env(safe-area-inset-bottom)); position: sticky; bottom: 0; z-index: 50; }
+    .bitem { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; border: none; background: none; padding: 5px; min-width: 0; }
+    .bitem i { font-size: 22px; color: var(--muted); } .bitem span { font-size: 10px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px; }
     .bitem.active i { color: var(--mx); } .bitem.active span { color: var(--mx); font-weight: 500; }
     .logout-btn { background: none; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.6); font-family: var(--font-body); font-size: 12px; padding: 5px 12px; border-radius: var(--radius-sm); cursor: pointer; }
     .peso-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 1rem; }
@@ -1500,9 +1505,29 @@
       alerta.innerHTML = '<div class="alert error">Describe qué es el paquete.</div>'; return;
     }
     if (!coordOrigen || !coordDestino) {
-      alerta.innerHTML = '<div class="alert error">Espera a que se calculen las distancias o escribe direcciones más completas.</div>'; return;
+      // Intentar geocodificar automáticamente
+      const btnCalc = document.getElementById('btn-calcular');
+      alerta.innerHTML = '<div class="alert error">Toca <strong>"Calcular precio estimado"</strong> para geocodificar las direcciones.</div>';
+      if (btnCalc) btnCalc.style.background = 'var(--mx)'; // destacar el botón
+      return;
     }
     if (!currentUser) { goPage('login'); return; }
+
+    // ── CRÍTICO: Asegurar que hay precio calculado ──
+    if (!window._precioCalculado && tipoEnvio !== 'mudanza') {
+      // Intentar calcular automáticamente si tenemos coords
+      if (coordOrigen && coordDestino) {
+        if (tipoEnvio === 'express') calcularPrecioFallback();
+        else calcularPrecioCorto();
+        // Dar 100ms para que se actualice
+        await new Promise(r => setTimeout(r, 100));
+      }
+      // Si aun no hay coordenadas, forzar geocodificación
+      if (!coordOrigen || !coordDestino) {
+        alerta.innerHTML = '<div class="alert error">Toca "Calcular precio estimado" antes de continuar.</div>';
+        return;
+      }
+    }
 
     const precio = window._precioCalculado || PRECIO_BASE;
     const distancia = window._distanciaKm || 0;
@@ -1702,15 +1727,15 @@
     const pv = document.getElementById('price-val');
     const pd = document.getElementById('price-detail');
     const al = document.getElementById('envio-alert');
+    const rb = document.getElementById('resultado-busqueda');
+    const bc = document.getElementById('btn-calcular');
     if (pv) pv.textContent = '—';
     if (pd) pd.textContent = 'Ingresa origen y destino';
     if (al) al.innerHTML = '';
-    document.getElementById('env-origen').value = '';
-    document.getElementById('env-destino').value = '';
-    document.getElementById('env-desc').value = '';
-    document.getElementById('env-notas').value = '';
-    if (document.getElementById('env-mandado')) document.getElementById('env-mandado').value = '';
-    if (document.getElementById('env-local')) document.getElementById('env-local').value = '';
+    if (rb) rb.innerHTML = '';
+    if (bc) { bc.style.background = ''; bc.disabled = false; bc.innerHTML = '<i class="ti ti-calculator" style="color:var(--mx)"></i> Calcular precio estimado'; }
+    const ids = ['env-origen','env-destino','env-desc','env-notas','env-mandado','env-local'];
+    ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   }
   let mudanzaTipo = 'estudio';
   let mudanzaAcceso = 'primer_piso';
@@ -3342,9 +3367,11 @@
   function mostrarTabTransportista() {
     const btnTrans = document.getElementById('bn-transportista');
     const btnBill = document.getElementById('bn-billetera');
+    const bbar = document.querySelector('.bbar');
     if (btnTrans) btnTrans.style.display = 'flex';
-    // Ocultar Billetera del nav para mantener 4 botones — acceso por el home
     if (btnBill) btnBill.style.display = 'none';
+    // Mantener 4 columnas en el grid
+    if (bbar) bbar.style.gridTemplateColumns = 'repeat(4,1fr)';
   }
 
   async function toggleTransportista() {
