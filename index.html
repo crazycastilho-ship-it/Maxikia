@@ -40,94 +40,147 @@
       body { padding-bottom: env(safe-area-inset-bottom); }
     }
     #page-dashboard .dp { padding-bottom: 80px; }
-    .nav { position: sticky; top: 0; z-index: 100; background: rgba(14,13,13,0.97); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
-    .nav-inner { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 62px; }
+    /* ── NAV GLASSMORPHISM ── */
+    .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; transition: all 0.4s cubic-bezier(.16,1,.3,1); }
+    .nav-inner { max-width: 1100px; margin: 0 auto; padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 68px; }
+    .nav.scrolled { background: rgba(14,13,13,0.82); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border-bottom: 1px solid rgba(255,255,255,0.06); }
     .logo { font-family: var(--font-head); font-weight: 800; font-size: 22px; color: white; text-decoration: none; letter-spacing: -0.5px; cursor: pointer; }
     .logo span { color: var(--mx2); }
     .logo .express { font-size: 0.42em; color: var(--mx2); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; vertical-align: super; margin-left: 4px; font-family: var(--font-body); }
     .nav-links { display: flex; align-items: center; gap: 1.5rem; }
-    .nav-links a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px; cursor: pointer; transition: color 0.15s; }
+    .nav-links a { color: rgba(255,255,255,0.55); text-decoration: none; font-size: 13.5px; cursor: pointer; transition: color 0.2s; letter-spacing: 0.01em; }
     .nav-links a:hover { color: white; }
-    .btn-nav-ghost { border: 1px solid rgba(255,255,255,0.2) !important; color: rgba(255,255,255,0.8) !important; padding: 8px 16px; border-radius: var(--radius-sm); }
-    .btn-nav { background: var(--mx) !important; color: white !important; padding: 8px 16px; border-radius: var(--radius-sm); font-weight: 500; }
+    .btn-nav-ghost { border: 1px solid rgba(255,255,255,0.18) !important; color: rgba(255,255,255,0.8) !important; padding: 8px 18px; border-radius: 50px; transition: all 0.2s !important; }
+    .btn-nav-ghost:hover { background: rgba(255,255,255,0.08) !important; border-color: rgba(255,255,255,0.35) !important; }
+    .btn-nav { background: var(--mx) !important; color: white !important; padding: 8px 20px; border-radius: 50px; font-weight: 500; transition: all 0.2s !important; box-shadow: 0 0 0 0 rgba(212,0,26,0); }
+    .btn-nav:hover { transform: translateY(-1px) !important; box-shadow: 0 8px 24px rgba(212,0,26,0.4) !important; }
     .nav-burger { display: none; background: none; border: none; color: white; font-size: 22px; cursor: pointer; }
-    .nav-mobile { display: none; padding: 1rem 1.5rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.06); flex-direction: column; }
+    .nav-mobile { display: none; padding: 1rem 1.5rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.06); flex-direction: column; background: rgba(14,13,13,0.96); backdrop-filter: blur(24px); }
     .nav-mobile.open { display: flex; }
-    .nav-mobile a { color: rgba(255,255,255,0.7); text-decoration: none; padding: 10px 0; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
-    .hero { background: var(--dark); padding: 5rem 1.5rem 4rem; position: relative; overflow: hidden; }
-    .hero::before { content: ''; position: absolute; top: -100px; right: -100px; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(212,0,26,0.15) 0%, transparent 70%); pointer-events: none; }
-    * { box-sizing: border-box; }
-    html, body { overflow-x: hidden; max-width: 100%; }
-    .hero { overflow: hidden; }
-    .hero-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
-    .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(212,0,26,0.2); color: #FF8C9A; font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1.25rem; }
-    .hero h1 { font-family: var(--font-head); font-weight: 800; font-size: clamp(2.5rem, 5vw, 3.75rem); color: white; line-height: 1.05; margin-bottom: 1rem; }
+    .nav-mobile a { color: rgba(255,255,255,0.7); text-decoration: none; padding: 12px 0; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
+
+    /* ── HERO CINEMATIC ── */
+    .hero { background: var(--dark); min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 8rem 1.5rem 5rem; position: relative; overflow: hidden; }
+    /* Animated radial mesh */
+    .hero::before { content: ''; position: absolute; top: -30%; right: -15%; width: 70vw; height: 70vw; max-width: 900px; max-height: 900px; border-radius: 50%; background: radial-gradient(circle at center, rgba(212,0,26,0.18) 0%, rgba(212,0,26,0.05) 45%, transparent 70%); pointer-events: none; animation: driftA 12s ease-in-out infinite alternate; }
+    .hero::after { content: ''; position: absolute; bottom: -20%; left: -10%; width: 50vw; height: 50vw; max-width: 600px; max-height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(212,0,26,0.07) 0%, transparent 70%); pointer-events: none; animation: driftB 16s ease-in-out infinite alternate; }
+    @keyframes driftA { from { transform: translate(0,0) scale(1); } to { transform: translate(-3%,4%) scale(1.08); } }
+    @keyframes driftB { from { transform: translate(0,0) scale(1); } to { transform: translate(4%,-4%) scale(1.12); } }
+    /* Grain texture */
+    .hero-grain { position: absolute; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; opacity: .5; }
+    .hero-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; position: relative; z-index: 1; }
+
+    /* Hero text animations */
+    .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(212,0,26,0.15); border: 1px solid rgba(212,0,26,0.3); color: #FF8C9A; font-size: 11.5px; font-weight: 500; padding: 5px 14px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 1.5rem; opacity: 0; animation: fadeUp 0.7s 0.1s cubic-bezier(.16,1,.3,1) forwards; }
+    .hero h1 { font-family: var(--font-head); font-weight: 800; font-size: clamp(2.8rem, 5.5vw, 4.2rem); color: white; line-height: 1.03; margin-bottom: 1.25rem; opacity: 0; animation: fadeUp 0.8s 0.25s cubic-bezier(.16,1,.3,1) forwards; }
     .hero h1 em { color: var(--mx2); font-style: normal; }
-    .hero-sub { color: rgba(255,255,255,0.5); font-size: 1.05rem; line-height: 1.7; margin-bottom: 2rem; }
-    .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 1.75rem; }
-    .hero-trust { display: flex; gap: 1.25rem; flex-wrap: wrap; }
-    .hero-trust span { color: rgba(255,255,255,0.4); font-size: 13px; display: flex; align-items: center; gap: 5px; }
-    .hero-trust i { color: var(--mx2); font-size: 15px; }
-    .hero-visual { position: relative; }
-    .hero-sym { position: absolute; top: -30px; right: -20px; font-size: 180px; color: rgba(212,0,26,0.1); font-weight: 900; line-height: 1; pointer-events: none; z-index: 0; font-family: var(--font-head); }
-    .hero-card { background: #1A1818; border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-lg); padding: 1.5rem; position: relative; z-index: 1; }
+    .hero-sub { color: rgba(255,255,255,0.45); font-size: 1.05rem; line-height: 1.75; margin-bottom: 2.25rem; max-width: 480px; opacity: 0; animation: fadeUp 0.8s 0.4s cubic-bezier(.16,1,.3,1) forwards; }
+    .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 2rem; opacity: 0; animation: fadeUp 0.8s 0.55s cubic-bezier(.16,1,.3,1) forwards; }
+    .hero-trust { display: flex; gap: 1.5rem; flex-wrap: wrap; opacity: 0; animation: fadeUp 0.8s 0.7s cubic-bezier(.16,1,.3,1) forwards; }
+    .hero-trust span { color: rgba(255,255,255,0.35); font-size: 12.5px; display: flex; align-items: center; gap: 5px; }
+    .hero-trust i { color: var(--mx2); font-size: 14px; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Hero visual / card */
+    .hero-visual { position: relative; opacity: 0; animation: fadeUp 1s 0.5s cubic-bezier(.16,1,.3,1) forwards; }
+    .hero-sym { position: absolute; top: -40px; right: -30px; font-size: 200px; color: rgba(212,0,26,0.07); font-weight: 900; line-height: 1; pointer-events: none; z-index: 0; font-family: var(--font-head); user-select: none; }
+    .hero-card { background: rgba(26,24,24,0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius-lg); padding: 1.5rem; position: relative; z-index: 1; box-shadow: 0 32px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04); transition: transform 0.4s cubic-bezier(.16,1,.3,1); }
+    .hero-card:hover { transform: translateY(-4px) scale(1.01); }
     .hc-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
     .hc-badge { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 20px; }
-    .hc-badge.live { background: rgba(29,158,117,0.2); color: #4ECFA0; }
-    .hc-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
-    .hc-eta { font-size: 13px; color: rgba(255,255,255,0.5); }
+    .hc-badge.live { background: rgba(29,158,117,0.18); color: #4ECFA0; }
+    .hc-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse-dot 2s infinite; }
+    @keyframes pulse-dot { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+    .hc-eta { font-size: 13px; color: rgba(255,255,255,0.4); }
     .hc-route { margin-bottom: 1.25rem; }
     .hc-point { display: flex; align-items: flex-start; gap: 12px; }
-    .hc-line { width: 2px; height: 24px; background: rgba(255,255,255,0.1); margin: 6px 0 6px 7px; }
+    .hc-line { width: 2px; height: 24px; background: rgba(255,255,255,0.08); margin: 6px 0 6px 7px; }
     .point-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
-    .point-dot.origin { background: var(--mx2); } .point-dot.dest { background: var(--green); }
-    .point-label { font-size: 11px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.5px; }
+    .point-dot.origin { background: var(--mx2); box-shadow: 0 0 12px rgba(255,31,56,0.6); }
+    .point-dot.dest { background: var(--green); box-shadow: 0 0 12px rgba(29,158,117,0.6); }
+    .point-label { font-size: 11px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.5px; }
     .point-addr { font-size: 14px; color: white; margin-top: 1px; }
-    .hc-rep { display: flex; align-items: center; gap: 12px; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.07); }
+    .hc-rep { display: flex; align-items: center; gap: 12px; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.06); }
     .rep-av { width: 38px; height: 38px; border-radius: 50%; background: rgba(212,0,26,0.15); border: 1.5px solid var(--mx2); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--mx2); flex-shrink: 0; }
     .rep-name { font-size: 14px; color: white; font-weight: 500; }
     .rep-rating { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 1px; }
     .rep-price { margin-left: auto; font-family: var(--font-head); font-weight: 700; font-size: 18px; color: white; }
-    .stats-section { background: #1A1818; border-top: 1px solid rgba(255,255,255,0.04); }
+
+    /* ── STATS ── */
+    .stats-section { background: #111010; border-top: 1px solid rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.04); }
     .stats-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(4,1fr); }
-    .stat { display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; text-align: center; border-right: 1px solid rgba(255,255,255,0.05); }
+    .stat { display: flex; flex-direction: column; align-items: center; padding: 2.25rem 1rem; text-align: center; border-right: 1px solid rgba(255,255,255,0.05); transition: background 0.3s; }
+    .stat:hover { background: rgba(212,0,26,0.05); }
     .stat:last-child { border-right: none; }
-    .stat-n { font-family: var(--font-head); font-weight: 700; font-size: 2rem; color: var(--mx2); }
-    .stat-l { font-size: 13px; color: rgba(255,255,255,0.35); margin-top: 4px; }
-    .section { padding: 5rem 1.5rem; }
+    .stat-n { font-family: var(--font-head); font-weight: 700; font-size: 2.25rem; color: var(--mx2); line-height: 1; }
+    .stat-l { font-size: 12.5px; color: rgba(255,255,255,0.3); margin-top: 6px; letter-spacing: 0.3px; }
+
+    /* ── SECTIONS ── */
+    .section { padding: 5.5rem 1.5rem; }
     .section-dark { background: var(--dark); }
-    .section-label { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; color: var(--mx); margin-bottom: 0.75rem; }
+    .section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: var(--mx); margin-bottom: 0.75rem; }
     .section-label.light { color: rgba(212,0,26,0.7); }
-    .section h2 { font-family: var(--font-head); font-weight: 800; font-size: clamp(1.75rem, 3.5vw, 2.5rem); margin-bottom: 2.5rem; line-height: 1.1; }
+    .section h2 { font-family: var(--font-head); font-weight: 800; font-size: clamp(1.75rem, 3.5vw, 2.6rem); margin-bottom: 2.5rem; line-height: 1.08; }
     .section h2.light { color: white; }
     .container { max-width: 1100px; margin: 0 auto; }
-    .steps-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
-    .step-card { background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.75rem; position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; }
-    .step-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.06); }
-    .step-num { font-family: var(--font-head); font-weight: 800; font-size: 3rem; color: rgba(212,0,26,0.08); position: absolute; top: 1rem; right: 1.25rem; line-height: 1; }
-    .step-icon { width: 46px; height: 46px; border-radius: 11px; background: var(--mx-light); display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem; }
-    .step-icon i { font-size: 22px; color: var(--mx); }
-    .step-card h3 { font-family: var(--font-head); font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; }
-    .step-card p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+    /* ── FEATURE CARDS (Cult UI style hover) ── */
+    .feat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem; }
+    .feat-card { position: relative; background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.75rem; overflow: hidden; cursor: default; transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s cubic-bezier(.16,1,.3,1); }
+    .feat-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle 220px at var(--mx,50%) var(--my,50%), rgba(212,0,26,0.07), transparent 65%); opacity: 0; transition: opacity 0.35s; pointer-events: none; border-radius: inherit; }
+    .feat-card:hover { border-color: rgba(212,0,26,0.3); box-shadow: 0 16px 48px rgba(0,0,0,0.08); transform: translateY(-4px); }
+    .feat-card:hover::before { opacity: 1; }
+    .feat-icon { width: 46px; height: 46px; border-radius: 11px; background: var(--mx-light); display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem; transition: transform 0.3s cubic-bezier(.16,1,.3,1); }
+    .feat-card:hover .feat-icon { transform: scale(1.1) rotate(-4deg); }
+    .feat-icon i { font-size: 22px; color: var(--mx); }
+    .feat-num { font-family: var(--font-head); font-weight: 800; font-size: 3rem; color: rgba(212,0,26,0.06); position: absolute; top: 1rem; right: 1.25rem; line-height: 1; transition: color 0.3s; }
+    .feat-card:hover .feat-num { color: rgba(212,0,26,0.1); }
+    .feat-card h3 { font-family: var(--font-head); font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; }
+    .feat-card p { font-size: 14px; color: var(--muted); line-height: 1.65; }
+
+    /* ── EARN SECTION ── */
     .earn-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1.25rem; }
-    .earn-item { display: flex; gap: 1rem; align-items: flex-start; padding: 1.25rem; border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); background: rgba(255,255,255,0.03); }
-    .earn-item > i { font-size: 24px; color: var(--mx2); flex-shrink: 0; margin-top: 2px; }
+    .earn-item { display: flex; gap: 1rem; align-items: flex-start; padding: 1.4rem; border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); background: rgba(255,255,255,0.025); transition: all 0.3s cubic-bezier(.16,1,.3,1); cursor: default; }
+    .earn-item:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.14); transform: translateX(4px); }
+    .earn-item > i { font-size: 24px; color: var(--mx2); flex-shrink: 0; margin-top: 2px; transition: transform 0.3s; }
+    .earn-item:hover > i { transform: scale(1.15); }
     .earn-item h4 { font-weight: 500; font-size: 15px; color: white; margin-bottom: 4px; }
-    .earn-item p { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.6; }
-    .btn-primary { display: inline-flex; align-items: center; gap: 8px; background: var(--mx); color: white; border: none; font-family: var(--font-body); font-size: 15px; font-weight: 500; padding: 13px 24px; border-radius: var(--radius-sm); cursor: pointer; text-decoration: none; transition: background 0.15s, transform 0.1s; }
-    .btn-primary:hover { background: var(--mx-dark); transform: translateY(-1px); }
-    .btn-primary.lg { padding: 16px 32px; font-size: 16px; border-radius: var(--radius); }
+    .earn-item p { font-size: 13px; color: rgba(255,255,255,0.4); line-height: 1.6; }
+
+    /* ── TIPOS GRID ── */
+    .tipos-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1.25rem; }
+
+    /* ── SCROLL REVEAL ── */
+    .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s cubic-bezier(.16,1,.3,1), transform 0.7s cubic-bezier(.16,1,.3,1); }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+
+    /* ── BUTTONS ── */
+    .btn-primary { display: inline-flex; align-items: center; gap: 8px; background: var(--mx); color: white; border: none; font-family: var(--font-body); font-size: 15px; font-weight: 500; padding: 13px 26px; border-radius: 50px; cursor: pointer; text-decoration: none; transition: all 0.25s cubic-bezier(.16,1,.3,1); position: relative; overflow: hidden; }
+    .btn-primary::after { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,0); transition: background 0.2s; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(212,0,26,0.45); }
+    .btn-primary:hover::after { background: rgba(255,255,255,0.06); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary.lg { padding: 16px 36px; font-size: 16px; }
     .btn-primary:disabled { opacity: 0.5; pointer-events: none; }
-    .btn-secondary { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,0.2); font-family: var(--font-body); font-size: 15px; padding: 13px 24px; border-radius: var(--radius-sm); cursor: pointer; text-decoration: none; transition: all 0.15s; }
-    .btn-secondary:hover { background: rgba(255,255,255,0.06); color: white; }
-    .btn-full { width: 100%; justify-content: center; }
-    .btn-outline { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: white; font-size: 14px; font-family: var(--font-body); cursor: pointer; color: var(--text); transition: all 0.15s; margin-top: 10px; }
+    .btn-secondary { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: rgba(255,255,255,0.75); border: 1px solid rgba(255,255,255,0.18); font-family: var(--font-body); font-size: 15px; padding: 13px 26px; border-radius: 50px; cursor: pointer; text-decoration: none; transition: all 0.25s; }
+    .btn-secondary:hover { background: rgba(255,255,255,0.07); color: white; border-color: rgba(255,255,255,0.35); }
+    .btn-full { width: 100%; justify-content: center; border-radius: var(--radius-sm) !important; }
+    .btn-outline { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: white; font-size: 14px; font-family: var(--font-body); cursor: pointer; color: var(--text); transition: all 0.2s; margin-top: 10px; }
     .btn-outline:hover { border-color: var(--mx); color: var(--mx); }
-    .footer { background: var(--dark); border-top: 1px solid rgba(255,255,255,0.05); padding: 2rem 1.5rem; }
+
+    /* ── FOOTER ── */
+    .footer { background: var(--dark); border-top: 1px solid rgba(255,255,255,0.05); padding: 2.5rem 1.5rem; }
     .footer-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
     .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
-    .footer-links a { color: rgba(255,255,255,0.35); text-decoration: none; font-size: 13px; }
-    .footer-copy { font-size: 12px; color: rgba(255,255,255,0.2); text-align: center; width: 100%; }
+    .footer-links a { color: rgba(255,255,255,0.3); text-decoration: none; font-size: 13px; transition: color 0.2s; }
+    .footer-links a:hover { color: rgba(255,255,255,0.7); }
+    .footer-copy { font-size: 12px; color: rgba(255,255,255,0.18); text-align: center; width: 100%; }
+
+    /* ── AUTH ── */
     .auth-wrap { min-height: calc(100vh - 62px); background: var(--dark); display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; }
     .auth-box { background: var(--surface); border-radius: var(--radius-lg); width: 100%; max-width: 440px; overflow: hidden; }
     .auth-head { background: #1A1818; padding: 1.75rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
@@ -259,22 +312,26 @@
       .nav-links { display: none; }
       .nav-burger { display: flex; align-items: center; justify-content: center; }
       html, body { overflow-x: hidden !important; }
-      .hero { padding: 3rem 1.25rem 2.5rem; overflow: hidden; }
+      .hero { padding: 6rem 1.25rem 3rem; min-height: 100svh; }
       .hero-inner { grid-template-columns: 1fr !important; gap: 0; width: 100%; }
       .hero-visual { display: none !important; }
-      .hero h1 { font-size: 2.4rem; word-break: break-word; }
+      .hero h1 { font-size: 2.6rem; word-break: break-word; }
       .hero-ctas { flex-direction: column; }
-      .hero-ctas button { width: 100%; }
+      .hero-ctas button, .hero-ctas a { width: 100%; justify-content: center; }
       .stats-inner { grid-template-columns: repeat(2,1fr); }
-      .steps-grid { grid-template-columns: 1fr; }
+      .feat-grid { grid-template-columns: 1fr; }
       .earn-grid { grid-template-columns: 1fr; }
       .container { padding: 0 1.25rem; }
       .casos-grid { grid-template-columns: repeat(2,1fr) !important; }
-      .tipos-grid { grid-template-columns: 1fr !important; }
-      .section { padding: 3rem 1.25rem; }
+      .tipos-grid { grid-template-columns: 1fr 1fr !important; }
+      .section { padding: 3.5rem 1.25rem; }
       .footer-inner { flex-direction: column; align-items: center; text-align: center; gap: .75rem; }
       .footer-links { justify-content: center; gap: 1.25rem; }
       .footer-copy { text-align: center; }
+      /* iOS safe-area */
+      @supports (padding-bottom: env(safe-area-inset-bottom)) {
+        body { padding-bottom: env(safe-area-inset-bottom); }
+      }
     }
   </style>
 </head>
@@ -284,15 +341,17 @@
   <div class="nav-inner">
     <div class="logo" onclick="goPage('landing')">Maxi<span>⋊</span>ia<span class="express">Express</span></div>
     <div class="nav-links">
-      <a onclick="goPage('landing')">Cómo funciona</a>
-      <a onclick="goPage('landing')">Gana dinero</a>
+      <a href="/manual">Cómo funciona</a>
+      <a href="/repartidores.html">Gana dinero</a>
+      <a href="/socios.html">Socios</a>
       <a class="btn-nav-ghost" onclick="goPage('login')">Entrar</a>
       <a class="btn-nav" onclick="goPage('register')">Crear cuenta</a>
     </div>
     <button class="nav-burger" id="burger"><i class="ti ti-menu-2"></i></button>
   </div>
   <div class="nav-mobile" id="nav-mobile">
-    <a onclick="goPage('landing');closeMob()">Cómo funciona</a>
+    <a href="/manual" onclick="closeMob()">Cómo funciona</a>
+    <a href="/repartidores.html" onclick="closeMob()">Gana dinero</a>
     <a onclick="goPage('login');closeMob()">Entrar</a>
     <a onclick="goPage('register');closeMob()">Crear cuenta gratis</a>
   </div>
@@ -300,6 +359,175 @@
 
 <!-- LANDING -->
 <div id="page-landing" class="page active">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-grain"></div>
+    <div class="hero-inner">
+      <div>
+        <div class="hero-badge"><i class="ti ti-bolt"></i> Entregas en el mismo día · Bogotá</div>
+        <h1>Lo que necesitas,<br><em>cuando lo necesitas.</em></h1>
+        <p class="hero-sub">¿Un documento urgente? ¿Llaves olvidadas? ¿Un encargo que no puede esperar? Maxikia lo recoge y lo entrega hoy.</p>
+        <div class="hero-ctas">
+          <button class="btn-primary lg" onclick="goPage('register')"><i class="ti ti-bolt"></i> Necesito un mandado</button>
+          <button class="btn-secondary" onclick="window.location.href='/manual'"><i class="ti ti-book"></i> Cómo funciona</button>
+        </div>
+        <div class="hero-trust">
+          <span><i class="ti ti-shield-check"></i> Personas verificadas</span>
+          <span><i class="ti ti-clock"></i> Mismo día</span>
+          <span><i class="ti ti-map-pin"></i> Toda Bogotá</span>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-sym">⋊</div>
+        <div class="hero-card">
+          <div class="hc-top">
+            <div class="hc-badge live"><div class="dot"></div> En camino</div>
+            <div class="hc-eta">⏱ ~12 min</div>
+          </div>
+          <div class="hc-route">
+            <div class="hc-point">
+              <div class="point-dot origin"></div>
+              <div><div class="point-label">Recogida</div><div class="point-addr">Cll 85 #15-32, Chicó</div></div>
+            </div>
+            <div class="hc-line"></div>
+            <div class="hc-point">
+              <div class="point-dot dest"></div>
+              <div><div class="point-label">Entrega</div><div class="point-addr">Cra 11 #93-10, Apto 402</div></div>
+            </div>
+          </div>
+          <div class="hc-rep">
+            <div class="rep-av">CM</div>
+            <div><div class="rep-name">Carlos M.</div><div class="rep-rating">⭐ 4.9 · 234 entregas</div></div>
+            <div class="rep-price">$8.500</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats-section">
+    <div class="stats-inner">
+      <div class="stat reveal"><div class="stat-n">+500</div><div class="stat-l">Entregas este mes</div></div>
+      <div class="stat reveal reveal-delay-1"><div class="stat-n">&lt;20'</div><div class="stat-l">Tiempo promedio</div></div>
+      <div class="stat reveal reveal-delay-2"><div class="stat-n">4.9★</div><div class="stat-l">Calificación media</div></div>
+      <div class="stat reveal reveal-delay-3"><div class="stat-n">100%</div><div class="stat-l">Bogotá cubierta</div></div>
+    </div>
+  </div>
+
+  <!-- FEATURES: CÓMO FUNCIONA -->
+  <section class="section" style="background:white">
+    <div class="container">
+      <div class="section-label reveal">Cómo funciona</div>
+      <h2 class="reveal">Pide en segundos,<br>recibe hoy mismo.</h2>
+      <div class="feat-grid">
+        <div class="feat-card reveal" onmousemove="moveGlow(event,this)">
+          <div class="feat-num">01</div>
+          <div class="feat-icon"><i class="ti ti-map-pin"></i></div>
+          <h3>Elige origen y destino</h3>
+          <p>Escribe las dos direcciones en Bogotá. El precio se calcula automáticamente según la distancia y el peso.</p>
+        </div>
+        <div class="feat-card reveal reveal-delay-1" onmousemove="moveGlow(event,this)">
+          <div class="feat-num">02</div>
+          <div class="feat-icon"><i class="ti ti-user-check"></i></div>
+          <h3>Un repartidor acepta</h3>
+          <p>En segundos un repartidor verificado cerca de ti acepta el pedido. Ves su nombre, calificación y ubicación.</p>
+        </div>
+        <div class="feat-card reveal reveal-delay-2" onmousemove="moveGlow(event,this)">
+          <div class="feat-num">03</div>
+          <div class="feat-icon"><i class="ti ti-checks"></i></div>
+          <h3>Seguimiento y entrega</h3>
+          <p>Sigue el estado en tiempo real. Al entregar, el repartidor sube una foto de evidencia que tú ves.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIPOS DE ENVÍO -->
+  <section class="section" style="background:var(--surface)">
+    <div class="container">
+      <div class="section-label reveal">Tipos de envío</div>
+      <h2 class="reveal">Cuatro servicios,<br>una sola app.</h2>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem" class="tipos-grid">
+        <div class="feat-card reveal" onmousemove="moveGlow(event,this)" style="background:white">
+          <div class="feat-icon" style="background:#FFF0F2"><i class="ti ti-bolt" style="color:var(--mx)"></i></div>
+          <h3>Express</h3>
+          <p>Documentos, llaves, medicamentos. Toda Bogotá.</p>
+          <div style="margin-top:12px;font-size:13px;font-weight:600;color:var(--mx)">Desde $6.000</div>
+        </div>
+        <div class="feat-card reveal reveal-delay-1" onmousemove="moveGlow(event,this)" style="background:white;--glow-color:rgba(139,92,246,0.08)">
+          <div class="feat-icon" style="background:#F5F3FF"><i class="ti ti-sofa" style="color:#8B5CF6"></i></div>
+          <h3>Acólitamos</h3>
+          <p>Mandados en tu edificio o barrio. Máx 500m.</p>
+          <div style="margin-top:12px;font-size:13px;font-weight:600;color:#8B5CF6">Desde $1.000</div>
+        </div>
+        <div class="feat-card reveal reveal-delay-2" onmousemove="moveGlow(event,this)" style="background:white;--glow-color:rgba(245,158,11,0.08)">
+          <div class="feat-icon" style="background:#FFFBEB"><i class="ti ti-building-store" style="color:#F59E0B"></i></div>
+          <h3>Comercial</h3>
+          <p>Tu local favorito te lo envía a domicilio.</p>
+          <div style="margin-top:12px;font-size:13px;font-weight:600;color:#F59E0B">Desde $1.000</div>
+        </div>
+        <div class="feat-card reveal reveal-delay-3" onmousemove="moveGlow(event,this)" style="background:white;--glow-color:rgba(14,165,233,0.08)">
+          <div class="feat-icon" style="background:#F0F9FF"><i class="ti ti-truck" style="color:#0EA5E9"></i></div>
+          <h3>Mudanzas</h3>
+          <p>Conectamos con transportadores de confianza.</p>
+          <div style="margin-top:12px;font-size:13px;font-weight:600;color:#0EA5E9">Cotización gratis</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PARA REPARTIDORES -->
+  <section class="section section-dark">
+    <div class="container">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center">
+        <div>
+          <div class="section-label light reveal">Para repartidores</div>
+          <h2 class="light reveal">Gana dinero ayudando<br>a personas reales</h2>
+          <p style="color:rgba(255,255,255,0.5);margin-bottom:2rem;line-height:1.7" class="reveal">A pie, bicicleta, moto o carro. Sin horario fijo, sin jefe. El 75% de cada envío va directo a tu billetera.</p>
+          <div style="display:flex;gap:12px;flex-wrap:wrap" class="reveal">
+            <button class="btn-primary" onclick="window.location.href='/repartidores'"><i class="ti ti-motorbike"></i> Quiero repartir</button>
+          </div>
+        </div>
+        <div class="earn-grid reveal">
+          <div class="earn-item"><i class="ti ti-coin"></i><div><h4>75% es tuyo</h4><p>La comisión más alta del mercado. Directo a tu billetera al confirmar la entrega.</p></div></div>
+          <div class="earn-item"><i class="ti ti-clock"></i><div><h4>Sin horario</h4><p>Activa tu disponibilidad cuando quieras. Pausa cuando necesites.</p></div></div>
+          <div class="earn-item"><i class="ti ti-motorbike"></i><div><h4>Sin vehículo propio</h4><p>A pie, bici, moto o carro. Lo que tengas alcanza.</p></div></div>
+          <div class="earn-item"><i class="ti ti-wallet"></i><div><h4>Retira en 24h</h4><p>Por Nequi, Daviplata o transferencia. Mínimo $10.000.</p></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section class="section" style="background:var(--dark);text-align:center;position:relative;overflow:hidden">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(212,0,26,0.12),transparent 70%);pointer-events:none"></div>
+    <div class="container" style="position:relative;z-index:1">
+      <div class="reveal" style="font-size:clamp(2rem,4vw,3.5rem);font-family:var(--font-head);font-weight:800;color:white;line-height:1.1;margin-bottom:1.25rem">¿Tienes un encargo<br><span style="color:var(--mx2)">urgente?</span></div>
+      <p style="color:rgba(255,255,255,0.45);font-size:1.05rem;margin-bottom:2.5rem;max-width:400px;margin-left:auto;margin-right:auto" class="reveal reveal-delay-1">Regístrate gratis y pide tu primer envío en menos de 3 minutos.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap" class="reveal reveal-delay-2">
+        <button class="btn-primary lg" onclick="goPage('register')"><i class="ti ti-bolt"></i> Solicitar mandado ahora</button>
+        <button class="btn-secondary" onclick="window.location.href='/manual'"><i class="ti ti-book"></i> Ver manual de uso</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-inner container">
+      <div class="logo" onclick="goPage('landing')" style="width:100%;text-align:center">Maxi<span>⋊</span>ia<span class="express">Express</span></div>
+      <div class="footer-links">
+        <a href="/manual">Cómo funciona</a>
+        <a href="/terminos.html">Términos</a>
+        <a href="/privacidad.html">Privacidad</a>
+        <a href="/repartidores.html">Repartidores</a>
+        <a href="/socios.html">Socios</a>
+        <a href="https://wa.me/573243334302" target="_blank">WhatsApp</a>
+      </div>
+      <div class="footer-copy">© 2026 Maxikia Express · Bogotá, Colombia</div>
+    </div>
+  </footer>
+</div>
   <section class="hero">
     <div class="hero-inner">
       <div>
@@ -363,129 +591,6 @@
       </div>
     </div>
   </section>
-
-  <section class="stats-section">
-    <div class="stats-inner">
-      <div class="stat"><span class="stat-n">Hoy</span><span class="stat-l">Entrega en el mismo día</span></div>
-      <div class="stat"><span class="stat-n">$6k</span><span class="stat-l">Precio mínimo</span></div>
-      <div class="stat"><span class="stat-n">24/7</span><span class="stat-l">Disponible siempre</span></div>
-      <div class="stat"><span class="stat-n">100%</span><span class="stat-l">Personas verificadas</span></div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="container">
-      <div class="section-label">Para qué sirve Maxikia</div>
-      <h2>Lo que Rappi no resuelve,<br>Maxikia sí lo hace</h2>
-      <div class="steps-grid">
-        <div class="step-card">
-          <div class="step-num">01</div>
-          <div class="step-icon"><i class="ti ti-bolt"></i></div>
-          <h3>Urgencias reales</h3>
-          <p>Documentos que vencen hoy, llaves olvidadas en casa, medicamentos que necesitas ahora. Para eso somos.</p>
-        </div>
-        <div class="step-card">
-          <div class="step-num">02</div>
-          <div class="step-icon"><i class="ti ti-user-check"></i></div>
-          <h3>Personas verificadas</h3>
-          <p>Cada repartidor pasa por verificación de identidad manual. Sabes quién lleva tu encargo.</p>
-        </div>
-        <div class="step-card">
-          <div class="step-num">03</div>
-          <div class="step-icon"><i class="ti ti-circle-check"></i></div>
-          <h3>Confirmación con foto</h3>
-          <p>Al entregar se toma una foto de prueba. El cliente recibe notificación inmediata de la entrega.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" style="background:white">
-    <div class="container">
-      <div class="section-label">Tipos de envío</div>
-      <h2>Tres formas de enviar,<br>una sola app</h2>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem" class="tipos-grid">
-
-        <div style="border:2px solid var(--border);border-radius:var(--radius);padding:1.5rem;text-align:center">
-          <div style="width:56px;height:56px;border-radius:12px;background:var(--mx-light);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:26px">⚡</div>
-          <div style="font-family:var(--font-head);font-weight:700;font-size:17px;margin-bottom:6px">Express</div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.6">Documentos urgentes, cosas olvidadas, medicamentos. Toda Bogotá.</div>
-          <div style="background:var(--mx-light);border-radius:8px;padding:8px;font-size:12px;color:var(--mx);font-weight:600">Desde $6.000 · Por km + peso</div>
-        </div>
-
-        <div style="border:2px solid #8B5CF6;border-radius:var(--radius);padding:1.5rem;text-align:center;background:#FDFCFF">
-          <div style="width:56px;height:56px;border-radius:12px;background:#F5F3FF;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:26px">🛋️</div>
-          <div style="font-family:var(--font-head);font-weight:700;font-size:17px;margin-bottom:6px">Acólitamos tu pereza</div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.6">Mandados cortitos en tu edificio, cuadra o barrio. Máximo 500 metros.</div>
-          <div style="background:#F5F3FF;border-radius:8px;padding:8px;font-size:12px;color:#7C3AED;font-weight:600">
-            1–20m: $1.000 · 20–50m: $2.500<br>
-            50–100m: $3.000 · 100–250m: $4.000<br>
-            250–500m: $7.000
-          </div>
-        </div>
-
-        <div style="border:2px solid #F59E0B;border-radius:var(--radius);padding:1.5rem;text-align:center;background:#FFFDF5">
-          <div style="width:56px;height:56px;border-radius:12px;background:#FFFBEB;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:26px">🏪</div>
-          <div style="font-family:var(--font-head);font-weight:700;font-size:17px;margin-bottom:6px">Envío Comercial</div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.6">Tu tienda, restaurante o local favorito te lo manda a domicilio. Hasta 500m.</div>
-          <div style="background:#FFFBEB;border-radius:8px;padding:8px;font-size:12px;color:#B45309;font-weight:600">
-            Mismas tarifas que Acólitamos<br>Desde $1.000
-          </div>
-        </div>
-
-        <div style="border:2px solid #0EA5E9;border-radius:var(--radius);padding:1.5rem;text-align:center;background:#F0F9FF">
-          <div style="width:56px;height:56px;border-radius:12px;background:#E0F2FE;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:26px">🚛</div>
-          <div style="font-family:var(--font-head);font-weight:700;font-size:17px;margin-bottom:6px">Mudanzas</div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.6">Acarreos, fletes y mudanzas completas. Te conectamos con el transportador.</div>
-          <div style="background:#E0F2FE;border-radius:8px;padding:8px;font-size:12px;color:#0369A1;font-weight:600">
-            Cotización gratis<br>Precio a negociar con transportador
-          </div>
-        </div>
-
-        <div style="grid-column:1/-1;text-align:center;margin-top:.5rem">
-          <button class="btn-primary" onclick="goPage('register')"><i class="ti ti-bolt"></i> Pedir ahora</button>
-        </div>
-    </div>
-  </section>
-
-  <section class="section section-dark">
-    <div class="container">
-      <div class="section-label light">Para repartidores</div>
-      <h2 class="light">Gana dinero ayudando<br>a personas reales</h2>
-      <div class="earn-grid">
-        <div class="earn-item"><i class="ti ti-run"></i><div><h4>Sin vehículo requerido</h4><p>A pie, en bici, moto o carro. Lo que tengas sirve.</p></div></div>
-        <div class="earn-item"><i class="ti ti-clock-hour-3"></i><div><h4>Tus horarios</h4><p>Conecta cuando quieras. Pedidos todo el día en Bogotá.</p></div></div>
-        <div class="earn-item"><i class="ti ti-coin"></i><div><h4>75% es tuyo</h4><p>La comisión más alta del mercado. Sin descuentos raros.</p></div></div>
-        <div class="earn-item"><i class="ti ti-map-pin"></i><div><h4>Solo cerca de ti</h4><p>Pedidos a máximo 3km. Sin cruzar la ciudad.</p></div></div>
-      </div>
-      <div style="text-align:center;margin-top:2.5rem">
-        <button class="btn-primary" onclick="goPage('register')">Quiero ser repartidor</button>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" style="background:var(--mx-light);border-top:1px solid rgba(212,0,26,.1);text-align:center">
-    <div class="container">
-      <h2>¿Tienes un encargo urgente?</h2>
-      <p style="color:var(--muted);margin-bottom:2rem;font-size:1.05rem">Regístrate gratis y pide tu primer envío en menos de 3 minutos.</p>
-      <button class="btn-primary lg" onclick="goPage('register')"><i class="ti ti-bolt"></i> Solicitar mandado ahora</button>
-    </div>
-  </section>
-
-  <footer class="footer">
-    <div class="footer-inner container">
-      <div class="logo" onclick="goPage('landing')" style="width:100%;text-align:center">Maxi<span>⋊</span>ia<span class="express">Express</span></div>
-      <div class="footer-links">
-        <a href="/terminos.html">Términos</a>
-        <a href="/privacidad.html">Privacidad</a>
-        <a href="/repartidores.html">Repartidores</a>
-        <a href="/socios.html">Socios</a>
-        <a href="https://wa.me/573243334302" target="_blank">WhatsApp</a>
-      </div>
-      <div class="footer-copy">© 2026 Maxikia Express · Bogotá, Colombia</div>
-    </div>
-  </footer>
-</div>
 
 <!-- REGISTER -->
 <div id="page-register" class="page">
@@ -1084,7 +1189,42 @@
     }
   })();
 
-  // ── INIT ──
+  // ── NAV SCROLL GLASSMORPHISM ──
+  const navEl = document.querySelector('.nav');
+  let lastScroll = 0;
+  window.addEventListener('scroll', () => {
+    const s = window.scrollY;
+    if (s > 20) navEl.classList.add('scrolled');
+    else navEl.classList.remove('scrolled');
+    lastScroll = s;
+  }, { passive: true });
+
+  // ── SCROLL REVEAL ──
+  const revealObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        revealObs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+  function initReveal() {
+    document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+  }
+  initReveal();
+
+  // ── MOUSE GLOW ON FEAT CARDS (Cult UI style) ──
+  function moveGlow(e, card) {
+    const rect = card.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    card.style.setProperty('--mx', x + '%');
+    card.style.setProperty('--my', y + '%');
+  }
+
+  // ── NAV "Cómo funciona" → manual ──
+  // Already handled by href='/manual' in new nav
   (async () => {
     const { data: { session } } = await sb.auth.getSession();
     if (session) {
