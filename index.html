@@ -371,6 +371,9 @@
         <div class="hero-ctas">
           <button class="btn-primary lg" onclick="goPage('register')"><i class="ti ti-bolt"></i> Necesito un mandado</button>
           <button class="btn-secondary" onclick="window.location.href='/manual'"><i class="ti ti-book"></i> Cómo funciona</button>
+          <button id="btn-instalar-pwa" onclick="instalarPWA()" style="display:none;align-items:center;gap:8px;background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.2);font-family:var(--font-body);font-size:14px;font-weight:500;padding:11px 20px;border-radius:50px;cursor:pointer">
+            <i class="ti ti-download"></i> Instalar app
+          </button>
         </div>
         <div class="hero-trust">
           <span><i class="ti ti-shield-check"></i> Personas verificadas</span>
@@ -528,44 +531,6 @@
     </div>
   </footer>
 </div>
-  <section class="hero">
-    <div class="hero-inner">
-      <div>
-        <div class="hero-badge"><i class="ti ti-bolt"></i> Entregas en el mismo día · Bogotá</div>
-        <h1>Lo que necesitas,<br><em>cuando lo necesitas.</em></h1>
-        <p class="hero-sub">¿Se te olvidó algo? ¿Un documento urgente? ¿Un encargo que no puede esperar? Maxikia lo recoge y lo entrega hoy.</p>
-        <div class="hero-ctas">
-          <button class="btn-primary" onclick="goPage('register')"><i class="ti ti-bolt"></i> Necesito un mandado</button>
-          <button class="btn-secondary" onclick="goPage('register')"><i class="ti ti-run"></i> Quiero repartir y ganar</button>
-          <button id="btn-instalar-pwa" onclick="instalarPWA()" style="display:none;align-items:center;gap:8px;background:rgba(255,255,255,0.12);color:white;border:1px solid rgba(255,255,255,0.25);font-family:var(--font-body);font-size:14px;font-weight:500;padding:11px 18px;border-radius:var(--radius-sm);cursor:pointer">
-            <i class="ti ti-download"></i> Instalar app
-          </button>
-        </div>
-        <div class="hero-trust">
-          <span><i class="ti ti-clock-hour-3"></i> Mismo día</span>
-          <span><i class="ti ti-shield-check"></i> Personas verificadas</span>
-          <span><i class="ti ti-map-pin"></i> Bogotá</span>
-        </div>
-      </div>
-      <div class="hero-visual">
-        <div class="hero-sym">⋊</div>
-        <div class="hero-card">
-          <div class="hc-top"><span class="hc-badge live"><span class="dot"></span> En camino</span><span class="hc-eta">ETA: 28 min</span></div>
-          <div class="hc-route">
-            <div class="hc-point"><div class="point-dot origin"></div><div><div class="point-label">Recogida</div><div class="point-addr">Oficina Chapinero</div></div></div>
-            <div class="hc-line"></div>
-            <div class="hc-point"><div class="point-dot dest"></div><div><div class="point-label">Entrega</div><div class="point-addr">Cra 15 #93-10, Usaquén</div></div></div>
-          </div>
-          <div class="hc-rep">
-            <div class="rep-av">JM</div>
-            <div><div class="rep-name">Julián M.</div><div class="rep-rating"><i class="ti ti-star-filled" style="color:#F5C842;font-size:11px"></i> 4.9 · 340 entregas</div></div>
-            <div class="rep-price">$12.000</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
 <!-- REGISTER -->
 <div id="page-register" class="page">
   <div class="auth-wrap">
