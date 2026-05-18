@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual — Maxikia Express</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --mx:#D4001A;--mx2:#FF1F38;--dark:#0E0D0D;--surface:#F5F4F1;
+  --verde:#1D9E75;--verde2:#34D399;--azul:#0EA5E9;--azul2:#7DD3FC;
+  --morado:#8B5CF6;--ambar:#F59E0B;--ambar2:#FCD34D;
+  --text:#1A1212;--muted:#8A7F7F;--border:rgba(0,0,0,0.08);
+  --r:14px;--head:'Syne',sans-serif;--body:'DM Sans',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);background:var(--surface);color:var(--text);overflow-x:hidden}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:var(--dark);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:56px}
+.nav-logo{font-family:var(--head);font-size:18px;color:white;cursor:pointer}
+.nav-logo span{color:var(--mx2)}
+.nav-tabs{display:flex;gap:4px}
+.nav-tab{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;color:rgba(255,255,255,.5);cursor:pointer;border:none;background:none;transition:.2s}
+.nav-tab.on,.nav-tab:hover{background:rgba(255,255,255,.1);color:white}
+.nav-tab.on{color:var(--mx2)}
+
+/* HERO */
+.hero{background:var(--dark);padding:5rem 2rem 4rem;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(212,0,26,.2),transparent 65%)}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(212,0,26,.15);border:1px solid rgba(212,0,26,.3);color:var(--mx2);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:1.5rem;letter-spacing:.5px}
+.hero h1{font-family:var(--head);font-size:clamp(36px,6vw,64px);color:white;line-height:1.05;margin-bottom:1rem}
+.hero h1 em{color:var(--mx2);font-style:normal}
+.hero p{color:rgba(255,255,255,.5);font-size:17px;max-width:520px;margin:0 auto 2.5rem;line-height:1.6}
+.role-cards{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.role-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:1rem 1.5rem;cursor:pointer;transition:.2s;text-align:center;min-width:130px}
+.role-card:hover,.role-card.on{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25);transform:translateY(-2px)}
+.role-card.on{border-color:var(--mx2)}
+.role-icon{font-size:28px;margin-bottom:6px}
+.role-name{font-size:13px;font-weight:600;color:white}
+.role-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
+
+/* SECTIONS */
+.section-wrap{display:none}.section-wrap.on{display:block}
+.section{max-width:900px;margin:0 auto;padding:3rem 2rem}
+
+/* CHAPTER */
+.chapter{margin-bottom:3rem}
+.chapter-num{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem}
+.chapter-title{font-family:var(--head);font-size:28px;margin-bottom:.5rem}
+.chapter-sub{color:var(--muted);font-size:15px;margin-bottom:2rem;line-height:1.6}
+
+/* STEPS */
+.steps{display:flex;flex-direction:column;gap:0}
+.step{display:flex;gap:1.25rem;padding:1.25rem 0;border-bottom:1px solid var(--border);position:relative}
+.step:last-child{border-bottom:none}
+.step-num{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--head);font-weight:700;font-size:15px;flex-shrink:0;color:white}
+.step-body h4{font-weight:600;font-size:15px;margin-bottom:4px}
+.step-body p{font-size:14px;color:var(--muted);line-height:1.6}
+
+/* CARDS GRID */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-bottom:2rem}
+.card{background:white;border-radius:var(--r);padding:1.25rem;border:1px solid var(--border)}
+.card-icon{font-size:28px;margin-bottom:.75rem}
+.card h3{font-weight:600;font-size:15px;margin-bottom:6px}
+.card p{font-size:13px;color:var(--muted);line-height:1.6}
+
+/* INFO BOX */
+.info-box{border-radius:var(--r);padding:1.25rem 1.5rem;margin:1.25rem 0;font-size:14px;line-height:1.7}
+.info-box.tip{background:#E1F5EE;border:1px solid rgba(29,158,117,.2);color:#0F5C43}
+.info-box.warn{background:#FFF7ED;border:1px solid rgba(245,158,11,.25);color:#7C4A00}
+.info-box.info{background:#EFF6FF;border:1px solid rgba(14,165,233,.2);color:#0C4A70}
+.info-box strong{font-weight:600}
+
+/* STATUS FLOW */
+.flow{display:flex;gap:0;margin:1.5rem 0;overflow-x:auto;padding-bottom:4px}
+.flow-step{flex:1;min-width:130px;padding:1rem;background:white;border:1px solid var(--border);position:relative;text-align:center}
+.flow-step:not(:last-child)::after{content:'→';position:absolute;right:-12px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--muted);z-index:1}
+.flow-icon{font-size:24px;margin-bottom:6px}
+.flow-name{font-size:12px;font-weight:600;margin-bottom:4px}
+.flow-desc{font-size:11px;color:var(--muted)}
+
+/* TARIFA TABLE */
+.tarifa-table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:14px}
+.tarifa-table th{background:var(--dark);color:white;padding:10px 14px;text-align:left;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+.tarifa-table td{padding:10px 14px;border-bottom:1px solid var(--border)}
+.tarifa-table tr:last-child td{border-bottom:none}
+.tarifa-table tr:nth-child(even) td{background:var(--surface)}
+.price-tag{font-weight:700;color:var(--mx)}
+
+/* HIGHLIGHT */
+.hl{display:flex;gap:1.25rem;margin:2rem 0;flex-wrap:wrap}
+.hl-item{flex:1;min-width:140px;text-align:center;padding:1.25rem;background:white;border-radius:var(--r);border:1px solid var(--border)}
+.hl-val{font-family:var(--head);font-size:32px;font-weight:800;margin-bottom:4px}
+.hl-lbl{font-size:12px;color:var(--muted)}
+
+/* ACCORDION */
+.acc{margin:1rem 0}
+.acc-item{background:white;border-radius:var(--r);border:1px solid var(--border);margin-bottom:8px;overflow:hidden}
+.acc-hdr{padding:1rem 1.25rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:14px}
+.acc-hdr::after{content:'+';font-size:18px;color:var(--muted);transition:.2s}
+.acc-item.open .acc-hdr::after{content:'−'}
+.acc-body{display:none;padding:0 1.25rem 1rem;font-size:13px;color:var(--muted);line-height:1.7}
+.acc-item.open .acc-body{display:block}
+
+/* CODE */
+.code{background:var(--dark);border-radius:var(--r);padding:1rem 1.25rem;margin:1rem 0;font-family:'Courier New',monospace;font-size:12.5px;color:#E2E8F0;overflow-x:auto;line-height:1.7;position:relative}
+.code .cm{color:#718096}.code .kw{color:#F6AD55}.code .st{color:#68D391}.code .cp{color:#90CDF4}
+.copy-btn{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.1);color:white;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer}
+.copy-btn:hover{background:rgba(255,255,255,.2)}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--border);margin:2.5rem 0}
+
+/* FOOTER */
+footer{background:var(--dark);padding:2rem;text-align:center;margin-top:4rem}
+footer .logo{font-family:var(--head);font-size:20px;color:white;margin-bottom:.5rem}
+footer .logo span{color:var(--mx2)}
+footer p{font-size:13px;color:rgba(255,255,255,.3)}
+
+/* MOBILE */
+@media(max-width:768px){
+  .nav-tabs{display:none}
+  .hero{padding:3rem 1.25rem 2.5rem}
+  .section{padding:2rem 1.25rem}
+  .flow{gap:6px}.flow-step:not(:last-child)::after{display:none}
+  .flow-step{border-radius:8px}
+  .hl{gap:.75rem}
+}
+
+/* PRINT */
+@media print{
+  nav,footer{display:none}
+  .section-wrap{display:block!important}
+  .hero{padding:2rem}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Maxi<span>⋊</span>ia <span style="font-size:12px;color:rgba(255,255,255,.3);font-family:var(--body)">Manual</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab on" onclick="showRole('clientes')">📦 Clientes</button>
+    <button class="nav-tab" onclick="showRole('repartidores')">🛵 Repartidores</button>
+    <button class="nav-tab" onclick="showRole('transportistas')">🚛 Transportistas</button>
+    <button class="nav-tab" onclick="showRole('socios')">🏪 Socios</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">📘 Manual de usuario — Versión 1.0</div>
+  <h1>Guía completa de<br><em>Maxikia Express</em></h1>
+  <p>Todo lo que necesitas saber para usar la plataforma, según tu rol.</p>
+  <div class="role-cards">
+    <div class="role-card on" onclick="showRole('clientes')">
+      <div class="role-icon">📦</div>
+      <div class="role-name">Clientes</div>
+      <div class="role-sub">Pide envíos</div>
+    </div>
+    <div class="role-card" onclick="showRole('repartidores')">
+      <div class="role-icon">🛵</div>
+      <div class="role-name">Repartidores</div>
+      <div class="role-sub">Gana dinero</div>
+    </div>
+    <div class="role-card" onclick="showRole('transportistas')">
+      <div class="role-icon">🚛</div>
+      <div class="role-name">Transportistas</div>
+      <div class="role-sub">Mudanzas y fletes</div>
+    </div>
+    <div class="role-card" onclick="showRole('socios')">
+      <div class="role-icon">🏪</div>
+      <div class="role-name">Socios</div>
+      <div class="role-sub">Comercios</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ CLIENTES ═══════════════ -->
+<div class="section-wrap on" id="sec-clientes">
+<div class="section">
+
+  <!-- 1. Registro -->
+  <div class="chapter">
+    <div class="chapter-num">Capítulo 1</div>
+    <div class="chapter-title">Crear tu cuenta</div>
+    <div class="chapter-sub">El registro es gratuito y toma menos de 3 minutos.</div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num" style="background:var(--mx)">1</div>
+        <div class="step-body">
+          <h4>Entra a maxikia.com</h4>
+          <p>Toca el botón <strong>"Crear cuenta"</strong>. Selecciona tu rol: <em>Solo cliente</em> o <em>Ambos</em> (si también quieres repartir).</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:var(--mx)">2</div>
+        <div class="step-body">
+          <h4>Llena tus datos</h4>
+          <p>Nombre completo, correo electrónico, teléfono y contraseña. Todos los campos son obligatorios.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:var(--mx)">3</div>
+        <div class="step-body">
+          <h4>Verifica tu identidad</h4>
+          <p>Sube foto de tu cédula (frente y reverso) y una selfie. La verificación demora máximo <strong>24 horas hábiles</strong>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:var(--mx)">4</div>
+        <div class="step-body">
+          <h4>Recarga saldo y empieza</h4>
+          <p>Una vez aprobado, recarga saldo por Nequi o Daviplata al <strong>3243334302</strong> y envía el comprobante por WhatsApp.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box tip">
+      <strong>💡 Consejo:</strong> Usa el mismo nombre que aparece en tu cédula. Las fotos deben estar bien iluminadas y nítidas para que la verificación sea más rápida.
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 2. Tipos de envío -->
+  <div class="chapter">
+    <div class="chapter-num">Capítulo 2</div>
+    <div class="chapter-title">Tipos de envío disponibles</div>
+    <div class="chapter-sub">Elige el tipo según lo que necesitas y la distancia.</div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <h3>Express</h3>
+        <p>Documentos, llaves olvidadas, medicamentos. Cubre toda Bogotá.</p>
+        <div style="margin-top:10px;font-weight:700;color:var(--mx);font-size:14px">Desde $6.000</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🛋️</div>
+        <h3>Acólitamos tu pereza</h3>
+        <p>Mandados en tu edificio, cuadra o barrio. Máximo 500 metros y 10 productos empacados.</p>
+        <div style="margin-top:10px;font-weight:700;color:var(--morado);font-size:14px">Desde $1.000</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏪</div>
+        <h3>Envío Comercial</h3>
+        <p>Tu tienda o restaurante favorito te lo envía. Hasta 500 metros.</p>
+        <div style="margin-top:10px;font-weight:700;color:var(--ambar);font-size:14px">Desde $1.000</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🚛</div>
+        <h3>Mudanza / Acarreo</h3>
+        <p>Conectamos con transportadores. El precio lo acuerdan directamente.</p>
+        <div style="margin-top:10px;font-weight:700;color:var(--azul);font-size:14px">Cotización gratis</div>
+      </div>
+    </div>
+
+    <div class="chapter-num" style="margin-top:1.5rem">Tarifas Acólitamos y Comercial</div>
+    <table class="tarifa-table">
+      <thead><tr><th>Distancia</th><th>Precio</th></tr></thead>
+      <tbody>
+        <tr><td>1 a 20 metros</td><td class="price-tag">$1.000</td></tr>
+        <tr><td>20 a 50 metros</td><td class="price-tag">$2.500</td></tr>
+        <tr><td>50 a 100 metros</td><td class="price-tag">$3.000</td></tr>
+        <tr><td>100 a 250 metros</td><td class="price-tag">$4.000</td></tr>
+        <tr><td>250 a 500 metros</td><td class="price-tag">$7.000</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 3. Pedir un envío -->
+  <div class="chapter">
+    <div class="chapter-num">Capítulo 3</div>
+    <div class="chapter-title">Cómo pedir un envío</div>
+    <div class="chapter-sub">Sigue estos pasos desde la pestaña "Envíos".</div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num" style="background:var(--mx)">1</div>
+        <div class="step-body"><h4>Elige el tipo de envío</h4><p>Toca uno de los 4 botones: Express, Acólitamos, Comercial o Mudanza. El formulario cambia según el tipo.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:var(--mx)">2</div>
+        <div class="step-body"><h4>Escribe las direcciones</h4><p>Ingresa dirección de recogida y dirección de entrega. Sé específico: número de apartamento, conjunto, referencias importantes.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:var(--mx)">3</div>
+        <div class="step-body"><h4>Calcula el precio estimado</h4><p>Toca el botón <strong>"Calcular precio estimado"</strong>. El sistema geocodifica las direcciones y muestra el valor aproximado.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:var(--mx)">4</div>
+        <div class="step-body"><h4>Confirma y busca repartidor</h4><p>Revisa el precio, agrega instrucciones opcionales (frágil, llamar al llegar, etc.) y toca <strong>"Buscar repartidor"</strong>.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:var(--mx)">5</div>
+        <div class="step-body"><h4>Sigue el estado en tiempo real</h4><p>En la pantalla de inicio verás el pedido activo con su estado actualizado en tiempo real.</p></div>
+      </div>
+    </div>
+
+    <div class="chapter-num" style="margin-top:1.5rem">Estados del pedido</div>
+    <div class="flow">
+      <div class="flow-step"><div class="flow-icon">🔍</div><div class="flow-name">Buscando</div><div class="flow-desc">Buscando repartidor cercano</div></div>
+      <div class="flow-step"><div class="flow-icon">✅</div><div class="flow-name">Aceptado</div><div class="flow-desc">Repartidor va hacia recogida</div></div>
+      <div class="flow-step"><div class="flow-icon">📦</div><div class="flow-name">Recogido</div><div class="flow-desc">Paquete en camino</div></div>
+      <div class="flow-step"><div class="flow-icon">🎉</div><div class="flow-name">Entregado</div><div class="flow-desc">¡Llegó a destino!</div></div>
+    </div>
+
+    <div class="info-box warn">
+      <strong>⚠️ Importante:</strong> El saldo se descuenta al confirmar el pedido. Asegúrate de tener saldo suficiente antes de solicitar. La recarga mínima es <strong>$10.000 COP</strong>.
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 4. Billetera -->
+  <div class="chapter">
+    <div class="chapter-num">Capítulo 4</div>
+    <div class="chapter-title">Billetera y pagos</div>
+    <div class="chapter-sub">Cómo recargar saldo para tus envíos.</div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">📱</div>
+        <h3>Nequi</h3>
+        <p>Envía al número <strong>3243334302</strong> y adjunta el comprobante por WhatsApp.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📱</div>
+        <h3>Daviplata</h3>
+        <p>Mismo número <strong>3243334302</strong>. Envía comprobante por WhatsApp.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏦</div>
+        <h3>Transferencia</h3>
+        <p>Solicita los datos bancarios por WhatsApp al <strong>3243334302</strong>.</p>
+      </div>
+    </div>
+
+    <div class="info-box tip">
+      <strong>✅ Recarga mínima:</strong> $10.000 COP. El saldo no expira y se acredita en menos de 30 minutos en horario hábil.
+    </div>
+
+    <div class="acc">
+      <div class="acc-item">
+        <div class="acc-hdr" onclick="toggleAcc(this)">¿Qué pasa si el repartidor no llega?</div>
+        <div class="acc-body">Si el repartidor acepta el pedido pero no llega, puedes cancelar desde el panel de pedidos activos. Escríbenos al WhatsApp para gestionar el reembolso del saldo.</div>
+      </div>
+      <div class="acc-item">
+        <div class="acc-hdr" onclick="toggleAcc(this)">¿Puedo cancelar un pedido?</div>
+        <div class="acc-body">Puedes cancelar mientras el estado sea "Buscando". Una vez que un repartidor aceptó, contacta al 3243334302 por WhatsApp para coordinar la cancelación.</div>
+      </div>
+      <div class="acc-item">
+        <div class="acc-hdr" onclick="toggleAcc(this)">¿Cómo califico al repartidor?</div>
+        <div class="acc-body">Después de que el repartidor confirma la entrega con foto, te aparece automáticamente el modal de calificación con estrellas. Tu opinión ayuda a mejorar el servicio.</div>
+      </div>
+      <div class="acc-item">
+        <div class="acc-hdr" onclick="toggleAcc(this)">¿Qué tipos de paquete puedo enviar?</div>
+        <div class="acc-body">Documentos, ropa, comida, medicamentos, llaves, artículos de tienda. No se permiten artículos ilegales, peligrosos, armas, explosivos ni sustancias controladas.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div><!-- /sec-clientes -->
+
+<!-- ═══════════════ REPARTIDORES ═══════════════ -->
+<div class="section-wrap" id="sec-repartidores">
+<div class="section">
+
+  <div class="chapter">
+    <div class="chapter-num">Capítulo 1</div>
+    <div class="chapter-title">Registro como repartidor</div>
+    <div class="chapter-sub">Regístrate gratis en menos de 5 minutos. Sin contrato, sin jefe.</div>
+
+    <div class="hl">
+      <div class="hl-item"><div class="hl-val" style="color:var(--verde)">75%</div><div class="hl-lbl">de cada envío para ti</div></div>
+      <div class="hl-item"><div class="hl-val" style="color:var(--verde)">$45k</div><div class="hl-lbl">en ~3 horas de trabajo</div></div>
+      <div class="hl-item"><div class="hl-val" style="color:var(--verde)">24h</div><div class="hl-lbl">para retirar tus ganancias</div></div>
+      <div class="hl-item"><div class="hl-val" style="color:var(--verde)">0</div><div class="hl-lbl">vehículo requerido</div></div>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num" style="background:var(--verde)">1</div>
+        <div class="step-body"><h4>Entra a maxikia.com/repartidores</h4><p>Toca "Quiero ser repartidor" y crea tu cuenta seleccionando el rol <strong>"Ambos"</strong> o <strong>"Solo repartidor"</strong>.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:var(--verde)">2</div>
+        <div class="step-body"><h4>Sube tu documentación</h4><p>Cédula (frente y reverso) y selfie sosteniendo la cédula. Foto nítida, buena iluminación. Aprobamos en menos de 24 horas.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:var(--verde)">3</div>
+        <div class="step-body"><h4>Espera la aprobación</h4><p>Recibirás una notificación cuando tu cuenta esté verificada. A partir de ese momento puedes comenzar a recibir pedidos.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:var(--verde)">4</div>
+        <div class="step-body"><h4>Activa disponibilidad y empieza</h4><p>En la pestaña <strong>"Repartir"</strong>, activa el interruptor. Inmediatamente empezarás a ver y recibir pedidos cercanos.</p></div>
+      </div>
+    </div>
+
+    <div class="info-box tip">
+      <strong>✅ Sin restricción de vehículo:</strong> Puedes repartir a pie, en bicicleta, moto o carro. Lo que importa es llegar a tiempo.
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="chapter">
+    <div class="chapter-num">Capítulo 2</div>
+    <div class="chapter-title">Flujo completo de una entrega</div>
+    <div class="chapter-sub">Cada pedido tiene 4 etapas que tú confirmas.</div>
+
+    <div class="flow">
+      <div class="flow-step" style="border-color:rgba(245,158,11,.4)"><div class="flow-icon">🔔</div><div class="flow-name" style="color:var(--ambar)">Nuevo pedido</div><div class="flow-desc">Alerta + vibración</div></div>
+      <div class="flow-step" style="border-color:rgba(14,165,233,.4)"><div class="flow-icon">✋</div><div class="flow-name" style="color:var(--azul)">Aceptar</div><div class="flow-desc">Primero en tocar gana</div></div>
+      <div class="flow-step" style="border-color:rgba(139,92,246,.4)"><div class="flow-icon">📦</div><div class="flow-name" style="color:var(--morado)">Recoger</div><div class="flow-desc">Confirmar recogida</div></div>
+      <div class="flow-step" style="border-color:rgba(29,158,117,.4)"><div class="flow-icon">📸</div><div class="flow-name" style="color:var(--verde)">Entregar</div><div class="flow-desc">Foto de entrega</div></div>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num" style="background:var(--ambar)">1</div>
+        <div class="step-body"><h4>Recibir pedido</h4><p>Cuando hay un pedido cercano suena una alerta y vibra el teléfono. Ves la dirección de recogida, descripción y precio. El primer repartidor en tocar <strong>"Aceptar"</strong> se lo lleva.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:var(--azul)">2</div>
+        <div class="step-body"><h4>Ir a recoger</h4><p>Dirígete a la dirección de recogida. El cliente puede escribirte por el chat interno si necesitas más información. Cuando tengas el paquete toca <strong>"Confirmé la recogida"</strong>.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:var(--morado)">3</div>
+        <div class="step-body"><h4>Entregar</h4><p>Ve a la dirección de entrega. Una vez entregado, toca <strong>"Confirmar entrega"</strong> y toma una foto del paquete en el destino (puerta, recibidor, manos del cliente).</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:var(--verde)">4</div>
+        <div class="step-body"><h4>Cobrar</h4><p>El <strong>75% del precio</strong> del envío se acredita automáticamente en tu billetera Maxikia en el momento en que confirmas la entrega.</p></div>
+      </div>
+    </div>
+
+    <div class="info-box warn">
+      <strong>⚠️ La foto de entrega es obligatoria.</strong> Sin foto no se procesa el pago. Toma la foto mostrando claramente el paquete en el destino.
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="chapter">
+    <div class="chapter-num">Capítulo 3</div>
+    <div class="chapter-title">Ganancias y retiros</div>
+    <div class="chapter-sub">Cómo se calcula tu pago y cómo retirarlo.</div>
+
+    <table class="tarifa-table">
+      <thead><tr><th>Jornada</th><th>Pedidos aprox.</th><th>Ganancia estimada</th></tr></thead>
+      <tbody>
+        <tr><td>3 horas</td><td>5 pedidos</td><td class="price-tag">~$45.000</td></tr>
+        <tr><td>6 horas</td><td>10 pedidos</td><td class="price-tag">~$90.000</td></tr>
+        <tr><td>Día completo</td><td>16+ pedidos</td><td class="price-tag">~$130.000+</td></tr>
+      </tbody>
+    </table>
+
+    <div class="cards" style="margin-top:1.5rem">
+      <div class="card">
+        <div class="card-icon">💸</div>
+        <h3>Solicitar retiro</h3>
+        <p>Ve a <strong>Billetera → Retirar</strong>. Mínimo $10.000. Recibes en menos de 24 horas.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📱</div>
+        <h3>Métodos de retiro</h3>
+        <p>Nequi, Daviplata o transferencia bancaria. Tú eliges al momento de solicitar.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⭐</div>
+        <h3>Calificación</h3>
+        <p>Mantén una buena calificación. Los repartidores con mejor puntaje reciben preferencia en pedidos.</p>
+      </div>
+    </div>
+
+    <div class="acc">
+      <div class="acc-item">
+        <div class="acc-hdr" onclick="toggleAcc(this)">¿Qué pasa si el cliente no contesta?</div>
+        <div class="acc-body">Intenta llamar al número registrado. Si después de 5 minutos no hay respuesta, escríbenos al 3243334302 por WhatsApp para coordinar qué hacer con el paquete.</div>
+      </div>
+      <div class="acc-item">
+        <div class="acc-hdr" onclick="toggleAcc(this)">¿Puedo rechazar un pedido después de aceptarlo?</div>
+        <div class="acc-body">No es recomendable. Los rechazos frecuentes afectan tu calificación y pueden resultar en la suspensión temporal de la cuenta. Solo acepta pedidos que puedas cumplir.</div>
+      </div>
+      <div class="acc-item">
+        <div class="acc-hdr" onclick="toggleAcc(this)">¿Cuánto se demora la verificación?</div>
+        <div class="acc-body">Máximo 24 horas hábiles desde que subes los documentos. Recibirás una notificación cuando tu cuenta esté aprobada.</div>
+      </div>
+      <div class="acc-item">
+        <div class="acc-hdr" onclick="toggleAcc(this)">¿Hay un mínimo de horas que debo trabajar?</div>
+        <div class="acc-body">No. Trabajas cuando quieras. Activas la disponibilidad cuando puedes y la desactivas cuando quieres parar. Sin compromisos.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div><!-- /sec-repartidores -->
+
+<!-- ═══════════════ TRANSPORTISTAS ═══════════════ -->
+<div class="section-wrap" id="sec-transportistas">
+<div class="section">
+
+  <div class="chapter">
+    <div class="chapter-num">Capítulo 1</div>
+    <div class="chapter-title">¿Qué es el módulo de Transportistas?</div>
+    <div class="chapter-sub">Conectamos clientes que necesitan mudanza con transportadores disponibles. Maxikia solo conecta — el precio lo acuerdan entre ustedes.</div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">🏠</div>
+        <h3>Estudios y aptos pequeños</h3>
+        <p>1–2 habitaciones</p>
+        <div style="margin-top:8px;font-size:12px;color:var(--azul);font-weight:600">Ref: $120k – $350k</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏢</div>
+        <h3>Apartamentos</h3>
+        <p>2–3 habitaciones</p>
+        <div style="margin-top:8px;font-size:12px;color:var(--azul);font-weight:600">Ref: $200k – $600k</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏡</div>
+        <h3>Casas completas</h3>
+        <p>3+ habitaciones</p>
+        <div style="margin-top:8px;font-size:12px;color:var(--azul);font-weight:600">Ref: $350k – $1.200k</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏪</div>
+        <h3>Locales y oficinas</h3>
+        <p>Comercio y empresas</p>
+        <div style="margin-top:8px;font-size:12px;color:var(--azul);font-weight:600">Ref: $250k – $900k</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📦</div>
+        <h3>Acarreos y fletes</h3>
+        <p>Pocas cosas sueltas</p>
+        <div style="margin-top:8px;font-size:12px;color:var(--azul);font-weight:600">Ref: $50k – $250k</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🛋️</div>
+        <h3>Objetos especiales</h3>
+        <p>Piano, nevera, muebles grandes</p>
+        <div style="margin-top:8px;font-size:12px;color:var(--azul);font-weight:600">Ref: $80k – $350k</div>
+      </div>
+    </div>
+
+    <div class="info-box info">
+      <strong>ℹ️ Precios de referencia.</strong> Los valores mostrados son promedios del mercado informal y formal en Bogotá. El precio final lo define el cliente en su solicitud y puede negociarse directamente con el transportador.
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="chapter">
+    <div class="chapter-num">Capítulo 2</div>
+    <div class="chapter-title">Cómo funciona para el transportista</div>
+    <div class="chapter-sub">Todo desde la pestaña "Transportista" en la barra inferior.</div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num" style="background:var(--azul)">1</div>
+        <div class="step-body"><h4>Registrarse y verificarse</h4><p>Crea tu cuenta en maxikia.com. Sube cédula y selfie. La verificación tarda máximo 24 horas. Cualquier persona puede ser transportista — no necesitas empresa.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:var(--azul)">2</div>
+        <div class="step-body"><h4>Activar disponibilidad</h4><p>En la pestaña <strong>"Transportista"</strong> activa el interruptor. El sistema te muestra las solicitudes de mudanza publicadas en Bogotá.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:var(--azul)">3</div>
+        <div class="step-body"><h4>Ver solicitudes disponibles</h4><p>Cada solicitud muestra: tipo de mudanza, origen, destino, fecha deseada, piso, objetos especiales y el <strong>precio ofertado por el cliente</strong>.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:var(--azul)">4</div>
+        <div class="step-body"><h4>Negociar o aceptar</h4><p>Toca el ícono de WhatsApp 🟢 para hablar directamente con el cliente y acordar precio y condiciones. O toca <strong>"Acepto esta mudanza"</strong> si estás de acuerdo con el precio ofrecido.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:var(--azul)">5</div>
+        <div class="step-body"><h4>Coordinar y ejecutar</h4><p>El cliente recibe notificación de que aceptaste. Desde ese momento la coordinación final es directamente entre ustedes por WhatsApp o llamada.</p></div>
+      </div>
+    </div>
+
+    <div class="info-box tip">
+      <strong>💡 Maxikia solo conecta.</strong> El pago de la mudanza lo recibe el transportador directamente del cliente. Maxikia no cobra comisión en mudanzas — es un servicio de conexión gratuito.
+    </div>
+
+    <div class="acc">
+      <div class="acc-item">
+        <div class="acc-hdr" onclick="toggleAcc(this)">¿Qué información ve el transportista de cada solicitud?</div>
+        <div class="acc-body">Tipo de mudanza, dirección de origen y destino, fecha y hora deseada, número de piso, si hay ascensor o escaleras, objetos especiales mencionados y el precio ofertado por el cliente.</div>
+      </div>
+      <div class="acc-item">
+        <div class="acc-hdr" onclick="toggleAcc(this)">¿Puedo ver solicitudes sin activar disponibilidad?</div>
+        <div class="acc-body">No. Debes activar el interruptor de disponibilidad para que el sistema te muestre las solicitudes activas. Puedes desactivarlo en cualquier momento.</div>
+      </div>
+      <div class="acc-item">
+        <div class="acc-hdr" onclick="toggleAcc(this)">¿Qué pasa si dos transportistas aceptan al mismo tiempo?</div>
+        <div class="acc-body">El sistema es atómico — solo el primero en tocar "Acepto" confirma la reserva. El segundo recibe un aviso de que ya fue tomada.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div><!-- /sec-transportistas -->
+
+<!-- ═══════════════ SOCIOS ═══════════════ -->
+<div class="section-wrap" id="sec-socios">
+<div class="section">
+
+  <div class="chapter">
+    <div class="chapter-num">Capítulo 1</div>
+    <div class="chapter-title">¿Por qué integrar Maxikia en tu negocio?</div>
+    <div class="chapter-sub">Ofrece domicilios sin contratar mensajeros. El costo lo paga el cliente.</div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">💰</div>
+        <h3>Sin costo para el local</h3>
+        <p>La tarifa de domicilio la paga el cliente final. Tú no pagas nada extra a Maxikia.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <h3>Instalación en 2 min</h3>
+        <p>Pega una línea de código en tu web y listo. No necesitas saber programar.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📍</div>
+        <h3>Cobertura Bogotá</h3>
+        <p>Repartidores disponibles en toda la ciudad. Entregas hasta 500m desde tu local.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="chapter">
+    <div class="chapter-num">Capítulo 2</div>
+    <div class="chapter-title">Opción 1 — Widget en tu web</div>
+    <div class="chapter-sub">El local pega este código en su sitio web y aparece un botón "Pedir domicilio".</div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num" style="background:var(--ambar)">1</div>
+        <div class="step-body"><h4>Copia el código</h4><p>Pega este snippet antes del cierre del <code>&lt;/body&gt;</code> en tu HTML:</p></div>
+      </div>
+    </div>
+
+    <div class="code">
+      <button class="copy-btn" onclick="copiarCodigo(this,'cod1')">Copiar</button>
+      <span id="cod1"><span class="cm">&lt;!-- Widget Maxikia Express --&gt;</span>
+<span class="kw">&lt;script</span>
+  <span class="cp">src</span>=<span class="st">"https://maxikia.com/widget.js"</span>
+  <span class="cp">data-local</span>=<span class="st">"Mi Minimarket"</span>
+  <span class="cp">data-origen</span>=<span class="st">"Cra 15 #93-10, Chapinero, Bogotá"</span>
+  <span class="cp">data-texto</span>=<span class="st">"🛵 Pedir domicilio"</span>
+  <span class="cp">data-color</span>=<span class="st">"#D4001A"</span>
+<span class="kw">&gt;&lt;/script&gt;</span></span>
+    </div>
+
+    <div class="cards" style="margin-top:1.5rem">
+      <div class="card">
+        <div class="card-icon">🎨</div>
+        <h3>data-color</h3>
+        <p>Color del botón en HEX. Por defecto rojo Maxikia. Cámbialo al color de tu marca.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📍</div>
+        <h3>data-origen</h3>
+        <p>Dirección de tu local. Se prellenará automáticamente en el formulario del cliente.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">💬</div>
+        <h3>data-texto</h3>
+        <p>Texto del botón. Personalízalo como prefieras.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📌</div>
+        <h3>data-posicion</h3>
+        <p>Usa <code>"flotante"</code> para que el botón aparezca fijo en la esquina inferior derecha.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="chapter">
+    <div class="chapter-num">Capítulo 3</div>
+    <div class="chapter-title">Opción 2 — Página de socio</div>
+    <div class="chapter-sub">Tu local tiene su propia URL en Maxikia con catálogo y botón de pedido.</div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num" style="background:var(--verde)">1</div>
+        <div class="step-body"><h4>Escríbenos por WhatsApp</h4><p>Envía un mensaje al <strong>3243334302</strong> con el nombre y dirección de tu local. Te creamos la página en menos de 24 horas.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:var(--verde)">2</div>
+        <div class="step-body"><h4>Envía tu catálogo</h4><p>Lista de productos con nombre, precio y foto (opcional). Los subimos por ti al catálogo de tu página.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background:var(--verde)">3</div>
+        <div class="step-body"><h4>Comparte tu URL</h4><p>Tu local queda en <strong>maxikia.com/local/tu-nombre</strong>. Compártela en WhatsApp, Instagram y pon el enlace en tu local con un QR.</p></div>
+      </div>
+    </div>
+
+    <div class="info-box tip">
+      <strong>✅ Gratuito:</strong> No pagas mensualidad. No pagas comisión. El único costo es el domicilio que paga el cliente final.
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="chapter">
+    <div class="chapter-num">Capítulo 4</div>
+    <div class="chapter-title">Opción 3 — API de integración</div>
+    <div class="chapter-sub">Para desarrolladores que quieren integración completa con su sistema.</div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num" style="background:var(--azul)">1</div>
+        <div class="step-body"><h4>Obtener API Key</h4><p>Escríbenos al 3243334302 con el nombre de tu empresa. Te enviamos tu API Key en menos de 24 horas.</p></div>
+      </div>
+    </div>
+
+    <div class="code">
+      <button class="copy-btn" onclick="copiarCodigo(this,'cod2')">Copiar</button>
+      <span id="cod2"><span class="cm">// Crear un pedido desde tu sistema</span>
+<span class="kw">POST</span> https://maxikia.com/api/v1/pedidos
+<span class="cp">Authorization:</span> <span class="st">Bearer TU_API_KEY</span>
+<span class="cp">Content-Type:</span> <span class="st">application/json</span>
+
+{
+  <span class="cp">"local"</span>: <span class="st">"Mi Restaurante"</span>,
+  <span class="cp">"origen"</span>: <span class="st">"Calle 72 #10-07, Bogotá"</span>,
+  <span class="cp">"destino"</span>: <span class="st">"Cra 15 #90-30, Apto 201"</span>,
+  <span class="cp">"descripcion"</span>: <span class="st">"Pedido #1234 — 2 almuerzos"</span>,
+  <span class="cp">"tipo_envio"</span>: <span class="st">"comercial"</span>,
+  <span class="cp">"telefono_cliente"</span>: <span class="st">"3001234567"</span>
+}
+
+<span class="cm">// Respuesta</span>
+{
+  <span class="cp">"id"</span>: <span class="st">"uuid-pedido"</span>,
+  <span class="cp">"estado"</span>: <span class="st">"buscando"</span>,
+  <span class="cp">"precio_domicilio"</span>: <span class="st">3000</span>,
+  <span class="cp">"tracking_url"</span>: <span class="st">"https://maxikia.com/track/uuid"</span>
+}</span>
+    </div>
+
+    <div class="acc">
+      <div class="acc-item">
+        <div class="acc-hdr" onclick="toggleAcc(this)">¿Cómo recibo notificaciones de estado?</div>
+        <div class="acc-body">Configura un webhook en tu sistema. Maxikia enviará un POST a tu URL cada vez que cambie el estado del pedido (aceptado, recogido, entregado). Incluirá foto de entrega cuando aplique.</div>
+      </div>
+      <div class="acc-item">
+        <div class="acc-hdr" onclick="toggleAcc(this)">¿Hay límite de pedidos por API?</div>
+        <div class="acc-body">No hay límite en el plan actual. Contacta al 3243334302 si tienes volúmenes muy altos para coordinar.</div>
+      </div>
+      <div class="acc-item">
+        <div class="acc-hdr" onclick="toggleAcc(this)">¿La API es REST o GraphQL?</div>
+        <div class="acc-body">REST con respuestas JSON. Autenticación por Bearer Token en el header Authorization. Documentación completa en maxikia.com/socios.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div><!-- /sec-socios -->
+
+<!-- FOOTER -->
+<footer>
+  <div class="logo">Maxi<span>⋊</span>ia Express</div>
+  <p style="margin-top:6px">maxikia.com · WhatsApp: 3243334302 · Bogotá, Colombia · 2026</p>
+  <p style="margin-top:4px;font-size:11px;opacity:.4">Manual de usuario v1.0 — Para soporte escríbenos por WhatsApp</p>
+</footer>
+
+<script>
+function showRole(role) {
+  // Hide all
+  document.querySelectorAll('.section-wrap').forEach(s => s.classList.remove('on'));
+  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('on'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('on'));
+  // Show target
+  document.getElementById('sec-' + role).classList.add('on');
+  // Highlight role cards
+  document.querySelectorAll('.role-card').forEach(c => {
+    if (c.getAttribute('onclick').includes(role)) c.classList.add('on');
+  });
+  // Highlight nav tabs
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    if (t.getAttribute('onclick').includes(role)) t.classList.add('on');
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleAcc(hdr) {
+  hdr.parentElement.classList.toggle('open');
+}
+
+function copiarCodigo(btn, id) {
+  const text = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Copiado';
+    btn.style.background = 'rgba(29,158,117,.4)';
+    setTimeout(() => { btn.textContent = 'Copiar'; btn.style.background = ''; }, 2000);
+  });
+}
+</script>
+</body>
+</html>

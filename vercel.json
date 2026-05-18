@@ -6,7 +6,8 @@
     { "source": "/privacidad", "destination": "/privacidad.html" },
     { "source": "/repartidores", "destination": "/repartidores.html" },
     { "source": "/socios", "destination": "/socios.html" },
-    { "source": "/widget.js", "destination": "/widget.js" }
+    { "source": "/widget.js", "destination": "/widget.js" },
+    { "source": "/manual", "destination": "/manual_maxikia.html" }
   ],
   "headers": [
     { "source": "/sw.js", "headers": [{"key":"Cache-Control","value":"no-cache"},{"key":"Service-Worker-Allowed","value":"/"}] },
