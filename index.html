@@ -181,7 +181,7 @@
     .footer-copy { font-size: 12px; color: rgba(255,255,255,0.18); text-align: center; width: 100%; }
 
     /* ── AUTH ── */
-    .auth-wrap { min-height: calc(100vh - 62px); background: var(--dark); display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; }
+    .auth-wrap { min-height: 100vh; background: var(--dark); display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; }
     .auth-box { background: var(--surface); border-radius: var(--radius-lg); width: 100%; max-width: 440px; overflow: hidden; }
     .auth-head { background: #1A1818; padding: 1.75rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
     .auth-head h2 { font-family: var(--font-head); font-weight: 700; font-size: 1.3rem; color: white; }
@@ -562,32 +562,6 @@
             <div class="rep-price">$12.000</div>
           </div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CASOS DE USO -->
-  <section style="background:#1A0000;padding:0;overflow:hidden">
-    <div style="max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.06)" class="casos-grid">
-      <div style="padding:1.25rem 1.5rem;border-right:1px solid rgba(255,255,255,.06);text-align:center">
-        <div style="font-size:24px;margin-bottom:6px">📄</div>
-        <div style="font-size:13px;font-weight:600;color:white;margin-bottom:3px">Documentos urgentes</div>
-        <div style="font-size:11px;color:rgba(255,255,255,.35)">Contratos, facturas, notariales</div>
-      </div>
-      <div style="padding:1.25rem 1.5rem;border-right:1px solid rgba(255,255,255,.06);text-align:center">
-        <div style="font-size:24px;margin-bottom:6px">🔑</div>
-        <div style="font-size:13px;font-weight:600;color:white;margin-bottom:3px">Cosas olvidadas</div>
-        <div style="font-size:11px;color:rgba(255,255,255,.35)">Llaves, gafas, cargadores</div>
-      </div>
-      <div style="padding:1.25rem 1.5rem;border-right:1px solid rgba(255,255,255,.06);text-align:center">
-        <div style="font-size:24px;margin-bottom:6px">💊</div>
-        <div style="font-size:13px;font-weight:600;color:white;margin-bottom:3px">Medicamentos</div>
-        <div style="font-size:11px;color:rgba(255,255,255,.35)">Farmacia a domicilio express</div>
-      </div>
-      <div style="padding:1.25rem 1.5rem;text-align:center">
-        <div style="font-size:24px;margin-bottom:6px">📦</div>
-        <div style="font-size:13px;font-weight:600;color:white;margin-bottom:3px">Cualquier encargo</div>
-        <div style="font-size:11px;color:rgba(255,255,255,.35)">Si cabe, lo llevamos</div>
       </div>
     </div>
   </section>
@@ -1251,6 +1225,8 @@
       } else if (event === 'SIGNED_OUT') {
         currentUser = null;
         localStorage.removeItem('mx_last_auth');
+        const navEl = document.querySelector('.nav');
+        if (navEl) navEl.style.display = '';
         goPage('landing');
       }
     });
@@ -2497,8 +2473,14 @@
   // ── NAV ──
   function goPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-' + id).classList.add('active');
+    document.getElementById('page-' + id)?.classList.add('active');
     window.scrollTo(0, 0);
+    // Ocultar nav en dashboard, login y register
+    const navEl = document.querySelector('.nav');
+    if (navEl) {
+      const hideNav = ['dashboard','login','register'].includes(id);
+      navEl.style.display = hideNav ? 'none' : '';
+    }
   }
   function closeMob() { document.getElementById('nav-mobile').classList.remove('open'); }
   document.getElementById('burger').addEventListener('click', () => document.getElementById('nav-mobile').classList.toggle('open'));
@@ -2968,10 +2950,19 @@
   }
 
   async function doLogout() {
-    await sb.auth.signOut(); currentUser = null; goPage('landing');
+    await sb.auth.signOut();
+    currentUser = null;
+    // Restaurar nav de landing
+    const navEl = document.querySelector('.nav');
+    if (navEl) navEl.style.display = '';
+    goPage('landing');
   }
 
   async function showDashboard() {
+    // Ocultar nav de landing
+    const navEl = document.querySelector('.nav');
+    if (navEl) navEl.style.display = 'none';
+    goPage('dashboard');
     const lockUserEl = document.getElementById('lock-user');
     if (lockUserEl) lockUserEl.textContent = currentUser?.email || '';
     setTimeout(() => resetTimerInactividad(), 500);
