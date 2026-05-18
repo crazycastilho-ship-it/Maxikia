@@ -18,11 +18,11 @@ html{scroll-behavior:smooth}
 body{font-family:var(--body);background:var(--surface);color:var(--text);overflow-x:hidden}
 
 /* NAV */
-nav{position:sticky;top:0;z-index:100;background:var(--dark);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:56px}
+nav{position:sticky;top:0;z-index:100;background:rgba(14,13,13,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:56px;border-bottom:1px solid rgba(255,255,255,.06)}
 .nav-logo{font-family:var(--head);font-size:18px;color:white;cursor:pointer}
 .nav-logo span{color:var(--mx2)}
 .nav-tabs{display:flex;gap:4px}
-.nav-tab{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;color:rgba(255,255,255,.5);cursor:pointer;border:none;background:none;transition:.2s}
+.nav-tab{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;color:rgba(255,255,255,.5);cursor:pointer;border:none;background:none;transition:.2s;font-family:var(--body)}
 .nav-tab.on,.nav-tab:hover{background:rgba(255,255,255,.1);color:white}
 .nav-tab.on{color:var(--mx2)}
 
@@ -122,11 +122,15 @@ footer p{font-size:13px;color:rgba(255,255,255,.3)}
 /* MOBILE */
 @media(max-width:768px){
   .nav-tabs{display:none}
-  .hero{padding:3rem 1.25rem 2.5rem}
+  nav{padding:0 1rem}
+  .hero{padding:2.5rem 1.25rem 2rem}
   .section{padding:2rem 1.25rem}
   .flow{gap:6px}.flow-step:not(:last-child)::after{display:none}
   .flow-step{border-radius:8px}
   .hl{gap:.75rem}
+  .cards{grid-template-columns:1fr 1fr}
+  .role-cards{flex-wrap:wrap}
+  .role-card{min-width:calc(50% - 8px);flex:none}
 }
 
 /* PRINT */
@@ -141,12 +145,21 @@ footer p{font-size:13px;color:rgba(255,255,255,.3)}
 
 <!-- NAV -->
 <nav>
-  <div class="nav-logo">Maxi<span>⋊</span>ia <span style="font-size:12px;color:rgba(255,255,255,.3);font-family:var(--body)">Manual</span></div>
-  <div class="nav-tabs">
-    <button class="nav-tab on" onclick="showRole('clientes')">📦 Clientes</button>
-    <button class="nav-tab" onclick="showRole('repartidores')">🛵 Repartidores</button>
-    <button class="nav-tab" onclick="showRole('transportistas')">🚛 Transportistas</button>
-    <button class="nav-tab" onclick="showRole('socios')">🏪 Socios</button>
+  <div class="nav-logo">
+    <a href="/" style="display:flex;align-items:center;gap:8px;text-decoration:none">
+      <i class="ti ti-arrow-left" style="font-size:16px;color:rgba(255,255,255,.5)"></i>
+      <span>Maxi<span>⋊</span>ia <span style="font-size:12px;color:rgba(255,255,255,.3);font-family:var(--body)">Express</span></span>
+    </a>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <div class="nav-tabs" id="nav-tabs">
+      <button class="nav-tab on" onclick="showRole('clientes')">📦 Clientes</button>
+      <button class="nav-tab" onclick="showRole('repartidores')">🛵 Repartidores</button>
+      <button class="nav-tab" onclick="showRole('transportistas')">🚛 Transportistas</button>
+      <button class="nav-tab" onclick="showRole('socios')">🏪 Socios</button>
+    </div>
+    <a href="/repartidores.html" style="padding:7px 16px;border-radius:20px;border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.75);font-size:13px;text-decoration:none;font-family:var(--body);transition:.2s" onmouseover="this.style.background='rgba(255,255,255,.08)'" onmouseout="this.style.background=''">Gana dinero</a>
+    <a href="/" style="padding:7px 18px;border-radius:20px;background:#D4001A;color:white;font-size:13px;font-weight:600;text-decoration:none;font-family:var(--body);transition:.2s;box-shadow:0 4px 14px rgba(212,0,26,.35)" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 8px 24px rgba(212,0,26,.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(212,0,26,.35)'">⚡ Pedir ahora</a>
   </div>
 </nav>
 
@@ -781,7 +794,20 @@ footer p{font-size:13px;color:rgba(255,255,255,.3)}
   <p style="margin-top:4px;font-size:11px;opacity:.4">Manual de usuario v1.0 — Para soporte escríbenos por WhatsApp</p>
 </footer>
 
+<!-- Mobile bottom CTA -->
+<div style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99;background:rgba(14,13,13,.95);backdrop-filter:blur(16px);border-top:1px solid rgba(255,255,255,.08);padding:12px 1.25rem;gap:10px" id="mobile-cta">
+  <a href="/" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.8);font-size:14px;font-weight:500;text-decoration:none;font-family:var(--body)">← Inicio</a>
+  <a href="/" style="flex:2;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border-radius:10px;background:#D4001A;color:white;font-size:14px;font-weight:600;text-decoration:none;font-family:var(--body)"><span>⚡</span> Pedir ahora</a>
+</div>
+
 <script>
+// Show mobile CTA bar on small screens
+if (window.innerWidth <= 768) {
+  document.getElementById('mobile-cta').style.display = 'flex';
+  // Add padding to footer to avoid overlap
+  document.querySelector('footer').style.paddingBottom = '80px';
+}
+
 function showRole(role) {
   // Hide all
   document.querySelectorAll('.section-wrap').forEach(s => s.classList.remove('on'));
