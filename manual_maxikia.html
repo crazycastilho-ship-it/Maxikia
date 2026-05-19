@@ -33,12 +33,12 @@ nav{position:sticky;top:0;z-index:100;background:rgba(14,13,13,0.88);backdrop-fi
 .hero h1{font-family:var(--head);font-size:clamp(36px,6vw,64px);color:white;line-height:1.05;margin-bottom:1rem}
 .hero h1 em{color:var(--mx2);font-style:normal}
 .hero p{color:rgba(255,255,255,.5);font-size:17px;max-width:520px;margin:0 auto 2.5rem;line-height:1.6}
-.role-cards{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.role-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:1rem 1.5rem;cursor:pointer;transition:.2s;text-align:center;min-width:130px}
-.role-card:hover,.role-card.on{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25);transform:translateY(-2px)}
+.role-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;justify-content:center;margin-top:1.5rem}
+.role-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:1rem 1.25rem;cursor:pointer;transition:.2s;text-align:center}
+.role-card:hover,.role-card.on{background:rgba(255,255,255,.12);border-color:var(--mx2);transform:translateY(-2px)}
 .role-card.on{border-color:var(--mx2)}
 .role-icon{font-size:28px;margin-bottom:6px}
-.role-name{font-size:13px;font-weight:600;color:white}
+.role-name{font-size:14px;font-weight:600;color:white}
 .role-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
 
 /* SECTIONS */
@@ -129,8 +129,6 @@ footer p{font-size:13px;color:rgba(255,255,255,.3)}
   .flow-step{border-radius:8px}
   .hl{gap:.75rem}
   .cards{grid-template-columns:1fr 1fr}
-  .role-cards{flex-wrap:wrap}
-  .role-card{min-width:calc(50% - 8px);flex:none}
 }
 
 /* PRINT */
@@ -169,22 +167,22 @@ footer p{font-size:13px;color:rgba(255,255,255,.3)}
   <h1>Guía completa de<br><em>Maxikia Express</em></h1>
   <p>Todo lo que necesitas saber para usar la plataforma, según tu rol.</p>
   <div class="role-cards">
-    <div class="role-card on" onclick="showRole('clientes')">
+    <div class="role-card on" data-role="clientes" onclick="showRole('clientes')">
       <div class="role-icon">📦</div>
       <div class="role-name">Clientes</div>
       <div class="role-sub">Pide envíos</div>
     </div>
-    <div class="role-card" onclick="showRole('repartidores')">
+    <div class="role-card" data-role="repartidores" onclick="showRole('repartidores')">
       <div class="role-icon">🛵</div>
       <div class="role-name">Repartidores</div>
       <div class="role-sub">Gana dinero</div>
     </div>
-    <div class="role-card" onclick="showRole('transportistas')">
+    <div class="role-card" data-role="transportistas" onclick="showRole('transportistas')">
       <div class="role-icon">🚛</div>
       <div class="role-name">Transportistas</div>
       <div class="role-sub">Mudanzas y fletes</div>
     </div>
-    <div class="role-card" onclick="showRole('socios')">
+    <div class="role-card" data-role="socios" onclick="showRole('socios')">
       <div class="role-icon">🏪</div>
       <div class="role-name">Socios</div>
       <div class="role-sub">Comercios</div>
@@ -809,20 +807,21 @@ if (window.innerWidth <= 768) {
 }
 
 function showRole(role) {
-  // Hide all
+  // Hide all sections
   document.querySelectorAll('.section-wrap').forEach(s => s.classList.remove('on'));
-  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('on'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('on'));
-  // Show target
-  document.getElementById('sec-' + role).classList.add('on');
-  // Highlight role cards
+  // Show target section
+  const sec = document.getElementById('sec-' + role);
+  if (sec) sec.classList.add('on');
+  // Update role cards using data-role
   document.querySelectorAll('.role-card').forEach(c => {
-    if (c.getAttribute('onclick').includes(role)) c.classList.add('on');
+    c.classList.toggle('on', c.dataset.role === role);
   });
-  // Highlight nav tabs
+  // Update nav tabs
   document.querySelectorAll('.nav-tab').forEach(t => {
-    if (t.getAttribute('onclick').includes(role)) t.classList.add('on');
+    const onclick = t.getAttribute('onclick') || '';
+    t.classList.toggle('on', onclick.includes("'" + role + "'") || onclick.includes('"' + role + '"'));
   });
+  // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
