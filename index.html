@@ -174,11 +174,11 @@
 
     /* ── FOOTER ── */
     .footer { background: var(--dark); border-top: 1px solid rgba(255,255,255,0.05); padding: 2.5rem 1.5rem; }
-    .footer-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+    .footer-inner { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 1rem; text-align: center; }
     .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
     .footer-links a { color: rgba(255,255,255,0.3); text-decoration: none; font-size: 13px; transition: color 0.2s; }
     .footer-links a:hover { color: rgba(255,255,255,0.7); }
-    .footer-copy { font-size: 12px; color: rgba(255,255,255,0.18); text-align: center; width: 100%; }
+    .footer-copy { font-size: 12px; color: rgba(255,255,255,0.18); text-align: center; }
 
     /* ── AUTH ── */
     .auth-wrap { min-height: 100vh; background: var(--dark); display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; }
@@ -326,9 +326,6 @@
       .casos-grid { grid-template-columns: repeat(2,1fr) !important; }
       .tipos-grid { grid-template-columns: 1fr 1fr !important; }
       .section { padding: 3.5rem 1.25rem; }
-      .footer-inner { flex-direction: column; align-items: center; text-align: center; gap: .75rem; }
-      .footer-links { justify-content: center; gap: 1.25rem; }
-      .footer-copy { text-align: center; }
       /* iOS safe-area */
       @supports (padding-bottom: env(safe-area-inset-bottom)) {
         body { padding-bottom: env(safe-area-inset-bottom); }
@@ -507,7 +504,7 @@
   <!-- CTA FINAL -->
   <section class="section" style="background:var(--dark);text-align:center;position:relative;overflow:hidden">
     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(212,0,26,0.12),transparent 70%);pointer-events:none"></div>
-    <div class="container" style="position:relative;z-index:1">
+    <div style="max-width:640px;margin:0 auto;position:relative;z-index:1">
       <div class="reveal" style="font-size:clamp(2rem,4vw,3.5rem);font-family:var(--font-head);font-weight:800;color:white;line-height:1.1;margin-bottom:1.25rem">¿Tienes un encargo<br><span style="color:var(--mx2)">urgente?</span></div>
       <p style="color:rgba(255,255,255,0.45);font-size:1.05rem;margin-bottom:2.5rem;max-width:400px;margin-left:auto;margin-right:auto" class="reveal reveal-delay-1">Regístrate gratis y pide tu primer envío en menos de 3 minutos.</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap" class="reveal reveal-delay-2">
@@ -518,8 +515,8 @@
   </section>
 
   <footer class="footer">
-    <div class="footer-inner container">
-      <div class="logo" onclick="goPage('landing')" style="width:100%;text-align:center">Maxi<span>⋊</span>ia<span class="express">Express</span></div>
+    <div class="footer-inner">
+      <div class="logo" onclick="goPage('landing')" style="width:100%;text-align:center;cursor:pointer">Maxi<span>⋊</span>ia<span class="express">Express</span></div>
       <div class="footer-links">
         <a href="/manual">Cómo funciona</a>
         <a href="/terminos.html">Términos</a>
