@@ -187,7 +187,7 @@ tbody tr:hover{background:var(--surface)}
               <option value="cancelado">Cancelado</option>
             </select>
           </div>
-          <div class="tw"><table><thead><tr><th>Descripción</th><th>Precio</th><th>Estado</th><th>Fecha</th><th>Acciones</th></tr></thead><tbody id="pt"></tbody></table></div>
+          <div class="tw"><table><thead><tr><th>Descripción</th><th>Precio</th><th>Estado</th><th>Fecha</th><th>Acciones</th><th>Eliminar</th></tr></thead><tbody id="pt"></tbody></table></div>
         </div>
       </div>
 
@@ -385,10 +385,10 @@ async function loadPedidos(){
   if(est) q=q.eq('estado',est);
   const {data} = await q;
   const tb = document.getElementById('pt');
-  if(!data||!data.length){tb.innerHTML='<tr><td colspan="5"><div class="es"><i class="ti ti-package"></i>Sin pedidos</div></td></tr>';return;}
+  if(!data||!data.length){tb.innerHTML='<tr><td colspan="6"><div class="es"><i class="ti ti-package"></i>Sin pedidos</div></td></tr>';return;}
   tb.innerHTML=data.map(p=>`<tr>
-    <td>${p.descripcion}</td>
-    <td>$${p.precio.toLocaleString('es-CO')}</td>
+    <td>${p.descripcion?.slice(0,40)||'—'}</td>
+    <td>$${(p.precio||0).toLocaleString('es-CO')}</td>
     <td><span class="pill p-${p.estado}">${p.estado}</span></td>
     <td style="font-size:12px">${new Date(p.created_at).toLocaleDateString('es-CO')}</td>
     <td>
@@ -397,19 +397,33 @@ async function loadPedidos(){
       ${p.estado==='aceptado'?`<button class="ab ok" onclick="cambiaE('${p.id}','recogido')">→ Recogido</button>`:''}
       ${p.estado==='recogido'?`<button class="ab ok" onclick="cambiaE('${p.id}','entregado')">→ Entregado</button>`:''}
     </td>
+    <td>
+      <button class="ab" onclick="eliminarPedido('${p.id}','${p.usuario_id||''}',${p.precio||0},'${p.estado}')"
+        style="background:#1A0000;color:#FF4D4D;border-color:rgba(255,77,77,.3)"
+        title="Eliminar definitivamente">
+        <i class="ti ti-trash"></i>
+      </button>
+    </td>
   </tr>`).join('');
 }
 
 function verP(p){
   document.getElementById('mpb').innerHTML=`
-    <div class="dr"><span class="dl">Descripción</span><span class="dv">${p.descripcion}</span></div>
+    <div class="dr"><span class="dl">Descripción</span><span class="dv">${p.descripcion||'—'}</span></div>
     <div class="dr"><span class="dl">Origen</span><span class="dv">${p.origen||'—'}</span></div>
     <div class="dr"><span class="dl">Destino</span><span class="dv">${p.destino||'—'}</span></div>
-    <div class="dr"><span class="dl">Precio cliente</span><span class="dv">$${p.precio.toLocaleString('es-CO')}</span></div>
-    <div class="dr"><span class="dl">Tu comisión (25%)</span><span class="dv" style="color:var(--green)">$${Math.round(p.precio*COM).toLocaleString('es-CO')}</span></div>
+    <div class="dr"><span class="dl">Precio cliente</span><span class="dv">$${(p.precio||0).toLocaleString('es-CO')}</span></div>
+    <div class="dr"><span class="dl">Tu comisión (25%)</span><span class="dv" style="color:var(--green)">$${Math.round((p.precio||0)*COM).toLocaleString('es-CO')}</span></div>
     <div class="dr"><span class="dl">Estado</span><span class="dv"><span class="pill p-${p.estado}">${p.estado}</span></span></div>
     <div class="dr"><span class="dl">Fecha</span><span class="dv">${new Date(p.created_at).toLocaleString('es-CO')}</span></div>
     ${p.notas?`<div class="dr"><span class="dl">Notas</span><span class="dv">${p.notas}</span></div>`:''}
+    <div style="margin-top:1.5rem;display:flex;gap:8px">
+      <button onclick="document.getElementById('mp').classList.remove('on')" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer;font-family:var(--font);font-size:13px">Cerrar</button>
+      <button onclick="eliminarPedido('${p.id}','${p.usuario_id||''}',${p.precio||0},'${p.estado}')"
+        style="flex:1;padding:10px;border:1px solid rgba(255,77,77,.4);border-radius:8px;background:#FFF5F5;color:#CC0000;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:600">
+        <i class="ti ti-trash"></i> Eliminar definitivamente
+      </button>
+    </div>
   `;
   document.getElementById('mp').classList.add('on');
   if(p.foto_entrega){
@@ -426,6 +440,38 @@ async function cancelP(id,uid,precio){
   const {data:p} = await sb.from('perfiles').select('saldo').eq('id',uid).single();
   await sb.from('perfiles').update({saldo:(p?.saldo||0)+precio}).eq('id',uid);
   await sb.from('pedidos').update({estado:'cancelado'}).eq('id',id);
+  loadPedidos();
+}
+
+async function eliminarPedido(id, uid, precio, estado){
+  const conf = confirm(
+    '⚠️ ELIMINAR DEFINITIVAMENTE\n\n' +
+    'Este pedido se borrará permanentemente de la base de datos.\n' +
+    'El cliente también dejará de verlo en su app.\n\n' +
+    ((['buscando','aceptado'].includes(estado) && uid && precio > 0)
+      ? '💰 El saldo del cliente será reembolsado ($' + precio.toLocaleString('es-CO') + ').\n\n'
+      : '') +
+    '¿Estás seguro?'
+  );
+  if (!conf) return;
+
+  // Reembolsar saldo si el pedido estaba activo y había cobro
+  if (['buscando','aceptado'].includes(estado) && uid && precio > 0) {
+    const {data:perfil} = await sb.from('perfiles').select('saldo').eq('id',uid).single();
+    if (perfil) {
+      await sb.from('perfiles').update({saldo:(perfil.saldo||0)+precio}).eq('id',uid);
+    }
+  }
+
+  // Eliminar el pedido definitivamente
+  const {error} = await sb.from('pedidos').delete().eq('id',id);
+  if (error) {
+    alert('Error al eliminar: ' + error.message);
+    return;
+  }
+
+  // Cerrar modal si estaba abierto con este pedido
+  document.getElementById('mp')?.classList.remove('on');
   loadPedidos();
 }
 

@@ -2312,13 +2312,24 @@
         }
       })
       .on('postgres_changes', {
-        event: 'UPDATE',
+        event: 'DELETE',
+        schema: 'public',
+        table: 'pedidos',
+        filter: `usuario_id=eq.${currentUser.id}`
+      }, payload => {
+        // Admin eliminó un pedido del cliente — refrescar lista
+        cargarPedidosHome();
+        mostrarNotificacion('Maxikia Express', '🗑️ Un pedido fue eliminado por el administrador');
+      })
+      .on('postgres_changes', {
+        event: 'DELETE',
         schema: 'public',
         table: 'pedidos',
         filter: `repartidor_id=eq.${currentUser.id}`
       }, payload => {
-        // Pedido del repartidor cambió
+        // Pedido eliminado mientras el repartidor lo tenía
         cargarPedidosHome();
+        cargarPedidosCercanos();
       })
       .on('postgres_changes', {
         event: 'INSERT',
