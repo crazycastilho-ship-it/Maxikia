@@ -2551,7 +2551,11 @@
     });
 
     if (error) {
-      alertEl.innerHTML = '<div class="alert error">' + error.message + '</div>';
+      let msg = error.message;
+      if (msg.includes('already registered')) msg = 'Este correo ya está registrado. Usa "Entrar" para iniciar sesión.';
+      if (msg.includes('invalid')) msg = 'Correo o contraseña inválidos.';
+      if (msg.includes('Email not confirmed')) msg = 'Revisa tu correo y confirma tu cuenta, o pídele al admin que desactive la confirmación en Supabase.';
+      alertEl.innerHTML = '<div class="alert error">' + msg + '</div>';
       btn.disabled = false;
       btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
       return;
@@ -2683,7 +2687,11 @@
       if (error) {
         btn.disabled = false;
         btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
-        alerta.innerHTML = '<div class="alert error">Error en ' + a.nombre + ': ' + error.message + ' (Código: ' + (error.statusCode || 'N/A') + ')</div>';
+        let msg = error.message;
+        if (msg.includes('Bucket not found')) msg = 'El bucket "documentos" no existe en Supabase Storage. Crea el bucket desde el panel de Supabase.';
+        if (msg.includes('policy') || msg.includes('not authorized') || msg.includes('403')) msg = 'Sin permisos para subir archivos. Ejecuta el SQL de políticas de storage en Supabase.';
+        if (msg.includes('JWT')) msg = 'Sesión expirada. Vuelve a iniciar sesión.';
+        alerta.innerHTML = '<div class="alert error">Error subiendo ' + a.nombre + ': ' + msg + '</div>';
         return;
       }
     }
