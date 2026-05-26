@@ -933,13 +933,53 @@
       <div class="dp" id="dp-transportista">
         <div class="br"><h3>Transportista</h3></div>
 
-        <!-- Toggle igual que repartidor -->
-        <div class="rep-toggle-row">
-          <div>
-            <div class="rep-toggle-label">Disponible para mudanzas</div>
-            <div class="rep-toggle-sub" id="trans-status-txt">Activa para recibir solicitudes de mudanza</div>
+        <!-- Info depósito de garantía -->
+        <div id="trans-deposito-info" style="display:none;background:#F0F9FF;border:1px solid rgba(14,165,233,.2);border-radius:var(--radius);padding:1rem;margin-bottom:1rem">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <i class="ti ti-shield-check" style="color:#0EA5E9;font-size:18px"></i>
+            <div style="font-weight:600;font-size:14px;color:#0369A1">Depósito de garantía activo</div>
           </div>
-          <div class="toggle-sw" id="tsw-trans" onclick="toggleTransportista()"></div>
+          <div style="font-size:12px;color:#0369A1;line-height:1.6">
+            $50.000 reservados como garantía de seriedad.<br>
+            Se devuelven si decides desactivarte como transportista.<br>
+            <span style="color:#EF4444;font-weight:500">Se descuentan $20.000 si cancelas una mudanza sin avisar.</span>
+          </div>
+          <button onclick="solicitarDevolucionDeposito()" style="margin-top:10px;background:none;border:1px solid rgba(14,165,233,.3);border-radius:6px;padding:6px 14px;font-size:12px;color:#0369A1;cursor:pointer;font-family:var(--font-body)">
+            Solicitar devolución del depósito
+          </button>
+        </div>
+
+        <!-- Panel primer acceso: pedir depósito -->
+        <div id="trans-deposito-req" style="display:none;background:var(--dark);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem">
+          <div style="font-family:var(--font-head);font-weight:700;font-size:16px;color:white;margin-bottom:8px">
+            🔐 Depósito de garantía
+          </div>
+          <div style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.7;margin-bottom:1rem">
+            Para activarte como transportista y ver solicitudes de mudanza, se requiere un <strong style="color:white">depósito de garantía de $50.000</strong>.<br><br>
+            ✅ Es reembolsable — lo recuperas cuando te retires<br>
+            ✅ Demuestra seriedad a los clientes<br>
+            ✅ Se descuenta $20.000 por cancelación sin aviso
+          </div>
+          <div style="background:rgba(255,255,255,.06);border-radius:8px;padding:10px;font-size:12px;color:rgba(255,255,255,.5);margin-bottom:1rem">
+            Tu saldo actual: <strong id="trans-saldo-actual" style="color:white">—</strong>
+          </div>
+          <button onclick="pagarDepositoTransportista()" class="btn-primary btn-full" style="border-radius:var(--radius-sm)">
+            <i class="ti ti-lock"></i> Pagar depósito $50.000 y activarme
+          </button>
+          <div style="text-align:center;margin-top:8px;font-size:11px;color:rgba(255,255,255,.3)">
+            El depósito se descuenta de tu saldo Maxikia
+          </div>
+        </div>
+
+        <!-- Toggle disponibilidad (solo si ya pagó el depósito) -->
+        <div id="trans-toggle-wrap" style="display:none">
+          <div class="rep-toggle-row">
+            <div>
+              <div class="rep-toggle-label">Disponible para mudanzas</div>
+              <div class="rep-toggle-sub" id="trans-status-txt">Activa para recibir solicitudes de mudanza</div>
+            </div>
+            <div class="toggle-sw" id="tsw-trans" onclick="toggleTransportista()"></div>
+          </div>
         </div>
 
         <div style="margin-bottom:1rem">
@@ -2486,7 +2526,7 @@
       }
     }
     if (t === 'repartir') initMapRepartir();
-    if (t === 'transportista') cargarMudanzasDisponibles();
+    if (t === 'transportista') { verificarDepositoTransportista(); cargarMudanzasDisponibles(); }
     if (t === 'historial') cargarHistorial();
     if (t === 'billetera') cargarWallet();
   }
@@ -3474,17 +3514,120 @@
     setTimeout(() => banner.remove(), 30000);
   }
 
-  // ── TRANSPORTISTA ──
-  let disponibleComoTransportista = false;
+  // ── DEPÓSITO DE GARANTÍA TRANSPORTISTA ──
+  const DEPOSITO_GARANTIA = 50000;
+  const PENALIDAD_CANCELACION = 20000;
 
-  function mostrarTabTransportista() {
+  async function mostrarTabTransportista() {
     const btnTrans = document.getElementById('bn-transportista');
     const btnBill = document.getElementById('bn-billetera');
     const bbar = document.querySelector('.bbar');
     if (btnTrans) btnTrans.style.display = 'flex';
     if (btnBill) btnBill.style.display = 'none';
-    // Mantener 4 columnas en el grid
     if (bbar) bbar.style.gridTemplateColumns = 'repeat(4,1fr)';
+  }
+
+  async function verificarDepositoTransportista() {
+    if (!currentUser) return;
+    const { data: perfil } = await sb.from('perfiles')
+      .select('saldo, deposito_transportista').eq('id', currentUser.id).single();
+
+    const tieneDeposito = perfil?.deposito_transportista === true;
+    const saldo = perfil?.saldo || 0;
+
+    // Mostrar saldo actual
+    const saldoEl = document.getElementById('trans-saldo-actual');
+    if (saldoEl) saldoEl.textContent = '$' + saldo.toLocaleString('es-CO');
+
+    if (tieneDeposito) {
+      // Ya pagó — mostrar toggle y badge de garantía activa
+      document.getElementById('trans-deposito-req').style.display = 'none';
+      document.getElementById('trans-deposito-info').style.display = 'block';
+      document.getElementById('trans-toggle-wrap').style.display = 'block';
+    } else {
+      // No ha pagado — mostrar panel de pago
+      document.getElementById('trans-deposito-req').style.display = 'block';
+      document.getElementById('trans-deposito-info').style.display = 'none';
+      document.getElementById('trans-toggle-wrap').style.display = 'none';
+      document.getElementById('mudanzas-cercanas').innerHTML = '';
+    }
+  }
+
+  async function pagarDepositoTransportista() {
+    if (!currentUser) return;
+    const { data: perfil } = await sb.from('perfiles')
+      .select('saldo,nombre').eq('id', currentUser.id).single();
+    const saldo = perfil?.saldo || 0;
+
+    if (saldo < DEPOSITO_GARANTIA) {
+      const falta = DEPOSITO_GARANTIA - saldo;
+      alert(
+        `Saldo insuficiente 💰\n\n` +
+        `Necesitas: $${DEPOSITO_GARANTIA.toLocaleString('es-CO')}\n` +
+        `Tu saldo: $${saldo.toLocaleString('es-CO')}\n` +
+        `Te faltan: $${falta.toLocaleString('es-CO')}\n\n` +
+        `Recarga enviando el pago por Nequi o Daviplata al 3243334302 ` +
+        `y envía el comprobante por WhatsApp.`
+      );
+      return;
+    }
+
+    const conf = confirm(
+      `🔐 Depósito de garantía\n\n` +
+      `Se reservarán $${DEPOSITO_GARANTIA.toLocaleString('es-CO')} de tu billetera Maxikia.\n\n` +
+      `• Son reembolsables si te retiras\n` +
+      `• $20.000 se descuentan por cancelación sin aviso\n` +
+      `• Con el depósito activo puedes ver y contactar clientes de mudanza\n\n` +
+      `¿Confirmar?`
+    );
+    if (!conf) return;
+
+    // Descontar del saldo y marcar depósito pagado
+    const { error } = await sb.from('perfiles').update({
+      saldo: saldo - DEPOSITO_GARANTIA,
+      deposito_transportista: true,
+      deposito_monto: DEPOSITO_GARANTIA,
+      deposito_fecha: new Date().toISOString()
+    }).eq('id', currentUser.id);
+
+    if (error) {
+      alert('Error al procesar el depósito: ' + error.message);
+      return;
+    }
+
+    cargarSaldoInicial();
+    await verificarDepositoTransportista();
+    alert('✅ ¡Depósito activado!\n\nYa puedes ver y contactar clientes de mudanza.\nEl depósito queda reservado en tu billetera Maxikia.');
+  }
+
+  async function solicitarDevolucionDeposito() {
+    const conf = confirm(
+      `💸 Solicitar devolución del depósito\n\n` +
+      `Se devolverán $${DEPOSITO_GARANTIA.toLocaleString('es-CO')} a tu billetera.\n` +
+      `Perderás acceso a las solicitudes de mudanza.\n\n` +
+      `¿Confirmar?`
+    );
+    if (!conf) return;
+
+    const { data: perfil } = await sb.from('perfiles')
+      .select('saldo').eq('id', currentUser.id).single();
+    const saldo = perfil?.saldo || 0;
+
+    await sb.from('perfiles').update({
+      saldo: saldo + DEPOSITO_GARANTIA,
+      deposito_transportista: false,
+      deposito_monto: 0,
+      disponible_mudanza: false
+    }).eq('id', currentUser.id);
+
+    disponibleComoTransportista = false;
+    document.getElementById('tsw-trans')?.classList.remove('on');
+    if (window._transInterval) { clearInterval(window._transInterval); window._transInterval = null; }
+
+    localStorage.removeItem('mx_trans_disponible');
+    cargarSaldoInicial();
+    await verificarDepositoTransportista();
+    alert('✅ Depósito devuelto.\n\n$50.000 acreditados en tu billetera.');
   }
 
   async function toggleTransportista() {
@@ -3519,13 +3662,15 @@
 
   async function restaurarTransportista() {
     if (!currentUser) return;
-    // Mostrar tab para todos — cualquiera puede ser transportista
     mostrarTabTransportista();
 
     const { data: perfil } = await sb.from('perfiles')
-      .select('disponible_mudanza').eq('id', currentUser.id).single();
-    const eraDisponible = perfil?.disponible_mudanza || localStorage.getItem('mx_trans_disponible') === '1';
-    if (eraDisponible) {
+      .select('disponible_mudanza,deposito_transportista').eq('id', currentUser.id).single();
+
+    // Solo restaurar si tiene depósito pagado
+    if (!perfil?.deposito_transportista) return;
+
+    if (perfil?.disponible_mudanza || localStorage.getItem('mx_trans_disponible') === '1') {
       setTimeout(() => {
         disponibleComoTransportista = true;
         document.getElementById('tsw-trans')?.classList.add('on');
@@ -3594,9 +3739,13 @@
             <i class="ti ti-check"></i> Acepto esta mudanza
           </button>
           <button onclick="contactarClienteMudanza('${p.usuario_id}','${p.id}')"
-            style="background:none;border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:13px;cursor:pointer;color:var(--muted);font-family:var(--font-body)">
-            <i class="ti ti-brand-whatsapp" style="color:#25D366"></i>
+            style="background:#E6FFF3;border:1px solid rgba(37,211,102,.3);border-radius:6px;padding:10px 12px;font-size:12px;cursor:pointer;color:#128C7E;font-family:var(--font-body);display:flex;align-items:center;gap:5px;font-weight:600">
+            <i class="ti ti-brand-whatsapp" style="color:#25D366;font-size:16px"></i>
+            <span>$8.000</span>
           </button>
+        </div>
+        <div style="font-size:10px;color:var(--muted);text-align:right;margin-top:4px">
+          El botón verde descuenta $8.000 de tu saldo para ver el teléfono del cliente
         </div>
       </div>`;
     }).join('');
@@ -3628,14 +3777,68 @@
     cargarPedidosHome();
   }
 
+  // ── TARIFA DE CONEXIÓN MUDANZAS ──
+  const TARIFA_CONEXION = 8000; // COP por cada conexión con cliente
+
   async function contactarClienteMudanza(clienteId, pedidoId) {
+    // Verificar saldo del transportista
+    const { data: perfil } = await sb.from('perfiles').select('saldo,nombre').eq('id', currentUser.id).single();
+    const saldo = perfil?.saldo || 0;
+
+    if (saldo < TARIFA_CONEXION) {
+      const conf = confirm(
+        `📞 Conexión con cliente\n\n` +
+        `Ver el teléfono del cliente tiene un costo de $${TARIFA_CONEXION.toLocaleString('es-CO')}.\n\n` +
+        `Tu saldo actual: $${saldo.toLocaleString('es-CO')}\n` +
+        `Saldo insuficiente ❌\n\n` +
+        `¿Quieres recargar saldo? Envía el pago por Nequi o Daviplata al 3243334302 y escribe al WhatsApp con el comprobante.`
+      );
+      if (conf) window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent('Hola Maxikia, quiero recargar saldo para contactar clientes de mudanza.')}`, '_blank');
+      return;
+    }
+
+    // Confirmar el cobro
+    const conf = confirm(
+      `📞 Conexión con cliente de mudanza\n\n` +
+      `Se descontarán $${TARIFA_CONEXION.toLocaleString('es-CO')} de tu saldo.\n` +
+      `Saldo actual: $${saldo.toLocaleString('es-CO')}\n` +
+      `Saldo después: $${(saldo - TARIFA_CONEXION).toLocaleString('es-CO')}\n\n` +
+      `A cambio recibes el teléfono del cliente para negociar directamente.\n\n` +
+      `¿Continuar?`
+    );
+    if (!conf) return;
+
+    // Verificar que no contactó antes este mismo pedido
+    const yaContactoKey = `mx_contacto_${pedidoId}_${currentUser.id}`;
+    const yaContacto = localStorage.getItem(yaContactoKey);
+
+    if (!yaContacto) {
+      // Descontar del saldo del transportista
+      await sb.from('perfiles').update({
+        saldo: saldo - TARIFA_CONEXION
+      }).eq('id', currentUser.id);
+
+      // Registrar ingreso para Maxikia en tabla pedidos (campo comision_maxikia)
+      await sb.from('pedidos').update({
+        comision_maxikia: TARIFA_CONEXION,
+        transportista_contacto_at: new Date().toISOString()
+      }).eq('id', pedidoId).catch(() => null);
+
+      // Marcar como ya contactado (no cobrar dos veces)
+      localStorage.setItem(yaContactoKey, '1');
+
+      // Actualizar saldo en UI
+      cargarSaldoInicial();
+    }
+
+    // Abrir WhatsApp con datos del cliente
     const { data } = await sb.from('perfiles').select('telefono,nombre').eq('id', clienteId).single();
     if (data?.telefono) {
       const num = data.telefono.replace(/\D/g, '');
-      const msg = encodeURIComponent(`Hola ${data.nombre || ''}, soy transportador de Maxikia. Vi tu solicitud de mudanza (ID: ${pedidoId.slice(0,8)}) y me interesa. ¿Podemos coordinar los detalles?`);
+      const msg = encodeURIComponent(`Hola ${data.nombre || ''}, soy transportador verificado de Maxikia Express. Vi tu solicitud de mudanza y me interesa ayudarte. ¿Podemos coordinar los detalles y el precio?`);
       window.open(`https://wa.me/57${num}?text=${msg}`, '_blank');
     } else {
-      alert('El cliente no tiene teléfono registrado. Espera a que te contacte por la app.');
+      alert('✅ Conexión registrada.\n\nEl cliente no tiene teléfono visible. Usa el chat de la app para coordinarte.');
     }
   }
   async function mostrarCalificacionCliente(pedido) {
