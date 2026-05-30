@@ -273,6 +273,22 @@
     .price-val { font-family: var(--font-head); font-weight: 700; font-size: 22px; color: var(--mx); }
     .price-detail { font-size: 11px; color: var(--muted); margin-top: 2px; }
     .rep-toggle { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: white; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 1rem; }
+    /* Toggle switch */
+    .toggle-sw { width: 48px; height: 26px; border-radius: 13px; background: var(--border); cursor: pointer; position: relative; transition: background .25s; flex-shrink: 0; }
+    .toggle-sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: white; box-shadow: 0 1px 4px rgba(0,0,0,.2); transition: transform .25s; }
+    .toggle-sw.on { background: var(--green); }
+    .toggle-sw.on::after { transform: translateX(22px); }
+    /* Repartidor toggle row */
+    .rep-toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; background: white; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 1rem; }
+    .rep-toggle-label { font-weight: 600; font-size: 15px; color: var(--text); }
+    .rep-toggle-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    /* Modal calificacion */
+    .modal-cal { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 300; display: none; align-items: center; justify-content: center; padding: 1rem; }
+    .modal-cal.on { display: flex; }
+    .modal-cal-box { background: white; border-radius: var(--radius-lg); padding: 1.75rem; max-width: 360px; width: 100%; }
+    /* Nuevo pedido banner */
+    .pedido-banner-visible { display: flex !important; animation: slideDown .3s cubic-bezier(.16,1,.3,1); }
+    #nuevo-pedido-banner { display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: var(--mx); color: white; padding: 14px 20px; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 4px 20px rgba(212,0,26,.5); }
     .tsw { width: 44px; height: 24px; background: var(--border); border-radius: 20px; position: relative; cursor: pointer; transition: background .2s; }
     .tsw.on { background: var(--green); }
     .tsw::after { content:''; position:absolute; width:18px; height:18px; background:white; border-radius:50%; top:3px; left:3px; transition:transform .2s; }
@@ -1159,6 +1175,7 @@
   let currentUser = null;
   let selectedRole = 'both';
   let tipoEnvio = 'express';
+  let disponibleComoTransportista = false;  // global declaration
   let regStep = 1;
   let docsSubidos = { frente: false, reverso: false, selfie: false };
   let pesoSel = 0;
@@ -2064,6 +2081,7 @@
       (tipoEnvio === 'especial' ? 'Acólitamos tu pereza' : 'Envío comercial');
   }
   async function activarDisponible(forzar) {
+    if (!currentUser) return;
     disponibleComoRepartidor = true;
     const tsw = document.getElementById('tsw');
     const txt = document.getElementById('rep-status-txt');
@@ -2193,6 +2211,7 @@
   const COMISION_REPARTIDOR = 0.75; // 75% repartidor
 
   async function aceptarPedido(pedidoId, clienteId) {
+    if (!currentUser) { goPage('login'); return; }
     const btn = event?.target;
     if (btn) { btn.disabled = true; btn.textContent = 'Aceptando...'; }
 
@@ -2261,7 +2280,7 @@
       beep(880, 0.4, 0.2);
       beep(1100, 0.65, 0.3);
     } catch(e) {
-      console.log('Audio no disponible:', e.message);
+      
     }
 
     // 4. Título de pestaña parpadea
@@ -2407,7 +2426,7 @@
       }, () => { cargarPedidosHome(); cargarPedidosCercanos(); })
 
       .subscribe((status) => {
-        console.log('Realtime cliente:', status);
+        
       });
 
     // ── Canal separado para nuevos pedidos (SIN FILTRO — todos los INSERT) ──
@@ -2423,14 +2442,14 @@
         const p = payload.new;
         // Solo notificar si el repartidor está disponible y el pedido no es de mudanza
         if (disponibleComoRepartidor && p.tipo_envio !== 'mudanza') {
-          console.log('🔔 Nuevo pedido recibido:', p.id);
+          
           cargarPedidosCercanos();
           alertarNuevoPedido();
           mostrarNotificacion('¡Nuevo pedido!', '📦 ' + (p.descripcion || 'Pedido disponible') + ' — $' + Math.round((p.precio||0)*0.75).toLocaleString('es-CO'));
         }
       })
       .subscribe((status) => {
-        console.log('Realtime repartidor INSERT:', status);
+        
       });
   }
 
@@ -3034,6 +3053,14 @@
     if (navEl) navEl.style.display = '';
     goPage('landing');
   }
+
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', () => {
+    if (realtimeChannel) realtimeChannel.unsubscribe();
+    if (window._realtimeRep) window._realtimeRep.unsubscribe();
+    if (window._repInterval) clearInterval(window._repInterval);
+    if (window._transInterval) clearInterval(window._transInterval);
+  });
 
   async function showDashboard() {
     // Ocultar nav de landing
