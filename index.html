@@ -308,6 +308,8 @@
     .buscando-anim { text-align: center; padding: 1.5rem; }
     .buscando-anim i { font-size: 36px; color: var(--mx); animation: spin 1.5s linear infinite; display: block; margin-bottom: 8px; }
     @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes slideDown { from { transform:translateY(-100%);opacity:0; } to { transform:translateY(0);opacity:1; } }
+    @keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.25);} }
     @media (max-width: 768px) {
       .nav-links { display: none; }
       .nav-burger { display: flex; align-items: center; justify-content: center; }
@@ -902,6 +904,18 @@
       </div>
 
       <!-- REPARTIR -->
+      <!-- Banner alerta nuevo pedido -->
+      <div id="nuevo-pedido-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:999;background:var(--mx);color:white;padding:14px 20px;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 4px 20px rgba(212,0,26,.5)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <i class="ti ti-bell-ringing" style="font-size:22px"></i>
+          <div>
+            <div style="font-weight:700;font-size:14px">¡Nuevo pedido disponible!</div>
+            <div style="font-size:12px;opacity:.85">Acepta antes que otro repartidor</div>
+          </div>
+        </div>
+        <button onclick="dTab('repartir');document.getElementById('nuevo-pedido-banner').style.display='none'" style="background:white;color:var(--mx);border:none;border-radius:8px;padding:8px 16px;font-weight:700;font-size:13px;cursor:pointer;font-family:var(--font-body);flex-shrink:0">Ver →</button>
+      </div>
+
       <div class="dp" id="dp-repartir">
         <div class="br"><button onclick="dTab('home')"><i class="ti ti-arrow-left" style="font-size:22px;color:var(--text)"></i></button><h3>Modo repartidor</h3></div>
         <div class="rep-toggle">
@@ -2215,24 +2229,48 @@
     cargarPedidosHome();
   }
 
-  // ── SONIDO/VIBRACIÓN para nuevo pedido ──
+  // ── ALERTA NUEVO PEDIDO ──
   function alertarNuevoPedido() {
-    // Vibración en móvil
-    if (navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 300]);
-    // Sonido usando AudioContext
+    // 1. Vibración
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
+
+    // 2. Banner visual prominente
+    const banner = document.getElementById('nuevo-pedido-banner');
+    if (banner) {
+      banner.style.display = 'flex';
+      banner.style.animation = 'slideDown 0.3s ease';
+      setTimeout(() => { banner.style.display = 'none'; }, 6000);
+    }
+
+    // 3. Sonido — intenta con AudioContext (funciona en móvil si hubo interacción previa)
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      osc.frequency.setValueAtTime(660, ctx.currentTime + 0.2);
-      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.4);
-      gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.6);
-    } catch(e) {}
+      const beep = (freq, start, dur) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.4, ctx.currentTime + start);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+        osc.start(ctx.currentTime + start);
+        osc.stop(ctx.currentTime + start + dur);
+      };
+      beep(880, 0, 0.15);
+      beep(1100, 0.2, 0.15);
+      beep(880, 0.4, 0.2);
+      beep(1100, 0.65, 0.3);
+    } catch(e) {
+      console.log('Audio no disponible:', e.message);
+    }
+
+    // 4. Título de pestaña parpadea
+    let blink = 0;
+    const origTitle = document.title;
+    const blinkInt = setInterval(() => {
+      document.title = blink % 2 === 0 ? '🔔 ¡NUEVO PEDIDO!' : origTitle;
+      if (++blink > 10) { clearInterval(blinkInt); document.title = origTitle; }
+    }, 600);
   }
 
   // ── CONFIRMAR ENTREGA CON FOTO ──
@@ -2310,17 +2348,17 @@
   let realtimeChannel = null;
 
   function iniciarRealtime() {
-    if (realtimeChannel) realtimeChannel.unsubscribe();
+    if (realtimeChannel) { realtimeChannel.unsubscribe(); realtimeChannel = null; }
     if (!currentUser) return;
 
-    realtimeChannel = sb.channel('pedidos-realtime')
+    // ── Canal principal: cambios de estado para cliente y repartidor ──
+    realtimeChannel = sb.channel('maxikia-realtime-' + currentUser.id)
+
+      // Saldo del usuario
       .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'perfiles',
+        event: 'UPDATE', schema: 'public', table: 'perfiles',
         filter: `id=eq.${currentUser.id}`
       }, payload => {
-        // Saldo actualizado en tiempo real
         const saldo = payload.new.saldo || 0;
         const fmt = '$' + saldo.toLocaleString('es-CO');
         const el1 = document.getElementById('dash-saldo');
@@ -2328,59 +2366,72 @@
         if (el1) el1.textContent = fmt;
         if (el2) el2.textContent = fmt;
       })
+
+      // Pedidos del CLIENTE — cambios de estado
       .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'pedidos',
+        event: 'UPDATE', schema: 'public', table: 'pedidos',
         filter: `usuario_id=eq.${currentUser.id}`
       }, payload => {
-        // Pedido del cliente cambió de estado
         const p = payload.new;
         cargarPedidosHome();
-        // Notificación push al cliente
         const msgs = {
-          aceptado: '🛵 Un repartidor aceptó tu pedido y va en camino a recogerlo',
-          recogido: '📦 Tu paquete fue recogido y está en camino',
-          entregado: '✅ Tu pedido fue entregado exitosamente',
+          aceptado: '🛵 Un repartidor aceptó tu pedido — va en camino',
+          recogido: '📦 Tu paquete fue recogido — está en camino',
+          entregado: '✅ ¡Tu pedido fue entregado!',
           cancelado: '❌ Tu pedido fue cancelado'
         };
-        if (msgs[p.estado]) {
-          mostrarNotificacion('Maxi⋊ia Express', msgs[p.estado]);
+        if (msgs[p.estado]) mostrarNotificacion('Maxi⋊ia Express', msgs[p.estado]);
+        // Mostrar calificación si fue entregado
+        if (p.estado === 'entregado' && p.calificacion_pendiente && !p.calificado_por_cliente) {
+          setTimeout(() => mostrarCalificacionCliente(p), 1000);
         }
       })
+
+      // Pedidos del REPARTIDOR — cambios en sus pedidos activos
       .on('postgres_changes', {
-        event: 'DELETE',
-        schema: 'public',
-        table: 'pedidos',
-        filter: `usuario_id=eq.${currentUser.id}`
-      }, payload => {
-        // Admin eliminó un pedido del cliente — refrescar lista
-        cargarPedidosHome();
-        mostrarNotificacion('Maxikia Express', '🗑️ Un pedido fue eliminado por el administrador');
-      })
-      .on('postgres_changes', {
-        event: 'DELETE',
-        schema: 'public',
-        table: 'pedidos',
+        event: 'UPDATE', schema: 'public', table: 'pedidos',
         filter: `repartidor_id=eq.${currentUser.id}`
       }, payload => {
-        // Pedido eliminado mientras el repartidor lo tenía
         cargarPedidosHome();
-        cargarPedidosCercanos();
       })
+
+      // DELETE — pedidos eliminados por admin
+      .on('postgres_changes', {
+        event: 'DELETE', schema: 'public', table: 'pedidos',
+        filter: `usuario_id=eq.${currentUser.id}`
+      }, () => { cargarPedidosHome(); })
+
+      .on('postgres_changes', {
+        event: 'DELETE', schema: 'public', table: 'pedidos',
+        filter: `repartidor_id=eq.${currentUser.id}`
+      }, () => { cargarPedidosHome(); cargarPedidosCercanos(); })
+
+      .subscribe((status) => {
+        console.log('Realtime cliente:', status);
+      });
+
+    // ── Canal separado para nuevos pedidos (SIN FILTRO — todos los INSERT) ──
+    // Supabase requiere canal separado para INSERT sin filtro
+    if (window._realtimeRep) { window._realtimeRep.unsubscribe(); window._realtimeRep = null; }
+
+    window._realtimeRep = sb.channel('maxikia-nuevos-pedidos')
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'pedidos'
       }, payload => {
-        // Nuevo pedido disponible — notificar al repartidor si está activo
-        if (disponibleComoRepartidor) {
+        const p = payload.new;
+        // Solo notificar si el repartidor está disponible y el pedido no es de mudanza
+        if (disponibleComoRepartidor && p.tipo_envio !== 'mudanza') {
+          console.log('🔔 Nuevo pedido recibido:', p.id);
           cargarPedidosCercanos();
           alertarNuevoPedido();
-          mostrarNotificacion('¡Nuevo pedido disponible!', '📦 Hay un pedido cerca de ti — ¡acepta rápido!');
+          mostrarNotificacion('¡Nuevo pedido!', '📦 ' + (p.descripcion || 'Pedido disponible') + ' — $' + Math.round((p.precio||0)*0.75).toLocaleString('es-CO'));
         }
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Realtime repartidor INSERT:', status);
+      });
   }
 
   async function cargarPedidosHome() {
@@ -2972,9 +3023,13 @@
   }
 
   async function doLogout() {
+    // Limpiar canales Realtime
+    if (realtimeChannel) { realtimeChannel.unsubscribe(); realtimeChannel = null; }
+    if (window._realtimeRep) { window._realtimeRep.unsubscribe(); window._realtimeRep = null; }
+    if (window._repInterval) { clearInterval(window._repInterval); window._repInterval = null; }
+    if (window._transInterval) { clearInterval(window._transInterval); window._transInterval = null; }
     await sb.auth.signOut();
     currentUser = null;
-    // Restaurar nav de landing
     const navEl = document.querySelector('.nav');
     if (navEl) navEl.style.display = '';
     goPage('landing');
