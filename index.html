@@ -938,7 +938,10 @@
           <div><div style="font-weight:500;font-size:14px">Estoy disponible</div><div style="font-size:12px;color:var(--muted)" id="rep-status-txt">Activa para recibir pedidos cercanos</div></div>
           <div class="tsw" id="tsw" onclick="toggleDisponible()"></div>
         </div>
-        <div id="map-repartir" style="height:200px;border-radius:var(--radius);margin-bottom:1rem;background:#E0EAF0"></div>
+        <!-- Info navegación activa -->
+      <div id="nav-info-repartir" style="display:none;background:white;border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:1rem;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,.06)"></div>
+
+      <div id="map-repartir" style="height:200px;border-radius:var(--radius);margin-bottom:1rem;background:#E0EAF0"></div>
         <div class="sec-row"><div class="sec-t">Pedidos disponibles cerca</div><button class="see-all" onclick="cargarPedidosCercanos()"><i class="ti ti-refresh"></i></button></div>
         <div id="pedidos-cercanos"><div style="text-align:center;padding:2rem;color:var(--muted);font-size:14px;background:white;border:1px solid var(--border);border-radius:var(--radius)"><i class="ti ti-motorbike" style="font-size:32px;display:block;margin-bottom:8px;opacity:.4"></i>Activa el interruptor para ver pedidos.</div></div>
       </div>
@@ -1440,27 +1443,142 @@
     });
   }
 
-  function initMapRepartir() {
+  // ── MAPA REPARTIDOR CON NAVEGACIÓN ──
+  let directionsRenderer = null;
+  let pedidoActivoMapa = null;
+
+  function initMapRepartir(pedido) {
     loadGoogleMaps(() => {
-      if (mapRepartir) return;
+      const contenedor = document.getElementById('map-repartir');
+      if (!contenedor) return;
+
       navigator.geolocation.getCurrentPosition(pos => {
         ubicacionActual = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        mapRepartir = new google.maps.Map(document.getElementById('map-repartir'), {
-          zoom: 14, center: ubicacionActual,
-          disableDefaultUI: true, zoomControl: true
-        });
-        new google.maps.Marker({ position: ubicacionActual, map: mapRepartir,
-          icon: { path: google.maps.SymbolPath.CIRCLE, scale: 10, fillColor: '#D4001A', fillOpacity: 1, strokeColor: 'white', strokeWeight: 2 }
-        });
-        new google.maps.Circle({ map: mapRepartir, center: ubicacionActual,
-          radius: RADIO_REPARTIDOR_KM * 1000, fillColor: '#D4001A', fillOpacity: 0.07,
-          strokeColor: '#D4001A', strokeOpacity: 0.3, strokeWeight: 1 });
+
+        // Si hay un pedido activo, mostrar ruta completa
+        if (pedido && pedido.lat_origen) {
+          mostrarRutaRepartidor(pedido, ubicacionActual);
+        } else {
+          // Sin pedido activo: solo mostrar ubicación
+          mapRepartir = new google.maps.Map(contenedor, {
+            zoom: 15, center: ubicacionActual,
+            disableDefaultUI: true, zoomControl: true,
+            styles: [{ featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] }]
+          });
+          // Marcador usuario
+          new google.maps.Marker({ position: ubicacionActual, map: mapRepartir,
+            icon: { path: google.maps.SymbolPath.CIRCLE, scale: 10,
+              fillColor: '#D4001A', fillOpacity: 1, strokeColor: 'white', strokeWeight: 2 },
+            title: 'Tu ubicación'
+          });
+          // Radio de cobertura
+          new google.maps.Circle({ map: mapRepartir, center: ubicacionActual,
+            radius: RADIO_REPARTIDOR_KM * 1000, fillColor: '#D4001A', fillOpacity: 0.06,
+            strokeColor: '#D4001A', strokeOpacity: 0.25, strokeWeight: 1 });
+        }
       }, () => {
-        mapRepartir = new google.maps.Map(document.getElementById('map-repartir'), {
+        mapRepartir = new google.maps.Map(contenedor, {
           zoom: 12, center: { lat: 4.711, lng: -74.0721 }, disableDefaultUI: true
         });
+      }, { enableHighAccuracy: true, timeout: 8000 });
+    });
+  }
+
+  function mostrarRutaRepartidor(pedido, origen) {
+    const contenedor = document.getElementById('map-repartir');
+    if (!contenedor) return;
+
+    // Destino según estado: si está en "aceptado" → ir al origen del pedido; si "recogido" → ir al destino
+    const esRecogido = pedido.estado === 'recogido';
+    const destino = esRecogido
+      ? { lat: pedido.lat_destino, lng: pedido.lng_destino }
+      : { lat: pedido.lat_origen, lng: pedido.lng_origen };
+
+    if (!destino.lat || !destino.lng) {
+      // Sin coords — mostrar botones de navegación externos
+      mostrarBotonesNavegacion(pedido);
+      return;
+    }
+
+    loadGoogleMaps(() => {
+      if (!mapRepartir) {
+        mapRepartir = new google.maps.Map(contenedor, {
+          zoom: 14, center: origen,
+          disableDefaultUI: false,
+          zoomControl: true, fullscreenControl: true,
+          mapTypeControl: false, streetViewControl: false,
+          styles: [{ featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] }]
+        });
+      }
+
+      // DirectionsRenderer
+      if (!directionsRenderer) {
+        directionsRenderer = new google.maps.DirectionsRenderer({
+          suppressMarkers: false,
+          polylineOptions: { strokeColor: '#D4001A', strokeWeight: 5, strokeOpacity: 0.85 }
+        });
+      }
+      directionsRenderer.setMap(mapRepartir);
+
+      // Calcular ruta
+      const ds = new google.maps.DirectionsService();
+      ds.route({
+        origin: origen,
+        destination: destino,
+        travelMode: google.maps.TravelMode.DRIVING,
+        region: 'CO'
+      }, (result, status) => {
+        if (status === 'OK') {
+          directionsRenderer.setDirections(result);
+          // Info de ruta
+          const leg = result.routes[0].legs[0];
+          const infoEl = document.getElementById('nav-info-repartir');
+          if (infoEl) {
+            infoEl.style.display = 'flex';
+            infoEl.innerHTML = `
+              <div style="display:flex;gap:12px;align-items:center">
+                <i class="ti ti-navigation" style="color:var(--mx);font-size:18px"></i>
+                <div>
+                  <div style="font-weight:700;font-size:14px">${esRecogido ? '🎯 Ir a entregar' : '📦 Ir a recoger'}</div>
+                  <div style="font-size:12px;color:var(--muted)">${leg.distance.text} · ${leg.duration.text} · ${esRecogido ? pedido.destino : pedido.origen}</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;flex-shrink:0">
+                <button onclick="abrirGoogleMaps('${esRecogido ? pedido.destino : pedido.origen}')" style="background:#4285F4;color:white;border:none;border-radius:8px;padding:7px 12px;font-size:12px;cursor:pointer;font-family:var(--font-body);display:flex;align-items:center;gap:4px"><i class="ti ti-brand-google-maps"></i> Maps</button>
+                <button onclick="abrirWaze('${destino.lat}','${destino.lng}')" style="background:#33CCFF;color:white;border:none;border-radius:8px;padding:7px 12px;font-size:12px;cursor:pointer;font-family:var(--font-body)">Waze</button>
+              </div>`;
+          }
+        } else {
+          // Fallback: botones externos
+          mostrarBotonesNavegacion(pedido);
+        }
       });
     });
+  }
+
+  function mostrarBotonesNavegacion(pedido) {
+    const infoEl = document.getElementById('nav-info-repartir');
+    if (!infoEl) return;
+    const esRecogido = pedido?.estado === 'recogido';
+    const dir = encodeURIComponent(esRecogido ? (pedido?.destino||'') : (pedido?.origen||''));
+    const lat = esRecogido ? pedido?.lat_destino : pedido?.lat_origen;
+    const lng = esRecogido ? pedido?.lng_destino : pedido?.lng_origen;
+    infoEl.style.display = 'flex';
+    infoEl.innerHTML = `
+      <div style="font-size:13px;color:var(--muted)">${esRecogido ? '🎯 Ir a entregar a:' : '📦 Ir a recoger en:'} <strong style="color:var(--text)">${esRecogido ? pedido?.destino : pedido?.origen}</strong></div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <a href="https://www.google.com/maps/dir/?api=1&destination=${dir}" target="_blank" style="background:#4285F4;color:white;border:none;border-radius:8px;padding:7px 12px;font-size:12px;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:4px"><i class="ti ti-brand-google-maps"></i> Google Maps</a>
+        ${lat&&lng?`<a href="https://waze.com/ul?ll=${lat},${lng}&navigate=yes" target="_blank" style="background:#33CCFF;color:white;border-radius:8px;padding:7px 12px;font-size:12px;text-decoration:none">Waze</a>`:''}
+      </div>`;
+  }
+
+  function abrirGoogleMaps(direccion) {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(direccion)}&travelmode=driving`;
+    window.open(url, '_blank');
+  }
+
+  function abrirWaze(lat, lng) {
+    window.open(`https://waze.com/ul?ll=${lat},${lng}&navigate=yes`, '_blank');
   }
 
   // ── GEOCODE ──
@@ -2242,10 +2360,15 @@
 
     alert('¡Pedido aceptado! 🎉\n\nVe a recoger: ' + pedido.descripcion + '\nEn: ' + pedido.origen + '\n\nGanarás: $' + ganancia.toLocaleString('es-CO'));
 
-    // Desactivar disponibilidad mientras atiende este pedido
-    await desactivarDisponible();
-    dTab('home');
+    // Mostrar mapa de navegación hacia el origen
+    dTab('repartir');
     cargarPedidosHome();
+    if (ubicacionActual) {
+      mapRepartir = null; // reset para reinicializar con ruta
+      mostrarRutaRepartidor(pedido, ubicacionActual);
+    } else {
+      initMapRepartir(pedido);
+    }
   }
 
   // ── ALERTA NUEVO PEDIDO ──
@@ -2532,6 +2655,13 @@
     }).eq('id', pedidoId);
     await notificarCambioEstado(pedidoId, 'recogido');
     cargarPedidosHome();
+    // Actualizar mapa → ahora navegar al destino
+    const { data: p } = await sb.from('pedidos').select('*').eq('id', pedidoId).single();
+    if (p && ubicacionActual) {
+      mapRepartir = null;
+      if (directionsRenderer) { directionsRenderer.setMap(null); directionsRenderer = null; }
+      mostrarRutaRepartidor(p, ubicacionActual);
+    }
   }
 
   async function cancelarPedidoCliente(pedidoId) {

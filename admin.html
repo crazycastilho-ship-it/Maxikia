@@ -168,6 +168,7 @@ tbody tr:hover{background:var(--surface)}
           <div class="mc"><div class="mi a"><i class="ti ti-motorbike"></i></div><div class="ml">Repartidores</div><div class="mv" id="m4">—</div><div class="ms">activos ahora</div></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="tc" style="grid-column:1/-1"><div class="th" style="display:flex;justify-content:space-between;align-items:center"><div class="tt">🟢 Repartidores activos ahora</div><button class="bsm" onclick="loadRepartidoresActivos()" style="padding:4px 10px;font-size:12px"><i class="ti ti-refresh"></i></button></div><div id="panel-activos"></div></div>
           <div class="tc"><div class="th"><div class="tt">Últimos pedidos</div></div><div id="dp"></div></div>
           <div class="tc"><div class="th"><div class="tt">Usuarios recientes</div></div><div id="du"></div></div>
         </div>
@@ -195,7 +196,16 @@ tbody tr:hover{background:var(--surface)}
       <div class="panel" id="p-usuarios">
         <div class="tc">
           <div class="th"><div class="tt">Todos los usuarios</div></div>
-          <div class="tw"><table><thead><tr><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Docs</th><th>Saldo</th><th>Acciones</th></tr></thead><tbody id="ut"></tbody></table></div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+            <select id="filtro-usuarios" onchange="loadUsuarios()" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-family:var(--font);font-size:13px;background:white">
+              <option value="todos">Todos los usuarios</option>
+              <option value="activos">🟢 Activos ahora</option>
+              <option value="pendientes">⏳ Docs pendientes</option>
+              <option value="aprobados">✅ Aprobados</option>
+            </select>
+            <button class="bsm" onclick="loadUsuarios()" style="padding:6px 14px"><i class="ti ti-refresh"></i> Actualizar</button>
+          </div>
+          <div class="tw"><table><thead><tr><th>Usuario</th><th>Teléfono</th><th>Rol</th><th>Estado</th><th>Docs</th><th>Saldo</th><th>Última actividad</th><th>Acciones</th></tr></thead><tbody id="ut"></tbody></table></div>
         </div>
       </div>
 
@@ -363,6 +373,49 @@ async function loadMetrics(){
   const {count:pr} = await sb.from('retiros').select('*',{count:'exact',head:true}).eq('estado','pendiente').catch(()=>({count:0}));
   const br = document.getElementById('br');
   if(pr>0){br.textContent=pr;br.style.display='inline';}else br.style.display='none';
+
+  // ── Panel repartidores activos en tiempo real ──
+  await loadRepartidoresActivos();
+}
+
+async function loadRepartidoresActivos(){
+  const {data} = await sb.from('perfiles')
+    .select('nombre,email,telefono,entregas_completadas,calificacion,rol,lat,lng,updated_at')
+    .eq('disponible', true)
+    .order('updated_at', {ascending:false});
+
+  const panel = document.getElementById('panel-activos');
+  if (!panel) return;
+
+  if (!data || data.length === 0) {
+    panel.innerHTML = '<div style="text-align:center;padding:1.5rem;color:#888;font-size:13px"><i class="ti ti-motorbike" style="font-size:24px;display:block;margin-bottom:6px;opacity:.3"></i>Sin repartidores activos ahora</div>';
+    return;
+  }
+
+  panel.innerHTML = data.map(u => {
+    const minutos = u.updated_at ? Math.round((Date.now() - new Date(u.updated_at).getTime()) / 60000) : null;
+    const tiempoStr = minutos !== null ? (minutos < 2 ? 'Ahora mismo' : `Hace ${minutos} min`) : '—';
+    const cal = u.calificacion ? `⭐ ${Number(u.calificacion).toFixed(1)}` : 'Nuevo';
+    const entregas = u.entregas_completadas || 0;
+    const tieneUbic = u.lat && u.lng;
+    return `<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border)">
+      <div style="width:36px;height:36px;border-radius:50%;background:#E1F5EE;border:2px solid #1D9E75;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#1D9E75;flex-shrink:0">
+        ${(u.nombre||'?')[0].toUpperCase()}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:13px">${u.nombre||u.email||'—'}</div>
+        <div style="font-size:11px;color:#888">${u.telefono||'—'} · ${cal} · ${entregas} entregas</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="display:inline-flex;align-items:center;gap:4px;background:#E1F5EE;color:#0F6E56;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">
+          <span style="width:6px;height:6px;border-radius:50%;background:#1D9E75;animation:pulse 2s infinite;display:inline-block"></span>
+          Activo
+        </div>
+        <div style="font-size:10px;color:#aaa;margin-top:2px">${tiempoStr}</div>
+        ${tieneUbic ? `<a href="https://www.google.com/maps?q=${u.lat},${u.lng}" target="_blank" style="font-size:10px;color:#0EA5E9;text-decoration:none">Ver en mapa ↗</a>` : ''}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 async function loadDashP(){
@@ -491,20 +544,54 @@ async function cambiaE(id,est){
 }
 
 async function loadUsuarios(){
-  const {data} = await sb.from('perfiles').select('*').order('created_at',{ascending:false});
+  const filtro = document.getElementById('filtro-usuarios')?.value || 'todos';
+  let q = sb.from('perfiles').select('*').order('created_at',{ascending:false});
+  if (filtro === 'activos')    q = q.eq('disponible', true);
+  if (filtro === 'repartidores') q = q.eq('disponible', true);
+  if (filtro === 'pendientes') q = q.in('docs_estado',['en_revision','pendiente']);
+  if (filtro === 'aprobados')  q = q.eq('docs_estado','aprobado');
+  const {data} = await q;
   const tb = document.getElementById('ut');
-  if(!data||!data.length){tb.innerHTML='<tr><td colspan="6"><div class="es"><i class="ti ti-users"></i>Sin usuarios</div></td></tr>';return;}
-  tb.innerHTML=data.map(u=>`<tr>
-    <td>${u.nombre||'—'}</td>
-    <td style="font-size:12px">${u.email||'—'}</td>
-    <td>${u.telefono||'—'}</td>
-    <td><span class="pill p-${u.docs_estado||'pendiente'}">${u.docs_estado||'pendiente'}</span></td>
-    <td>$${(u.saldo||0).toLocaleString('es-CO')}</td>
-    <td>
-      <button class="ab" onclick='verU(${JSON.stringify(u).replace(/"/g,"&quot;")})'>Ver docs</button>
-      <button class="ab ok" onclick="aprobarU('${u.id}','${u.nombre||u.email}')">✓ Aprobar</button>
-    </td>
-  </tr>`).join('');
+  if(!data||!data.length){tb.innerHTML='<tr><td colspan="8"><div class="es"><i class="ti ti-users"></i>Sin usuarios</div></td></tr>';return;}
+
+  tb.innerHTML=data.map(u=>{
+    // Estado activo
+    const activo = u.disponible;
+    const activoHtml = activo
+      ? '<span style="display:inline-flex;align-items:center;gap:4px;background:#E1F5EE;color:#0F6E56;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:600"><span style="width:7px;height:7px;border-radius:50%;background:#1D9E75;animation:pulse 2s infinite;display:inline-block"></span>Activo</span>'
+      : '<span style="background:#F4F3F0;color:#888;padding:3px 9px;border-radius:10px;font-size:11px">Inactivo</span>';
+
+    // Rol badge
+    const rol = u.rol || 'cliente';
+    const rolColors = { repartidor:'#0EA5E9', transportista:'#8B5CF6', ambos:'#F59E0B', cliente:'#888' };
+    const rolHtml = `<span style="background:${rolColors[rol] || '#888'}22;color:${rolColors[rol]||'#888'};padding:2px 8px;border-radius:8px;font-size:11px;font-weight:600">${rol}</span>`;
+
+    // Última conexión
+    const ultima = u.updated_at ? new Date(u.updated_at).toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'}) : '—';
+
+    // Entregas completadas
+    const entregas = u.entregas_completadas || 0;
+
+    // Calificación
+    const cal = u.calificacion ? '⭐ ' + Number(u.calificacion).toFixed(1) : '—';
+
+    return `<tr style="${activo ? 'background:#F8FFFB' : ''}">
+      <td>
+        <div style="font-weight:600;font-size:13px">${u.nombre||'—'}</div>
+        <div style="font-size:11px;color:var(--muted)">${u.email||'—'}</div>
+      </td>
+      <td style="font-size:12px">${u.telefono||'—'}</td>
+      <td>${rolHtml}</td>
+      <td>${activoHtml}</td>
+      <td><span class="pill p-${u.docs_estado||'pendiente'}">${u.docs_estado||'pendiente'}</span></td>
+      <td style="font-weight:600">$${(u.saldo||0).toLocaleString('es-CO')}</td>
+      <td style="font-size:11px;color:var(--muted)">${ultima}</td>
+      <td>
+        <button class="ab" onclick='verU(${JSON.stringify(u).replace(/"/g,"&quot;")})'>Ver</button>
+        ${u.docs_estado!=='aprobado'?`<button class="ab ok" onclick="aprobarU('${u.id}','${u.nombre||u.email}')">✓</button>`:''}
+      </td>
+    </tr>`;
+  }).join('');
 }
 
 async function verU(u){
