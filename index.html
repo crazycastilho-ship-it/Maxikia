@@ -4195,58 +4195,99 @@
     });
   }
 
+  // ── PWA INSTALL ──
+  function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  }
+  function isAndroid() {
+    return /Android/.test(navigator.userAgent);
+  }
+  function yaInstalada() {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+           window.navigator.standalone === true;
+  }
+
+  // Android/Chrome: capturar evento de instalación
   window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
     deferredPrompt = e;
-    // Mostrar botón instalar en landing
-    const btn = document.getElementById('btn-instalar-pwa');
-    if (btn) btn.style.display = 'inline-flex';
-    // Banner flotante después de 5 seg
-    setTimeout(() => {
-      if (!localStorage.getItem('pwa-installed')) {
-        const banner = document.getElementById('pwa-banner');
-        if (banner) banner.style.display = 'block';
-      }
-    }, 5000);
+    mostrarBtnInstalar();
   });
 
   window.addEventListener('appinstalled', () => {
     localStorage.setItem('pwa-installed', '1');
+    ocultarBtnInstalar();
     const banner = document.getElementById('pwa-banner');
     if (banner) banner.style.display = 'none';
+  });
+
+  function mostrarBtnInstalar() {
+    if (yaInstalada()) return;
+    if (localStorage.getItem('pwa-dismissed') === '1') return;
+    // Mostrar botón en hero
+    const btn = document.getElementById('btn-instalar-pwa');
+    if (btn) btn.style.display = 'inline-flex';
+    // Mostrar banner inferior después de 6 seg
+    setTimeout(() => {
+      if (!yaInstalada() && localStorage.getItem('pwa-dismissed') !== '1') {
+        const banner = document.getElementById('pwa-banner');
+        if (banner) banner.style.display = 'block';
+      }
+    }, 6000);
+  }
+
+  function ocultarBtnInstalar() {
     const btn = document.getElementById('btn-instalar-pwa');
     if (btn) btn.style.display = 'none';
-  });
+  }
 
   function instalarPWA() {
     if (deferredPrompt) {
+      // Chrome Android — usar el prompt nativo
       deferredPrompt.prompt();
       deferredPrompt.userChoice.then(c => {
-        if (c.outcome === 'accepted') localStorage.setItem('pwa-installed', '1');
+        if (c.outcome === 'accepted') {
+          localStorage.setItem('pwa-installed', '1');
+          ocultarBtnInstalar();
+        }
         deferredPrompt = null;
-        const banner = document.getElementById('pwa-banner');
-        if (banner) banner.style.display = 'none';
       });
     } else if (isIOS()) {
+      // iOS Safari — mostrar modal de instrucciones
       document.getElementById('ios-modal').style.display = 'flex';
     } else {
-      // Chrome sin evento — puede que ya esté instalada o navegador diferente
-      alert('Para instalar Maxikia:\n\n📱 Android (Chrome):\nToca el menú ⋮ → "Agregar a pantalla de inicio"\n\n🍎 iPhone (Safari):\nToca el botón compartir ↑ → "Agregar a pantalla de inicio"');
+      // Otros (Samsung, Firefox, etc.) — instrucciones manuales
+      mostrarModalInstalacion();
     }
   }
 
-  // Mostrar botón instalar en iOS inmediatamente (Safari no dispara beforeinstallprompt)
-  // Mostrar botón instalar al cargar
+  function mostrarModalInstalacion() {
+    const ua = navigator.userAgent;
+    let msg = '';
+    if (/Samsung/.test(ua) || isAndroid()) {
+      msg = '📱 Android:\n1. Toca el menú ⋮ (tres puntos arriba a la derecha)\n2. Toca "Agregar a pantalla de inicio"\n3. Confirma tocando "Agregar"';
+    } else if (isIOS()) {
+      msg = '🍎 iPhone / iPad:\n1. Toca el botón de compartir ↑ (abajo del navegador)\n2. Desliza y toca "Agregar a pantalla de inicio"\n3. Toca "Agregar"';
+    } else {
+      msg = '💻 Computador (Chrome):\n1. Mira la barra de direcciones — hay un ícono de instalar ⊕ a la derecha\n2. Tócalo y confirma\n\nO busca "Instalar Maxikia" en el menú ⋮ del navegador';
+    }
+    alert(msg);
+  }
+
+  // Al cargar — mostrar botón según dispositivo
   window.addEventListener('load', () => {
-    const yaInstalada = window.matchMedia('(display-mode: standalone)').matches ||
-                        window.navigator.standalone === true;
-    if (!yaInstalada && !localStorage.getItem('pwa-installed')) {
-      // iOS: mostrar siempre (Safari no dispara beforeinstallprompt)
-      if (isIOS()) {
-        const btn = document.getElementById('btn-instalar-pwa');
-        if (btn) btn.style.display = 'inline-flex';
-      }
-      // Android: el beforeinstallprompt lo maneja
+    if (yaInstalada()) return; // Ya instalada, no mostrar
+
+    if (isIOS()) {
+      // iOS Safari no dispara beforeinstallprompt — mostrar siempre
+      setTimeout(mostrarBtnInstalar, 1500);
+    }
+    // Android Chrome: lo maneja beforeinstallprompt
+    // Si después de 3 seg no hubo beforeinstallprompt en Android, mostrar igual
+    if (isAndroid()) {
+      setTimeout(() => {
+        if (!deferredPrompt && !yaInstalada()) mostrarBtnInstalar();
+      }, 3000);
     }
   });
   let docActual = { zonaId: null, galId: null, camId: null };
@@ -4452,16 +4493,16 @@
 </div>
 
 <!-- PWA INSTALL BANNER -->
-<div id="pwa-banner" style="display:none;position:fixed;bottom:80px;left:1rem;right:1rem;z-index:200;background:var(--dark);border-radius:var(--radius);padding:1rem 1.25rem;box-shadow:0 8px 32px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08)">
-  <div style="display:flex;align-items:center;gap:12px">
-    <img src="/icon-192.png" style="width:44px;height:44px;border-radius:10px;flex-shrink:0" onerror="this.style.display='none'">
-    <div style="flex:1">
-      <div style="font-family:var(--font-head);font-weight:700;font-size:14px;color:white">Instalar Maxikia</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px">Agrega la app a tu pantalla de inicio</div>
+<div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:998;background:var(--dark);border-top:2px solid var(--mx);padding:12px 1.25rem;box-shadow:0 -4px 24px rgba(0,0,0,.5)">
+  <div style="max-width:600px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <img src="/icon-192.png" style="width:40px;height:40px;border-radius:10px;flex-shrink:0" onerror="this.style.display='none'">
+    <div style="flex:1;min-width:160px">
+      <div style="font-weight:700;font-size:14px;color:white">📲 Instalar Maxikia Express</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:1px">Acceso rápido desde tu pantalla de inicio — sin App Store</div>
     </div>
     <div style="display:flex;gap:8px;flex-shrink:0">
-      <button onclick="instalarPWA()" style="background:var(--mx);color:white;border:none;border-radius:var(--radius-sm);padding:8px 14px;font-size:13px;font-family:var(--font-body);cursor:pointer;font-weight:500">Instalar</button>
-      <button onclick="document.getElementById('pwa-banner').style.display='none'" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);border:none;border-radius:var(--radius-sm);padding:8px 10px;font-size:13px;cursor:pointer">✕</button>
+      <button onclick="instalarPWA()" style="background:var(--mx);color:white;border:none;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">Instalar</button>
+      <button onclick="document.getElementById('pwa-banner').style.display='none';localStorage.setItem('pwa-dismissed','1')" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);border:none;border-radius:8px;padding:9px 12px;font-size:15px;cursor:pointer">✕</button>
     </div>
   </div>
 </div>
