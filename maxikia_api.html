@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maxikia Express — API de Integración</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --mx:#D4001A;--mx2:#FF1F38;--dark:#0E0D0D;--surface:#F5F4F1;
+  --verde:#1D9E75;--azul:#0EA5E9;--ambar:#F59E0B;
+  --border:rgba(0,0,0,0.08);--r:10px;
+  --head:'Syne',sans-serif;--body:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{font-family:var(--body);background:var(--surface);color:#1a1212;overflow-x:hidden}
+nav{background:var(--dark);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;border-bottom:1px solid rgba(255,255,255,.06)}
+.logo{font-family:var(--head);font-size:18px;color:white}.logo span{color:var(--mx2)}
+.nav-badge{background:rgba(14,165,233,.15);border:1px solid rgba(14,165,233,.3);color:var(--azul);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600}
+.layout{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 56px)}
+/* SIDEBAR */
+.sidebar{background:white;border-right:1px solid var(--border);padding:1.5rem 0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
+.sb-section{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#999;padding:0 1.25rem;margin:1.25rem 0 .5rem}
+.sb-link{display:block;padding:7px 1.25rem;font-size:13px;color:#555;text-decoration:none;transition:.15s;border-left:3px solid transparent}
+.sb-link:hover{background:var(--surface);color:#111}
+.sb-link.on{background:#FFF0F2;color:var(--mx);border-left-color:var(--mx);font-weight:600}
+/* MAIN */
+.main{padding:2.5rem 3rem;max-width:860px}
+h1{font-family:var(--head);font-size:28px;margin-bottom:.5rem}
+.page-sub{color:#666;font-size:15px;margin-bottom:2.5rem;line-height:1.6}
+h2{font-family:var(--head);font-size:20px;margin:2.5rem 0 .75rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+h2:first-of-type{border-top:none;margin-top:0;padding-top:0}
+h3{font-size:14px;font-weight:600;margin:1.5rem 0 .5rem;color:#333}
+p{font-size:14px;color:#555;line-height:1.75;margin-bottom:.75rem}
+/* CODE */
+.code-block{background:var(--dark);border-radius:var(--r);overflow:hidden;margin:1rem 0;position:relative}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#1A1818;border-bottom:1px solid rgba(255,255,255,.06)}
+.code-lang{font-size:11px;font-weight:600;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px}
+.copy-btn{background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:var(--body);transition:.2s}
+.copy-btn:hover{background:rgba(255,255,255,.15);color:white}
+.copy-btn.ok{background:rgba(29,158,117,.3);color:#34D399}
+pre{padding:1.25rem 1.5rem;font-family:var(--mono);font-size:12.5px;line-height:1.75;overflow-x:auto;color:#E2E8F0}
+.cm{color:#718096}.kw{color:#F6AD55}.st{color:#68D391}.cp{color:#90CDF4}
+.fn{color:#FBB6CE}.nm{color:#B794F4}.bl{color:#76E4F7}.er{color:#FC8181}
+/* METHOD BADGES */
+.method{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:6px;font-family:var(--mono);font-size:13px;font-weight:600;margin-bottom:.75rem}
+.GET{background:#E1F5EE;color:#0F6E56}.POST{background:#EFF6FF;color:#1E40AF}
+.PUT{background:#FFF7ED;color:#C2410C}.DELETE{background:#FEF2F2;color:#991B1B}
+/* PARAMS TABLE */
+table{width:100%;border-collapse:collapse;font-size:13px;margin:1rem 0}
+th{background:var(--dark);color:white;padding:8px 14px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:nth-child(even) td{background:rgba(0,0,0,.02)}
+code{font-family:var(--mono);font-size:11.5px;background:rgba(0,0,0,.06);padding:2px 6px;border-radius:4px;color:var(--mx)}
+.req{color:var(--mx);font-size:11px;font-weight:600}
+.opt{color:#888;font-size:11px}
+/* ALERT */
+.alert{border-radius:var(--r);padding:1rem 1.25rem;margin:1rem 0;font-size:13px;line-height:1.7}
+.alert.info{background:#EFF6FF;border:1px solid rgba(14,165,233,.2);color:#1E40AF}
+.alert.warn{background:#FFF7ED;border:1px solid rgba(245,158,11,.25);color:#92400E}
+.alert.tip{background:#E1F5EE;border:1px solid rgba(29,158,117,.2);color:#065F46}
+/* RESPONSE */
+.status{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;margin-right:6px}
+.s200{background:#E1F5EE;color:#0F6E56}.s201{background:#EFF6FF;color:#1E40AF}
+.s400{background:#FFF7ED;color:#C2410C}.s401{background:#FEF2F2;color:#991B1B}
+.s500{background:#F5F3FF;color:#5B21B6}
+/* ENDPOINT CARD */
+.endpoint{border:1px solid var(--border);border-radius:var(--r);margin-bottom:1.5rem;overflow:hidden}
+.endpoint-header{padding:1rem 1.25rem;background:white;display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none}
+.endpoint-body{padding:1.25rem;background:var(--surface);border-top:1px solid var(--border);display:block}
+@media(max-width:768px){.layout{grid-template-columns:1fr}.sidebar{display:none}.main{padding:1.5rem}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Maxi<span>⋊</span>ia <span style="font-size:11px;color:rgba(255,255,255,.3)">API Docs</span></div>
+  <div class="nav-badge">v1.0 · Supabase REST</div>
+</nav>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-section">Inicio</div>
+    <a class="sb-link on" href="#intro">Introducción</a>
+    <a class="sb-link" href="#auth">Autenticación</a>
+    <a class="sb-link" href="#errors">Errores</a>
+
+    <div class="sb-section">Pedidos</div>
+    <a class="sb-link" href="#crear-pedido">Crear pedido</a>
+    <a class="sb-link" href="#consultar-pedido">Consultar pedido</a>
+    <a class="sb-link" href="#listar-pedidos">Listar pedidos</a>
+    <a class="sb-link" href="#cancelar-pedido">Cancelar pedido</a>
+
+    <div class="sb-section">Precios</div>
+    <a class="sb-link" href="#calcular-precio">Calcular precio</a>
+
+    <div class="sb-section">Webhooks</div>
+    <a class="sb-link" href="#webhooks">Configurar webhook</a>
+    <a class="sb-link" href="#eventos">Eventos</a>
+
+    <div class="sb-section">SDKs</div>
+    <a class="sb-link" href="#js">JavaScript / Node</a>
+    <a class="sb-link" href="#python">Python</a>
+    <a class="sb-link" href="#php">PHP</a>
+    <a class="sb-link" href="#widget">Widget HTML</a>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- INTRO -->
+    <div id="intro">
+      <h1>API Maxikia Express</h1>
+      <p class="page-sub">Integra entregas y mandados urgentes directamente en tu sistema, e-commerce o app. La API de Maxikia Express te permite crear pedidos, consultar estados en tiempo real y recibir notificaciones mediante webhooks.</p>
+
+      <div class="alert info">
+        <strong>Base URL:</strong> <code>https://dovqezmhdiauhlpichdn.supabase.co/rest/v1</code><br>
+        <strong>Autenticación:</strong> API Key en header <code>apikey</code><br>
+        <strong>Formato:</strong> JSON · UTF-8 · HTTPS obligatorio
+      </div>
+    </div>
+
+    <!-- AUTH -->
+    <h2 id="auth">🔑 Autenticación</h2>
+    <p>Todas las peticiones requieren dos headers:</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">HTTP Headers</span><button class="copy-btn" onclick="cop(this,'h-auth')">Copiar</button></div>
+      <pre id="h-auth"><span class="cp">apikey</span><span class="cm">:</span> <span class="st">TU_API_KEY_AQUI</span>
+<span class="cp">Authorization</span><span class="cm">:</span> <span class="st">Bearer TU_API_KEY_AQUI</span>
+<span class="cp">Content-Type</span><span class="cm">:</span> <span class="st">application/json</span>
+<span class="cp">Prefer</span><span class="cm">:</span> <span class="st">return=representation</span></pre>
+    </div>
+
+    <div class="alert warn">
+      Para obtener tu API Key escribe por WhatsApp al <strong>3243334302</strong> o a <strong>andresmaxicaia@outlook.com</strong> indicando el nombre de tu empresa. Te la enviamos en menos de 24 horas.
+    </div>
+
+    <!-- ERRORS -->
+    <h2 id="errors">⚠️ Códigos de error</h2>
+    <table>
+      <thead><tr><th>Código</th><th>Significado</th><th>Solución</th></tr></thead>
+      <tbody>
+        <tr><td><span class="status s200">200</span></td><td>Operación exitosa</td><td>—</td></tr>
+        <tr><td><span class="status s201">201</span></td><td>Recurso creado</td><td>—</td></tr>
+        <tr><td><span class="status s400">400</span></td><td>Datos inválidos</td><td>Revisa los campos requeridos</td></tr>
+        <tr><td><span class="status s401">401</span></td><td>No autorizado</td><td>Verifica tu API Key</td></tr>
+        <tr><td><span class="status s400">404</span></td><td>No encontrado</td><td>Verifica el ID del pedido</td></tr>
+        <tr><td><span class="status s500">500</span></td><td>Error del servidor</td><td>Reintenta en 30 segundos</td></tr>
+      </tbody>
+    </table>
+
+    <!-- CREAR PEDIDO -->
+    <h2 id="crear-pedido">📦 Crear pedido</h2>
+    <div class="method POST">POST <span style="font-weight:400">/pedidos</span></div>
+    <p>Crea un nuevo pedido de envío. El sistema buscará automáticamente un repartidor disponible en Bogotá.</p>
+
+    <h3>Parámetros del cuerpo (body)</h3>
+    <table>
+      <thead><tr><th>Campo</th><th>Tipo</th><th>Requerido</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td><code>tipo_envio</code></td><td>string</td><td><span class="req">Requerido</span></td><td><code>express</code> | <code>acolita</code> | <code>comercial</code> | <code>mudanza</code></td></tr>
+        <tr><td><code>origen</code></td><td>string</td><td><span class="req">Requerido</span></td><td>Dirección de recogida completa (Bogotá)</td></tr>
+        <tr><td><code>destino</code></td><td>string</td><td><span class="req">Requerido</span></td><td>Dirección de entrega completa (Bogotá)</td></tr>
+        <tr><td><code>descripcion</code></td><td>string</td><td><span class="req">Requerido</span></td><td>Qué se va a entregar (máx 200 caracteres)</td></tr>
+        <tr><td><code>precio</code></td><td>integer</td><td><span class="req">Requerido</span></td><td>Precio acordado en COP (mínimo 6000)</td></tr>
+        <tr><td><code>usuario_id</code></td><td>uuid</td><td><span class="req">Requerido</span></td><td>UUID del cliente en Maxikia</td></tr>
+        <tr><td><code>notas</code></td><td>string</td><td><span class="opt">Opcional</span></td><td>Instrucciones especiales para el repartidor</td></tr>
+        <tr><td><code>peso</code></td><td>string</td><td><span class="opt">Opcional</span></td><td><code>liviano</code> | <code>normal</code> | <code>pesado</code></td></tr>
+        <tr><td><code>lat_origen</code></td><td>float</td><td><span class="opt">Opcional</span></td><td>Latitud del punto de recogida</td></tr>
+        <tr><td><code>lng_origen</code></td><td>float</td><td><span class="opt">Opcional</span></td><td>Longitud del punto de recogida</td></tr>
+        <tr><td><code>lat_destino</code></td><td>float</td><td><span class="opt">Opcional</span></td><td>Latitud del punto de entrega</td></tr>
+        <tr><td><code>lng_destino</code></td><td>float</td><td><span class="opt">Opcional</span></td><td>Longitud del punto de entrega</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Ejemplo de petición</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">cURL</span><button class="copy-btn" onclick="cop(this,'curl-crear')">Copiar</button></div>
+      <pre id="curl-crear"><span class="kw">curl</span> -X POST <span class="st">'https://dovqezmhdiauhlpichdn.supabase.co/rest/v1/pedidos'</span> \
+  -H <span class="st">'apikey: TU_API_KEY'</span> \
+  -H <span class="st">'Authorization: Bearer TU_API_KEY'</span> \
+  -H <span class="st">'Content-Type: application/json'</span> \
+  -H <span class="st">'Prefer: return=representation'</span> \
+  -d <span class="st">'{
+    "tipo_envio": "express",
+    "origen": "Calle 72 #10-07, Chapinero, Bogotá",
+    "destino": "Cra 15 #93-47, Usaquén, Bogotá",
+    "descripcion": "Documentos notariales — frágil",
+    "precio": 8500,
+    "usuario_id": "uuid-del-cliente",
+    "notas": "Llamar al llegar",
+    "peso": "liviano",
+    "lat_origen": 4.6521,
+    "lng_origen": -74.0628,
+    "lat_destino": 4.6789,
+    "lng_destino": -74.0521
+  }'</span></pre>
+    </div>
+
+    <h3>Respuesta exitosa (201)</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">JSON Response</span><button class="copy-btn" onclick="cop(this,'res-crear')">Copiar</button></div>
+      <pre id="res-crear">{
+  <span class="cp">"id"</span>: <span class="st">"550e8400-e29b-41d4-a716-446655440000"</span>,
+  <span class="cp">"tipo_envio"</span>: <span class="st">"express"</span>,
+  <span class="cp">"estado"</span>: <span class="st">"buscando"</span>,
+  <span class="cp">"origen"</span>: <span class="st">"Calle 72 #10-07, Chapinero, Bogotá"</span>,
+  <span class="cp">"destino"</span>: <span class="st">"Cra 15 #93-47, Usaquén, Bogotá"</span>,
+  <span class="cp">"descripcion"</span>: <span class="st">"Documentos notariales — frágil"</span>,
+  <span class="cp">"precio"</span>: <span class="nm">8500</span>,
+  <span class="cp">"notas"</span>: <span class="st">"Llamar al llegar"</span>,
+  <span class="cp">"repartidor_id"</span>: <span class="kw">null</span>,
+  <span class="cp">"foto_entrega"</span>: <span class="kw">null</span>,
+  <span class="cp">"created_at"</span>: <span class="st">"2026-06-11T14:30:00.000Z"</span>,
+  <span class="cp">"tracking_url"</span>: <span class="st">"https://maxikia.com?pedido=550e8400"</span>
+}</pre>
+    </div>
+
+    <!-- CONSULTAR -->
+    <h2 id="consultar-pedido">🔍 Consultar pedido</h2>
+    <div class="method GET">GET <span style="font-weight:400">/pedidos?id=eq.{id}</span></div>
+    <p>Obtiene el estado actual de un pedido específico.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">cURL</span><button class="copy-btn" onclick="cop(this,'curl-get')">Copiar</button></div>
+      <pre id="curl-get"><span class="kw">curl</span> -X GET \
+  <span class="st">'https://dovqezmhdiauhlpichdn.supabase.co/rest/v1/pedidos?id=eq.550e8400-e29b-41d4-a716-446655440000&select=*'</span> \
+  -H <span class="st">'apikey: TU_API_KEY'</span> \
+  -H <span class="st">'Authorization: Bearer TU_API_KEY'</span></pre>
+    </div>
+
+    <h3>Estados posibles</h3>
+    <table>
+      <thead><tr><th>Estado</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td><code>buscando</code></td><td>Buscando repartidor disponible</td></tr>
+        <tr><td><code>aceptado</code></td><td>Repartidor aceptó — va hacia el origen</td></tr>
+        <tr><td><code>recogido</code></td><td>Paquete recogido — en camino al destino</td></tr>
+        <tr><td><code>entregado</code></td><td>Entrega completada con foto de evidencia</td></tr>
+        <tr><td><code>cancelado</code></td><td>Pedido cancelado — saldo reembolsado</td></tr>
+      </tbody>
+    </table>
+
+    <!-- LISTAR -->
+    <h2 id="listar-pedidos">📋 Listar pedidos</h2>
+    <div class="method GET">GET <span style="font-weight:400">/pedidos?usuario_id=eq.{id}</span></div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">cURL</span><button class="copy-btn" onclick="cop(this,'curl-list')">Copiar</button></div>
+      <pre id="curl-list"><span class="cm"># Últimos 10 pedidos del cliente, más recientes primero</span>
+<span class="kw">curl</span> -X GET \
+  <span class="st">'https://dovqezmhdiauhlpichdn.supabase.co/rest/v1/pedidos?usuario_id=eq.UUID&order=created_at.desc&limit=10&select=id,estado,origen,destino,precio,created_at'</span> \
+  -H <span class="st">'apikey: TU_API_KEY'</span> \
+  -H <span class="st">'Authorization: Bearer TU_API_KEY'</span>
+
+<span class="cm"># Filtrar por estado</span>
+<span class="kw">curl</span> -X GET \
+  <span class="st">'https://dovqezmhdiauhlpichdn.supabase.co/rest/v1/pedidos?usuario_id=eq.UUID&estado=eq.entregado&order=created_at.desc'</span> \
+  -H <span class="st">'apikey: TU_API_KEY'</span> \
+  -H <span class="st">'Authorization: Bearer TU_API_KEY'</span></pre>
+    </div>
+
+    <!-- CANCELAR -->
+    <h2 id="cancelar-pedido">❌ Cancelar pedido</h2>
+    <div class="method PUT">PATCH <span style="font-weight:400">/pedidos?id=eq.{id}</span></div>
+    <p>Solo se puede cancelar si el estado es <code>buscando</code>. El saldo se reembolsa automáticamente.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">cURL</span><button class="copy-btn" onclick="cop(this,'curl-cancel')">Copiar</button></div>
+      <pre id="curl-cancel"><span class="kw">curl</span> -X PATCH \
+  <span class="st">'https://dovqezmhdiauhlpichdn.supabase.co/rest/v1/pedidos?id=eq.550e8400-e29b-41d4-a716-446655440000&estado=eq.buscando'</span> \
+  -H <span class="st">'apikey: TU_API_KEY'</span> \
+  -H <span class="st">'Authorization: Bearer TU_API_KEY'</span> \
+  -H <span class="st">'Content-Type: application/json'</span> \
+  -H <span class="st">'Prefer: return=representation'</span> \
+  -d <span class="st">'{"estado": "cancelado"}'</span></pre>
+    </div>
+
+    <!-- PRECIO -->
+    <h2 id="calcular-precio">💰 Calcular precio</h2>
+    <p>Fórmula de precios de Maxikia Express para calcular el costo antes de crear el pedido:</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">JavaScript</span><button class="copy-btn" onclick="cop(this,'js-precio')">Copiar</button></div>
+      <pre id="js-precio"><span class="cm">// Tarifas vigentes Maxikia Express — Bogotá 2026</span>
+<span class="kw">const</span> TARIFAS = {
+  <span class="cp">PRECIO_BASE</span>: <span class="nm">6000</span>,    <span class="cm">// COP mínimo para Express</span>
+  <span class="cp">PRECIO_KM</span>:   <span class="nm">800</span>,     <span class="cm">// COP por km adicional</span>
+  <span class="cp">PESO</span>: {
+    <span class="cp">liviano</span>: <span class="nm">0</span>,         <span class="cm">// Sobrecargo peso liviano</span>
+    <span class="cp">normal</span>:  <span class="nm">1500</span>,
+    <span class="cp">pesado</span>:  <span class="nm">3000</span>
+  },
+  <span class="cm">// Tarifas cortas (Acólitamos / Comercial)</span>
+  <span class="cp">CORTAS</span>: [
+    { <span class="cp">max_metros</span>: <span class="nm">20</span>,  <span class="cp">precio</span>: <span class="nm">1000</span> },
+    { <span class="cp">max_metros</span>: <span class="nm">50</span>,  <span class="cp">precio</span>: <span class="nm">2500</span> },
+    { <span class="cp">max_metros</span>: <span class="nm">100</span>, <span class="cp">precio</span>: <span class="nm">3000</span> },
+    { <span class="cp">max_metros</span>: <span class="nm">250</span>, <span class="cp">precio</span>: <span class="nm">4000</span> },
+    { <span class="cp">max_metros</span>: <span class="nm">500</span>, <span class="cp">precio</span>: <span class="nm">7000</span> },
+  ]
+};
+
+<span class="cm">/**
+ * Calcula el precio de un envío Express
+ * @param {number} distanciaKm - Distancia en kilómetros
+ * @param {string} peso - 'liviano' | 'normal' | 'pesado'
+ * @returns {number} Precio en COP (redondeado a $500)
+ */</span>
+<span class="kw">function</span> <span class="fn">calcularPrecioExpress</span>(distanciaKm, peso = <span class="st">'liviano'</span>) {
+  <span class="kw">const</span> base  = TARIFAS.PRECIO_BASE;
+  <span class="kw">const</span> km    = TARIFAS.PRECIO_KM * distanciaKm;
+  <span class="kw">const</span> sobrecargo = TARIFAS.PESO[peso] || <span class="nm">0</span>;
+  <span class="kw">const</span> total = base + km + sobrecargo;
+  <span class="kw">return</span> Math.<span class="fn">ceil</span>(total / <span class="nm">500</span>) * <span class="nm">500</span>; <span class="cm">// Redondear a $500</span>
+}
+
+<span class="cm">/**
+ * Calcula precio para Acólitamos o Comercial (distancias cortas)
+ * @param {number} distanciaMetros - Distancia en metros (máx 500)
+ * @returns {number} Precio en COP
+ */</span>
+<span class="kw">function</span> <span class="fn">calcularPrecioCorto</span>(distanciaMetros) {
+  <span class="kw">const</span> tarifa = TARIFAS.CORTAS.<span class="fn">find</span>(t => distanciaMetros <= t.max_metros);
+  <span class="kw">return</span> tarifa ? tarifa.precio : <span class="nm">7000</span>;
+}
+
+<span class="cm">// Ejemplos:</span>
+<span class="fn">calcularPrecioExpress</span>(<span class="nm">3.5</span>, <span class="st">'normal'</span>);  <span class="cm">// → $11.000</span>
+<span class="fn">calcularPrecioCorto</span>(<span class="nm">180</span>);              <span class="cm">// → $4.000</span></pre>
+    </div>
+
+    <!-- WEBHOOKS -->
+    <h2 id="webhooks">🔔 Webhooks — Notificaciones en tiempo real</h2>
+    <p>Maxikia puede enviar un POST a tu URL cada vez que un pedido cambie de estado. Configúralo al crear el pedido o por separado.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">Payload del webhook</span><button class="copy-btn" onclick="cop(this,'wh-payload')">Copiar</button></div>
+      <pre id="wh-payload">{
+  <span class="cp">"evento"</span>: <span class="st">"pedido.actualizado"</span>,
+  <span class="cp">"pedido_id"</span>: <span class="st">"550e8400-e29b-41d4-a716-446655440000"</span>,
+  <span class="cp">"estado_anterior"</span>: <span class="st">"buscando"</span>,
+  <span class="cp">"estado_nuevo"</span>: <span class="st">"aceptado"</span>,
+  <span class="cp">"repartidor"</span>: {
+    <span class="cp">"nombre"</span>: <span class="st">"Carlos M."</span>,
+    <span class="cp">"calificacion"</span>: <span class="nm">4.9</span>,
+    <span class="cp">"telefono"</span>: <span class="st">"3001234567"</span>
+  },
+  <span class="cp">"foto_entrega"</span>: <span class="st">"https://..."</span>,  <span class="cm">// Solo cuando estado = entregado</span>
+  <span class="cp">"timestamp"</span>: <span class="st">"2026-06-11T14:35:22.000Z"</span>
+}</pre>
+    </div>
+
+    <h3>Alternativa — Realtime con Supabase (recomendada)</h3>
+    <p>Para aplicaciones web, usa el canal Realtime de Supabase. Es más eficiente que webhooks para tracking en vivo:</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">JavaScript — Supabase Realtime</span><button class="copy-btn" onclick="cop(this,'js-rt')">Copiar</button></div>
+      <pre id="js-rt"><span class="kw">import</span> { createClient } <span class="kw">from</span> <span class="st">'@supabase/supabase-js'</span>
+
+<span class="kw">const</span> sb = <span class="fn">createClient</span>(
+  <span class="st">'https://dovqezmhdiauhlpichdn.supabase.co'</span>,
+  <span class="st">'TU_API_KEY'</span>
+)
+
+<span class="cm">// Escuchar cambios de estado en un pedido específico</span>
+sb.<span class="fn">channel</span>(<span class="st">'tracking-pedido'</span>)
+  .<span class="fn">on</span>(<span class="st">'postgres_changes'</span>, {
+    <span class="cp">event</span>: <span class="st">'UPDATE'</span>,
+    <span class="cp">schema</span>: <span class="st">'public'</span>,
+    <span class="cp">table</span>: <span class="st">'pedidos'</span>,
+    <span class="cp">filter</span>: <span class="st">`id=eq.${pedidoId}`</span>
+  }, payload => {
+    <span class="kw">const</span> { estado, repartidor_id, foto_entrega } = payload.new
+    <span class="fn">actualizarUI</span>(estado, foto_entrega)
+  })
+  .<span class="fn">subscribe</span>()</pre>
+    </div>
+
+    <!-- JS SDK -->
+    <h2 id="js">JavaScript / Node.js</h2>
+    <p>Ejemplo completo listo para copiar y usar en tu proyecto:</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">JavaScript / Node.js</span><button class="copy-btn" onclick="cop(this,'js-sdk')">Copiar</button></div>
+      <pre id="js-sdk"><span class="cm">// maxikia.js — SDK para Maxikia Express API</span>
+<span class="kw">const</span> MAXIKIA_URL = <span class="st">'https://dovqezmhdiauhlpichdn.supabase.co/rest/v1'</span>
+<span class="kw">const</span> API_KEY     = <span class="st">'TU_API_KEY_AQUI'</span>
+
+<span class="kw">const</span> headers = {
+  <span class="st">'apikey'</span>:        API_KEY,
+  <span class="st">'Authorization'</span>: <span class="st">`Bearer ${API_KEY}`</span>,
+  <span class="st">'Content-Type'</span>:  <span class="st">'application/json'</span>,
+  <span class="st">'Prefer'</span>:        <span class="st">'return=representation'</span>
+}
+
+<span class="cm">// ── Crear pedido ──</span>
+<span class="kw">async function</span> <span class="fn">crearPedido</span>(datos) {
+  <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="st">`${MAXIKIA_URL}/pedidos`</span>, {
+    <span class="cp">method</span>: <span class="st">'POST'</span>, headers,
+    <span class="cp">body</span>: JSON.<span class="fn">stringify</span>({
+      ...datos,
+      <span class="cp">estado</span>: <span class="st">'buscando'</span>,
+      <span class="cp">created_at</span>: <span class="kw">new</span> <span class="fn">Date</span>().<span class="fn">toISOString</span>()
+    })
+  })
+  <span class="kw">if</span> (!res.ok) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="st">`Error ${res.status}`</span>)
+  <span class="kw">const</span> [pedido] = <span class="kw">await</span> res.<span class="fn">json</span>()
+  <span class="kw">return</span> pedido
+}
+
+<span class="cm">// ── Consultar estado ──</span>
+<span class="kw">async function</span> <span class="fn">consultarPedido</span>(pedidoId) {
+  <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(
+    <span class="st">`${MAXIKIA_URL}/pedidos?id=eq.${pedidoId}&select=*`</span>,
+    { headers }
+  )
+  <span class="kw">const</span> [pedido] = <span class="kw">await</span> res.<span class="fn">json</span>()
+  <span class="kw">return</span> pedido
+}
+
+<span class="cm">// ── Uso ──</span>
+<span class="kw">const</span> pedido = <span class="kw">await</span> <span class="fn">crearPedido</span>({
+  <span class="cp">tipo_envio</span>:  <span class="st">'express'</span>,
+  <span class="cp">origen</span>:      <span class="st">'Cll 85 #15-32, Bogotá'</span>,
+  <span class="cp">destino</span>:     <span class="st">'Cra 11 #93-10, Bogotá'</span>,
+  <span class="cp">descripcion</span>: <span class="st">'Pedido #1234 — 2 almuerzos'</span>,
+  <span class="cp">precio</span>:      <span class="nm">8500</span>,
+  <span class="cp">usuario_id</span>:  <span class="st">'UUID_DEL_CLIENTE'</span>
+})
+console.<span class="fn">log</span>(<span class="st">'Pedido creado:'</span>, pedido.id, pedido.estado)</pre>
+    </div>
+
+    <!-- PYTHON -->
+    <h2 id="python">Python</h2>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">Python</span><button class="copy-btn" onclick="cop(this,'py-sdk')">Copiar</button></div>
+      <pre id="py-sdk"><span class="kw">import</span> requests
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime, timezone
+
+MAXIKIA_URL = <span class="st">"https://dovqezmhdiauhlpichdn.supabase.co/rest/v1"</span>
+API_KEY     = <span class="st">"TU_API_KEY_AQUI"</span>
+
+HEADERS = {
+    <span class="st">"apikey"</span>:        API_KEY,
+    <span class="st">"Authorization"</span>: <span class="st">f"Bearer {API_KEY}"</span>,
+    <span class="st">"Content-Type"</span>:  <span class="st">"application/json"</span>,
+    <span class="st">"Prefer"</span>:        <span class="st">"return=representation"</span>
+}
+
+<span class="kw">def</span> <span class="fn">crear_pedido</span>(tipo, origen, destino, descripcion, precio, usuario_id, notas=<span class="st">""</span>):
+    payload = {
+        <span class="st">"tipo_envio"</span>:   tipo,
+        <span class="st">"origen"</span>:       origen,
+        <span class="st">"destino"</span>:      destino,
+        <span class="st">"descripcion"</span>:  descripcion,
+        <span class="st">"precio"</span>:       precio,
+        <span class="st">"usuario_id"</span>:   usuario_id,
+        <span class="st">"notas"</span>:        notas,
+        <span class="st">"estado"</span>:       <span class="st">"buscando"</span>,
+        <span class="st">"created_at"</span>:   datetime.now(timezone.utc).isoformat()
+    }
+    r = requests.post(<span class="st">f"{MAXIKIA_URL}/pedidos"</span>, json=payload, headers=HEADERS)
+    r.raise_for_status()
+    <span class="kw">return</span> r.json()[<span class="nm">0</span>]
+
+<span class="kw">def</span> <span class="fn">consultar_pedido</span>(pedido_id):
+    r = requests.get(
+        <span class="st">f"{MAXIKIA_URL}/pedidos?id=eq.{pedido_id}&select=*"</span>,
+        headers=HEADERS
+    )
+    <span class="kw">return</span> r.json()[<span class="nm">0</span>] <span class="kw">if</span> r.json() <span class="kw">else</span> <span class="kw">None</span>
+
+<span class="cm"># Uso</span>
+pedido = <span class="fn">crear_pedido</span>(
+    tipo=<span class="st">"express"</span>, origen=<span class="st">"Cll 72 #10-07, Bogotá"</span>,
+    destino=<span class="st">"Cra 15 #90-30, Bogotá"</span>,
+    descripcion=<span class="st">"Documentos urgentes"</span>,
+    precio=<span class="nm">8500</span>, usuario_id=<span class="st">"UUID_DEL_CLIENTE"</span>
+)
+print(<span class="st">f"Pedido {pedido['id']} — Estado: {pedido['estado']}"</span>)</pre>
+    </div>
+
+    <!-- PHP -->
+    <h2 id="php">PHP</h2>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">PHP</span><button class="copy-btn" onclick="cop(this,'php-sdk')">Copiar</button></div>
+      <pre id="php-sdk"><span class="cm">&lt;?php</span>
+<span class="kw">define</span>(<span class="st">'MAXIKIA_URL'</span>, <span class="st">'https://dovqezmhdiauhlpichdn.supabase.co/rest/v1'</span>);
+<span class="kw">define</span>(<span class="st">'API_KEY'</span>,     <span class="st">'TU_API_KEY_AQUI'</span>);
+
+<span class="kw">function</span> <span class="fn">maxikia_request</span>(<span class="bl">$method</span>, <span class="bl">$endpoint</span>, <span class="bl">$data</span> = <span class="kw">null</span>) {
+    <span class="bl">$ch</span> = curl_init(MAXIKIA_URL . <span class="bl">$endpoint</span>);
+    <span class="bl">$headers</span> = [
+        <span class="st">'apikey: '</span> . API_KEY,
+        <span class="st">'Authorization: Bearer '</span> . API_KEY,
+        <span class="st">'Content-Type: application/json'</span>,
+        <span class="st">'Prefer: return=representation'</span>
+    ];
+    curl_setopt_array(<span class="bl">$ch</span>, [
+        CURLOPT_RETURNTRANSFER => <span class="kw">true</span>,
+        CURLOPT_CUSTOMREQUEST  => <span class="bl">$method</span>,
+        CURLOPT_HTTPHEADER     => <span class="bl">$headers</span>,
+        CURLOPT_POSTFIELDS     => <span class="bl">$data</span> ? json_encode(<span class="bl">$data</span>) : <span class="kw">null</span>
+    ]);
+    <span class="bl">$response</span> = json_decode(curl_exec(<span class="bl">$ch</span>), <span class="kw">true</span>);
+    curl_close(<span class="bl">$ch</span>);
+    <span class="kw">return</span> <span class="bl">$response</span>;
+}
+
+<span class="cm">// Crear pedido</span>
+<span class="bl">$pedido</span> = <span class="fn">maxikia_request</span>(<span class="st">'POST'</span>, <span class="st">'/pedidos'</span>, [
+    <span class="st">'tipo_envio'</span>  => <span class="st">'express'</span>,
+    <span class="st">'origen'</span>      => <span class="st">'Cll 72 #10-07, Bogotá'</span>,
+    <span class="st">'destino'</span>     => <span class="st">'Cra 15 #93-47, Bogotá'</span>,
+    <span class="st">'descripcion'</span> => <span class="st">'Pedido tienda online #5521'</span>,
+    <span class="st">'precio'</span>      => <span class="nm">8500</span>,
+    <span class="st">'usuario_id'</span>  => <span class="st">'UUID_DEL_CLIENTE'</span>,
+    <span class="st">'estado'</span>      => <span class="st">'buscando'</span>,
+    <span class="st">'created_at'</span>  => gmdate(<span class="st">'Y-m-d\TH:i:s\Z'</span>)
+]);
+
+echo <span class="st">"Pedido: {$pedido[0]['id']} — {$pedido[0]['estado']}"</span>;</pre>
+    </div>
+
+    <!-- WIDGET -->
+    <h2 id="widget">🔌 Widget HTML — 2 líneas de código</h2>
+    <p>La forma más fácil de integrar Maxikia en cualquier sitio web:</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">HTML</span><button class="copy-btn" onclick="cop(this,'widget-code')">Copiar</button></div>
+      <pre id="widget-code"><span class="cm">&lt;!-- Pega esto antes del &lt;/body&gt; de tu sitio --&gt;</span>
+<span class="kw">&lt;script</span>
+  <span class="cp">src</span>=<span class="st">"https://maxikia.com/widget.js"</span>
+  <span class="cp">data-local</span>=<span class="st">"Mi Tienda"</span>
+  <span class="cp">data-origen</span>=<span class="st">"Cra 15 #93-10, Bogotá"</span>
+  <span class="cp">data-texto</span>=<span class="st">"🛵 Pedir domicilio"</span>
+  <span class="cp">data-color</span>=<span class="st">"#D4001A"</span>
+  <span class="cp">data-posicion</span>=<span class="st">"flotante"</span>
+<span class="kw">&gt;&lt;/script&gt;</span></pre>
+    </div>
+
+    <table>
+      <thead><tr><th>Atributo</th><th>Descripción</th><th>Ejemplo</th></tr></thead>
+      <tbody>
+        <tr><td><code>data-local</code></td><td>Nombre de tu local</td><td><code>"Mi Restaurante"</code></td></tr>
+        <tr><td><code>data-origen</code></td><td>Dirección de tu local</td><td><code>"Cra 7 #45-12, Bogotá"</code></td></tr>
+        <tr><td><code>data-texto</code></td><td>Texto del botón</td><td><code>"Pedir a domicilio"</code></td></tr>
+        <tr><td><code>data-color</code></td><td>Color del botón (HEX)</td><td><code>"#D4001A"</code></td></tr>
+        <tr><td><code>data-posicion</code></td><td><code>flotante</code> o <code>inline</code></td><td><code>"flotante"</code></td></tr>
+      </tbody>
+    </table>
+
+    <div class="alert tip">
+      <strong>¿Necesitas ayuda con la integración?</strong><br>
+      WhatsApp: <strong>3243334302</strong> · Email: <strong>andresmaxicaia@outlook.com</strong><br>
+      Tiempo de respuesta: menos de 24 horas en días hábiles.
+    </div>
+
+    <div style="height:3rem"></div>
+  </div>
+</div>
+
+<script>
+function cop(btn, id) {
+  const el = document.getElementById(id);
+  const clone = el.cloneNode(true);
+  const text = clone.innerText || clone.textContent;
+  navigator.clipboard.writeText(text.trim()).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copiado';
+    btn.classList.add('ok');
+    setTimeout(() => { btn.textContent = orig; btn.classList.remove('ok'); }, 2000);
+  });
+}
+// Highlight active sidebar link on scroll
+const sections = document.querySelectorAll('[id]');
+const links = document.querySelectorAll('.sb-link');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 80) current = s.id; });
+  links.forEach(l => {
+    l.classList.toggle('on', l.getAttribute('href') === '#'+current);
+  });
+}, { passive: true });
+</script>
+</body>
+</html>

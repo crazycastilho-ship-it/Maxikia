@@ -8,7 +8,8 @@
     { "source": "/socios", "destination": "/socios.html" },
     { "source": "/widget.js", "destination": "/widget.js" },
     { "source": "/manual", "destination": "/manual_maxikia.html" },
-    { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
+    { "source": "/api-docs", "destination": "/maxikia_api.html" },
+    { "source": "/api", "destination": "/maxikia_api.html" },
     { "source": "/robots.txt", "destination": "/robots.txt" }
   ],
   "headers": [
