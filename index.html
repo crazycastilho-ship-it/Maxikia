@@ -1200,6 +1200,11 @@
     if (local || origen || tipo) {
       window._widgetParams = { local, origen, tipo: tipo || 'comercial' };
     }
+    // Deep link desde QR de panfletos: /register, /registro o ?registro=1
+    const path = (window.location.pathname || '').toLowerCase().replace(/\/+$/, '');
+    if (path === '/register' || path === '/registro' || p.get('registro') === '1') {
+      window._abrirRegistro = true;
+    }
   })();
 
   // ── NAV SCROLL GLASSMORPHISM ──
@@ -1256,6 +1261,9 @@
         // Más de 24h inactivo — pedir autenticación
         mostrarBienvenida();
       }
+    } else if (window._abrirRegistro) {
+      // Llegó escaneando el QR del panfleto — abrir registro directamente
+      setTimeout(() => goPage('register'), 300);
     }
 
     sb.auth.onAuthStateChange((event, session) => {
