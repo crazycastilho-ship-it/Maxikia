@@ -658,10 +658,12 @@ async function acreditar(){
   const monto=parseInt(document.getElementById('rm').value);
   const metodo=document.getElementById('rmet').value;
   if(!monto||monto<5000){document.getElementById('ral').innerHTML='<div class="al error">Monto mínimo $5.000.</div>';return;}
+  // Acreditar de forma segura (solo admin, validado en el servidor)
+  const {error} = await sb.rpc('recargar_saldo_admin',{ p_usuario_id: recargaUid, p_monto: monto });
+  if(error){ document.getElementById('ral').innerHTML='<div class="al error">Error: '+(error.message||'no se pudo acreditar')+'</div>'; return; }
+  // Releer el saldo real para mostrarlo
   const {data:p} = await sb.from('perfiles').select('saldo').eq('id',recargaUid).single();
-  const nuevo=(p?.saldo||0)+monto;
-  await sb.from('perfiles').update({saldo:nuevo}).eq('id',recargaUid);
-  document.getElementById('rs').textContent='$'+nuevo.toLocaleString('es-CO');
+  document.getElementById('rs').textContent='$'+((p?.saldo)||0).toLocaleString('es-CO');
   document.getElementById('rm').value='';
   document.getElementById('ral').innerHTML='<div class="al success">✓ $'+monto.toLocaleString('es-CO')+' acreditados por '+metodo+'.</div>';
 }

@@ -1178,6 +1178,18 @@
   });
 
   let currentUser = null;
+
+  // ── Helper: refrescar el saldo mostrado con el valor REAL del servidor ──
+  async function refrescarSaldoMaxikia() {
+    if (!currentUser) return;
+    const { data } = await sb.from('perfiles').select('saldo').eq('id', currentUser.id).single();
+    const txt = '$' + (data?.saldo || 0).toLocaleString('es-CO');
+    const a = document.getElementById('dash-saldo');
+    const b = document.getElementById('wallet-saldo');
+    if (a) a.textContent = txt;
+    if (b) b.textContent = txt;
+  }
+
   let selectedRole = 'both';
   let tipoEnvio = 'express';
   let disponibleComoTransportista = false;  // global declaration
@@ -1893,7 +1905,8 @@
       alerta.innerHTML = '<div class="alert error">Escribe el nombre del local que te envía.</div>'; return;
     }
 
-    // ── VERIFICAR SALDO ──
+    // ── VERIFICACIÓN PREVIA DE SALDO (solo para avisar al usuario antes de enviar) ──
+    // El descuento REAL y la validación definitiva ocurren en el servidor (RPC crear_pedido_seguro).
     const { data: perfil } = await sb.from('perfiles').select('saldo').eq('id', currentUser.id).single();
     const saldoActual = perfil?.saldo || 0;
 
@@ -1919,13 +1932,6 @@
     btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Procesando pago...';
     alerta.innerHTML = '';
 
-    // ── DESCONTAR SALDO AL CLIENTE ──
-    const nuevoSaldo = saldoActual - precio;
-    await sb.from('perfiles').update({ saldo: nuevoSaldo }).eq('id', currentUser.id);
-    document.getElementById('dash-saldo').textContent = '$' + nuevoSaldo.toLocaleString('es-CO');
-
-    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Publicando pedido...';
-
     // Construir descripción completa según tipo
     const mandado = tipoEnvio === 'especial' ? (document.getElementById('env-mandado')?.value || '') : '';
     const local = tipoEnvio === 'comercial' ? (document.getElementById('env-local')?.value || '') : '';
@@ -1935,29 +1941,33 @@
       ? '🏪 [Comercial - ' + local + '] ' + desc
       : desc;
 
-    const { data: pedido, error } = await sb.from('pedidos').insert({
-      usuario_id: currentUser.id,
-      origen, destino,
-      descripcion: descCompleta,
-      tipo_envio: tipoEnvio,
-      lat_origen: coordOrigen.lat, lng_origen: coordOrigen.lng,
-      lat_destino: coordDestino.lat, lng_destino: coordDestino.lng,
-      distancia_km: distancia,
-      peso: tipoEnvio === 'express' ? ['liviano','mediano','pesado'][pesoSel] : 'liviano',
-      precio, estado: 'buscando',
-      notas: document.getElementById('env-notas').value,
-      created_at: new Date().toISOString()
-    }).select().single();
+    // ── CREAR PEDIDO DE FORMA SEGURA (el servidor descuenta el saldo de forma atómica) ──
+    const { data: pedido, error } = await sb.rpc('crear_pedido_seguro', {
+      p_origen:       origen,
+      p_destino:      destino,
+      p_descripcion:  descCompleta,
+      p_tipo_envio:   tipoEnvio,
+      p_precio:       precio,
+      p_lat_origen:   coordOrigen?.lat ?? null,
+      p_lng_origen:   coordOrigen?.lng ?? null,
+      p_lat_destino:  coordDestino?.lat ?? null,
+      p_lng_destino:  coordDestino?.lng ?? null,
+      p_distancia_km: distancia,
+      p_peso:         tipoEnvio === 'express' ? ['liviano','mediano','pesado'][pesoSel] : 'liviano',
+      p_notas:        document.getElementById('env-notas').value
+    });
 
     btn.disabled = false;
     btn.innerHTML = 'Buscar repartidor <i class="ti ti-motorbike"></i>';
 
     if (error) {
-      // Revertir saldo si falla
-      await sb.from('perfiles').update({ saldo: saldoActual }).eq('id', currentUser.id);
-      alerta.innerHTML = '<div class="alert error">Error al publicar: ' + error.message + '</div>';
+      // El servidor no descontó nada si falló: no hay que revertir.
+      alerta.innerHTML = '<div class="alert error">' + (error.message || 'Error al publicar el pedido.') + '</div>';
       return;
     }
+
+    // Refrescar saldo mostrado con el valor real del servidor
+    refrescarSaldoMaxikia();
 
     document.getElementById('resultado-busqueda').innerHTML = `
       <div style="background:var(--green-light);border:1px solid rgba(29,158,117,0.2);border-radius:var(--radius);padding:1.25rem">
@@ -2448,7 +2458,7 @@
     const gananciaRepartidor = Math.round(pedido.precio * COMISION_REPARTIDOR);
     let fotoUrl = null;
 
-    // Subir foto de prueba si existe
+    // Subir foto de prueba (obligatoria)
     if (fotoFile) {
       const blob = await comprimirImagen(fotoFile, 1000, 0.75).catch(() => fotoFile);
       const ruta = 'entregas/' + pedidoId + '_' + Date.now() + '.jpg';
@@ -2458,21 +2468,22 @@
       if (uploaded) fotoUrl = ruta;
     }
 
-    // Marcar como entregado
-    await sb.from('pedidos').update({
-      estado: 'entregado',
-      entregado_at: new Date().toISOString(),
-      foto_entrega: fotoUrl
-    }).eq('id', pedidoId);
+    if (!fotoUrl) {
+      alert('La foto de entrega es obligatoria. Toma la foto del paquete en el destino para confirmar.');
+      return;
+    }
 
-    // Acreditar saldo al repartidor (75%)
-    if (pedido.repartidor_id) {
-      const { data: repPerfil } = await sb.from('perfiles')
-        .select('saldo,entregas_completadas').eq('id', pedido.repartidor_id).single();
-      await sb.from('perfiles').update({
-        saldo: (repPerfil?.saldo || 0) + gananciaRepartidor,
-        entregas_completadas: (repPerfil?.entregas_completadas || 0) + 1
-      }).eq('id', pedido.repartidor_id);
+    // ── CONFIRMAR ENTREGA DE FORMA SEGURA ──
+    // El servidor marca entregado, valida que seas el repartidor asignado,
+    // evita cobro doble y acredita el 75% (calculado en el servidor).
+    const { data: pedidoActualizado, error } = await sb.rpc('confirmar_entrega_segura', {
+      p_pedido_id: pedidoId,
+      p_foto_url:  fotoUrl
+    });
+
+    if (error) {
+      alert('No se pudo confirmar la entrega: ' + (error.message || 'Error desconocido'));
+      return;
     }
 
     // Notificar al cliente — entrega completada
@@ -2484,11 +2495,8 @@
 
     alert('✓ Entrega confirmada.\n\n$' + gananciaRepartidor.toLocaleString('es-CO') + ' acreditados a tu billetera Maxikia.');
 
-    // Guardar pendiente de calificación para el CLIENTE
-    // El cliente la verá la próxima vez que abra la app
-    await sb.from('pedidos').update({
-      calificacion_pendiente: true
-    }).eq('id', pedidoId).catch(() => null); // Si la columna no existe, ignorar
+    // Refrescar el saldo del repartidor con el valor real del servidor
+    refrescarSaldoMaxikia();
 
     // El repartidor NO califica — solo el cliente califica al repartidor
     cargarPedidosHome();
@@ -2676,12 +2684,13 @@
 
   async function cancelarPedidoCliente(pedidoId) {
     if (!confirm('¿Cancelar este pedido? Se devolverá el saldo a tu billetera.')) return;
-    const { data: pedido } = await sb.from('pedidos').select('precio,usuario_id').eq('id', pedidoId).single();
-    if (pedido) {
-      const { data: perfil } = await sb.from('perfiles').select('saldo').eq('id', pedido.usuario_id).single();
-      await sb.from('perfiles').update({ saldo: (perfil?.saldo || 0) + pedido.precio }).eq('id', pedido.usuario_id);
+    // Cancelación segura: el servidor valida propiedad y reembolsa el monto exacto.
+    const { error } = await sb.rpc('cancelar_pedido_seguro', { p_pedido_id: pedidoId });
+    if (error) {
+      alert('No se pudo cancelar: ' + (error.message || 'Error desconocido'));
+      return;
     }
-    await sb.from('pedidos').update({ estado: 'cancelado' }).eq('id', pedidoId);
+    refrescarSaldoMaxikia();
     cargarPedidosHome();
   }
 
@@ -3562,7 +3571,7 @@
       alertEl.innerHTML = '<div class="alert error">Selecciona el método de retiro.</div>'; return;
     }
 
-    // Verificar saldo
+    // Verificación previa de saldo (solo para avisar; el servidor valida en firme)
     const { data: perfil } = await sb.from('perfiles').select('saldo').eq('id', currentUser.id).single();
     const saldo = perfil?.saldo || 0;
     if (saldo < monto) {
@@ -3584,29 +3593,22 @@
     const btn = document.querySelector('#seccion-retiro .btn-primary');
     btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Procesando...';
 
-    // Reservar saldo (descontar mientras se procesa)
-    await sb.from('perfiles').update({ saldo: saldo - monto }).eq('id', currentUser.id);
-
-    // Registrar solicitud de retiro
-    const { error } = await sb.from('retiros').insert({
-      usuario_id: currentUser.id,
-      monto, metodo,
-      datos_cuenta: JSON.stringify(datosCuenta),
-      estado: 'pendiente',
-      created_at: new Date().toISOString()
+    // ── SOLICITAR RETIRO DE FORMA SEGURA ──
+    // El servidor valida el saldo y lo congela de forma atómica.
+    const { data: retiro, error } = await sb.rpc('solicitar_retiro_seguro', {
+      p_monto:        monto,
+      p_metodo:       metodo,
+      p_datos_cuenta: JSON.stringify(datosCuenta)
     });
 
     btn.disabled = false; btn.innerHTML = '<i class="ti ti-arrow-up"></i> Solicitar retiro';
 
     if (error) {
-      // Revertir saldo si falla
-      await sb.from('perfiles').update({ saldo }).eq('id', currentUser.id);
-      alertEl.innerHTML = '<div class="alert error">Error: ' + error.message + '</div>'; return;
+      alertEl.innerHTML = '<div class="alert error">' + (error.message || 'Error al solicitar el retiro.') + '</div>'; return;
     }
 
-    // Actualizar saldo mostrado
-    document.getElementById('wallet-saldo').textContent = '$' + (saldo - monto).toLocaleString('es-CO');
-    document.getElementById('dash-saldo').textContent = '$' + (saldo - monto).toLocaleString('es-CO');
+    // Actualizar saldo mostrado con el valor real del servidor
+    refrescarSaldoMaxikia();
 
     alertEl.innerHTML = `<div class="alert success">✓ Retiro de $${monto.toLocaleString('es-CO')} solicitado. Lo procesamos en menos de 24 horas hábiles.</div>`;
     document.getElementById('retiro-monto').value = '';
