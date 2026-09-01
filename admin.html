@@ -604,6 +604,22 @@ async function verU(u){
 
 async function aprobarU(id,nombre){
   await sb.from('perfiles').update({docs_estado:'aprobado'}).eq('id',id);
+
+  // Buscar la selfie más reciente del repartidor y usarla como foto de perfil
+  try {
+    const { data: files } = await sb.storage.from('documentos').list(id, { limit: 100 });
+    const selfies = (files||[]).filter(f => f.name.startsWith('selfie_'))
+      .sort((a,b) => (b.name > a.name ? 1 : -1)); // más reciente primero
+    if (selfies.length) {
+      const ruta = id + '/' + selfies[0].name;
+      // URL firmada de larga duración (1 año) para mostrarla al cliente
+      const { data: signed } = await sb.storage.from('documentos').createSignedUrl(ruta, 60*60*24*365);
+      if (signed?.signedUrl) {
+        await sb.from('perfiles').update({ foto_url: signed.signedUrl }).eq('id', id);
+      }
+    }
+  } catch(e) { console.warn('No se pudo fijar la foto del repartidor:', e); }
+
   loadVerif(); loadUsuarios(); loadMetrics();
   alert('✓ Cuenta de '+(nombre||'usuario')+' aprobada.');
 }

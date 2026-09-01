@@ -392,7 +392,7 @@
 
 <nav class="nav">
   <div class="nav-inner">
-    <div class="logo" onclick="goPage('landing')">Maxi<span>⋊</span>ia<span class="express">Express</span></div>
+    <div class="logo" onclick="goPage('landing')"><img src="/logo-maxikia.png" alt="Maxikia Express" style="height:38px;width:auto;vertical-align:middle" /></div>
     <div class="nav-links">
       <a href="/manual">Cómo funciona</a>
       <a href="/repartidores.html">Gana dinero</a>
@@ -574,7 +574,7 @@
 
   <footer class="footer">
     <div class="footer-inner">
-      <div class="logo" onclick="goPage('landing')" style="width:100%;text-align:center;cursor:pointer">Maxi<span>⋊</span>ia<span class="express">Express</span></div>
+      <div class="logo" onclick="goPage('landing')" style="width:100%;text-align:center;cursor:pointer"><img src="/logo-maxikia.png" alt="Maxikia Express" style="height:70px;width:auto" /></div>
       <div class="footer-links">
         <a href="/manual">Cómo funciona</a>
         <a href="/terminos.html">Términos</a>
@@ -592,7 +592,7 @@
   <div class="auth-wrap">
     <div class="auth-box">
       <div class="auth-head">
-        <div class="logo" onclick="goPage('landing')" style="font-size:18px;margin-bottom:8px">Maxi<span>⋊</span>ia<span class="express">Express</span></div>
+        <div class="logo" onclick="goPage('landing')" style="margin-bottom:8px;text-align:center"><img src="/logo-maxikia.png" alt="Maxikia Express" style="height:72px;width:auto" /></div>
         <h2>Crear cuenta gratis</h2><p>Rápido como tú lo necesitas</p>
       </div>
       <div class="auth-body2">
@@ -680,7 +680,7 @@
   <div class="auth-wrap">
     <div class="auth-box">
       <div class="auth-head">
-        <div class="logo" onclick="goPage('landing')" style="font-size:18px;margin-bottom:8px">Maxi<span>⋊</span>ia<span class="express">Express</span></div>
+        <div class="logo" onclick="goPage('landing')" style="margin-bottom:8px;text-align:center"><img src="/logo-maxikia.png" alt="Maxikia Express" style="height:72px;width:auto" /></div>
         <h2>Bienvenido de vuelta</h2><p>Rápido como tú lo necesitas</p>
       </div>
       <div class="auth-body2">
@@ -702,7 +702,7 @@
   <div class="app-shell">
     <div class="app-header">
       <div class="app-header-top">
-        <div class="app-logo">Maxi<span>⋊</span>ia<span class="express">Express</span></div>
+        <div class="app-logo"><img src="/logo-maxikia.png" alt="Maxikia Express" style="height:54px;width:auto" /></div>
         <div style="display:flex;gap:8px;align-items:center">
           <button class="icon-btn"><i class="ti ti-bell"></i></button>
           <button class="logout-btn" onclick="doLogout()">Salir</button>
@@ -982,7 +982,7 @@
       <div id="nav-info-repartir" style="display:none;background:white;border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:1rem;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,.06)"></div>
 
       <div id="map-repartir" style="height:200px;border-radius:var(--radius);margin-bottom:1rem;background:#E0EAF0"></div>
-        <div class="sec-row"><div class="sec-t">Pedidos disponibles cerca</div><button class="see-all" onclick="cargarPedidosCercanos()"><i class="ti ti-refresh"></i></button></div>
+        <div class="sec-row"><div class="sec-t">Pedidos disponibles cerca <span id="bandeja-contador" style="display:none;background:var(--mx);color:#fff;font-size:12px;font-weight:700;padding:2px 9px;border-radius:50px;margin-left:6px;vertical-align:middle"></span></div><button class="see-all" onclick="cargarPedidosCercanos()"><i class="ti ti-refresh"></i></button></div>
         <div id="pedidos-cercanos"><div style="text-align:center;padding:2rem;color:var(--muted);font-size:14px;background:white;border:1px solid var(--border);border-radius:var(--radius)"><i class="ti ti-motorbike" style="font-size:32px;display:block;margin-bottom:8px;opacity:.4"></i>Activa el interruptor para ver pedidos.</div></div>
       </div>
 
@@ -2239,6 +2239,7 @@
       });
       initMapRepartir();
       cargarPedidosCercanos();
+      suscribirBandejaRealtime();
       if (!window._repInterval) {
         window._repInterval = setInterval(cargarPedidosCercanos, 15000);
       }
@@ -2249,6 +2250,7 @@
         updated_at: new Date().toISOString()
       });
       cargarPedidosCercanos();
+      suscribirBandejaRealtime();
       if (!window._repInterval) {
         window._repInterval = setInterval(cargarPedidosCercanos, 15000);
       }
@@ -2264,6 +2266,9 @@
     txt && (txt.textContent = 'Inactivo — activa para recibir pedidos');
     localStorage.removeItem('mx_disponible');
     if (window._repInterval) { clearInterval(window._repInterval); window._repInterval = null; }
+    desuscribirBandejaRealtime();
+    const contador = document.getElementById('bandeja-contador');
+    if (contador) contador.style.display = 'none';
     if (currentUser) await sb.from('perfiles').upsert({ id: currentUser.id, disponible: false });
     const cont = document.getElementById('pedidos-cercanos');
     if (cont) cont.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:14px">Activa el interruptor para ver pedidos disponibles.</div>';
@@ -2289,8 +2294,31 @@
     }
   }
 
+  // ── BANDEJA EN TIEMPO REAL ──
+  // Se suscribe a cambios en pedidos: aparece un pedido nuevo o desaparece
+  // uno ya aceptado, sin esperar al refresco de 15s.
+  function suscribirBandejaRealtime() {
+    if (window._bandejaCanal) return; // ya suscrito
+    window._bandejaCanal = sb.channel('bandeja-pedidos')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'pedidos' },
+        (payload) => {
+          // Cualquier cambio en pedidos recarga la bandeja si el repartidor está activo
+          if (disponibleComoRepartidor) cargarPedidosCercanos();
+        })
+      .subscribe();
+  }
+  function desuscribirBandejaRealtime() {
+    if (window._bandejaCanal) {
+      sb.removeChannel(window._bandejaCanal);
+      window._bandejaCanal = null;
+    }
+  }
+
   async function cargarPedidosCercanos() {
     const cont = document.getElementById('pedidos-cercanos');
+    const contador = document.getElementById('bandeja-contador');
+    if (contador) contador.style.display = 'none';
     if (!disponibleComoRepartidor) {
       cont.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:14px">Activa el interruptor para ver pedidos disponibles.</div>';
       return;
@@ -2322,6 +2350,16 @@
       if (cercanos.length === 0) {
         // Si no hay cercanos, mostrar todos igualmente
         cercanos = pedidos;
+      }
+    }
+
+    // Actualizar el contador de solicitudes en el título
+    if (contador) {
+      if (cercanos.length > 0) {
+        contador.textContent = cercanos.length;
+        contador.style.display = 'inline-block';
+      } else {
+        contador.style.display = 'none';
       }
     }
 
@@ -2531,16 +2569,22 @@
       .on('postgres_changes', {
         event: 'UPDATE', schema: 'public', table: 'pedidos',
         filter: `usuario_id=eq.${currentUser.id}`
-      }, payload => {
+      }, async payload => {
         const p = payload.new;
+        const prev = payload.old;
         cargarPedidosHome();
-        const msgs = {
-          aceptado: '🛵 Un repartidor aceptó tu pedido — va en camino',
-          recogido: '📦 Tu paquete fue recogido — está en camino',
-          entregado: '✅ ¡Tu pedido fue entregado!',
-          cancelado: '❌ Tu pedido fue cancelado'
-        };
-        if (msgs[p.estado]) mostrarNotificacion('Maxi⋊ia Express', msgs[p.estado]);
+
+        // Cuando el pedido pasa a "aceptado", mostrar quién va a recoger (nombre + foto)
+        if (p.estado === 'aceptado' && prev?.estado !== 'aceptado' && p.repartidor_id) {
+          await notificarRepartidorAsignado(p.repartidor_id);
+        } else {
+          const msgs = {
+            recogido: '📦 Tu paquete fue recogido — está en camino',
+            entregado: '✅ ¡Tu pedido fue entregado!',
+            cancelado: '❌ Tu pedido fue cancelado'
+          };
+          if (msgs[p.estado]) mostrarNotificacion('Maxikia Express', msgs[p.estado]);
+        }
         // Mostrar calificación si fue entregado
         if (p.estado === 'entregado' && p.calificacion_pendiente && !p.calificado_por_cliente) {
           setTimeout(() => mostrarCalificacionCliente(p), 1000);
@@ -3643,21 +3687,82 @@
     return perm === 'granted';
   }
 
-  async function mostrarNotificacion(titulo, cuerpo, url) {
+  // ── NOTIFICAR AL CLIENTE QUIÉN VA A RECOGER (nombre + foto) ──
+  async function notificarRepartidorAsignado(repartidorId) {
+    // Traer nombre, foto y calificación del repartidor
+    const { data: rep } = await sb.from('perfiles')
+      .select('nombre, foto_url, calificacion, entregas_completadas')
+      .eq('id', repartidorId).single();
+
+    const nombre = rep?.nombre || 'Tu repartidor';
+    const primerNombre = nombre.split(' ')[0];
+    const foto = rep?.foto_url || '';
+    const calif = rep?.calificacion ? Number(rep.calificacion).toFixed(1) : null;
+
+    // 1) Notificación push del navegador (con foto si hay)
+    mostrarNotificacion(
+      'Maxikia Express',
+      primerNombre + ' está llegando a recoger tu pedido 🛵',
+      '/', foto
+    );
+
+    // 2) Banner enriquecido dentro de la app
+    mostrarBannerRepartidor(primerNombre, nombre, foto, calif, rep?.entregas_completadas);
+  }
+
+  function mostrarBannerRepartidor(primerNombre, nombreCompleto, foto, calif, entregas) {
+    // Quitar banner previo si existe
+    document.getElementById('rep-asignado-banner')?.remove();
+
+    const inicial = (nombreCompleto || 'R').charAt(0).toUpperCase();
+    const avatar = foto
+      ? `<img src="${foto}" alt="${nombreCompleto}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid var(--mx)" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div style="width:56px;height:56px;border-radius:50%;background:var(--mx);color:#fff;display:none;align-items:center;justify-content:center;font-size:22px;font-weight:700;border:2px solid var(--mx)">${inicial}</div>`
+      : `<div style="width:56px;height:56px;border-radius:50%;background:var(--mx);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700">${inicial}</div>`;
+
+    const estrellas = calif ? `<div style="font-size:12px;color:#F5A623;margin-top:2px">★ ${calif}${entregas ? ' · ' + entregas + ' entregas' : ''}</div>` : '';
+
+    const banner = document.createElement('div');
+    banner.id = 'rep-asignado-banner';
+    banner.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 12px 40px rgba(0,0,0,0.25);border:1px solid var(--border);display:flex;align-items:center;gap:14px;max-width:92%;width:380px;animation:bannerRep .35s ease';
+    if (!document.getElementById('bannerRepAnim')) {
+      const st = document.createElement('style');
+      st.id = 'bannerRepAnim';
+      st.textContent = '@keyframes bannerRep { from { transform:translate(-50%,-120%);opacity:0; } to { transform:translate(-50%,0);opacity:1; } }';
+      document.head.appendChild(st);
+    }
+    banner.innerHTML = `
+      ${avatar}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:2px">Tu repartidor va en camino</div>
+        <div style="font-weight:700;font-size:16px;color:var(--dark)">${primerNombre} está llegando</div>
+        <div style="font-size:12.5px;color:var(--muted)">a recoger tu pedido</div>
+        ${estrellas}
+      </div>
+      <button onclick="document.getElementById('rep-asignado-banner').remove()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:0 4px;line-height:1">×</button>
+    `;
+    document.body.appendChild(banner);
+
+    // Auto-cerrar a los 12 segundos
+    setTimeout(() => document.getElementById('rep-asignado-banner')?.remove(), 12000);
+  }
+
+  async function mostrarNotificacion(titulo, cuerpo, url, imagen) {
     const ok = await pedirPermisoNotificaciones();
     if (!ok) return;
     if ('serviceWorker' in navigator) {
       const reg = await navigator.serviceWorker.ready;
-      reg.showNotification(titulo, {
+      const opts = {
         body: cuerpo,
-        icon: '/icon-192.png',
+        icon: imagen || '/icon-192.png',
         badge: '/icon-192.png',
         vibrate: [200, 100, 200],
         data: { url: url || '/' },
         actions: [{ action: 'ver', title: 'Ver pedido' }]
-      });
+      };
+      if (imagen) opts.image = imagen; // foto grande del repartidor
+      reg.showNotification(titulo, opts);
     } else {
-      new Notification(titulo, { body: cuerpo, icon: '/icon-192.png' });
+      new Notification(titulo, { body: cuerpo, icon: imagen || '/icon-192.png' });
     }
   }
 
