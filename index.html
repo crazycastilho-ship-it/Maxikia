@@ -367,10 +367,17 @@
       .nav-links { display: none; }
       .nav-burger { display: flex; align-items: center; justify-content: center; }
       html, body { overflow-x: hidden !important; }
-      .hero { padding: 3rem 1.25rem 2.5rem; }
+      /* Nav y logo proporcionados en celular */
+      .nav-inner { min-height: 88px !important; padding: 0.4rem 1.1rem !important; }
+      .nav .logo img { height: 76px !important; }
+      /* Logos de login, registro, menú lateral y app más pequeños en móvil */
+      .auth-box .logo img, .app-logo img { height: 96px !important; }
+      #nav-mobile .logo img { height: 90px !important; }
+      /* Hero: dejar espacio bajo el nav fijo para que no se solape */
+      .hero { padding: 6.5rem 1.25rem 2.5rem !important; }
       .hero-inner { grid-template-columns: 1fr !important; gap: 0; width: 100%; }
       .hero-visual { display: none !important; }
-      .hero h1 { font-size: 2rem; word-break: break-word; }
+      .hero h1 { font-size: 1.9rem; word-break: break-word; }
       .hero-ctas { flex-direction: column; }
       .hero-ctas button, .hero-ctas a { width: 100%; justify-content: center; }
       .stats-inner { grid-template-columns: repeat(2,1fr); }
@@ -392,7 +399,7 @@
 
 <nav class="nav">
   <div class="nav-inner">
-    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-maxikia.png?v=5" alt="Maxikia Express" style="height:150px;width:auto" /></div>
+    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-maxikia.png?v=6" alt="Maxikia Express" style="height:150px;width:auto" /></div>
     <div class="nav-links">
       <a href="/manual">Cómo funciona</a>
       <a href="/repartidores.html">Gana dinero</a>
@@ -574,7 +581,7 @@
 
   <footer class="footer">
     <div class="footer-inner">
-      <div class="logo" onclick="goPage('landing')" style="width:100%;text-align:center;cursor:pointer"><img src="/logo-maxikia.png?v=5" alt="Maxikia Express" style="height:140px;width:auto" /></div>
+      <div class="logo" onclick="goPage('landing')" style="width:100%;text-align:center;cursor:pointer"><img src="/logo-maxikia.png?v=6" alt="Maxikia Express" style="height:140px;width:auto" /></div>
       <div class="footer-links">
         <a href="/manual">Cómo funciona</a>
         <a href="/terminos.html">Términos</a>
@@ -592,7 +599,7 @@
   <div class="auth-wrap">
     <div class="auth-box">
       <div class="auth-head">
-        <div class="logo" onclick="goPage('landing')" style="margin-bottom:8px;text-align:center"><img src="/logo-maxikia.png?v=5" alt="Maxikia Express" style="height:150px;width:auto" /></div>
+        <div class="logo" onclick="goPage('landing')" style="margin-bottom:8px;text-align:center"><img src="/logo-maxikia.png?v=6" alt="Maxikia Express" style="height:150px;width:auto" /></div>
         <h2>Crear cuenta gratis</h2><p>Rápido como tú lo necesitas</p>
       </div>
       <div class="auth-body2">
@@ -680,7 +687,7 @@
   <div class="auth-wrap">
     <div class="auth-box">
       <div class="auth-head">
-        <div class="logo" onclick="goPage('landing')" style="margin-bottom:8px;text-align:center"><img src="/logo-maxikia.png?v=5" alt="Maxikia Express" style="height:150px;width:auto" /></div>
+        <div class="logo" onclick="goPage('landing')" style="margin-bottom:8px;text-align:center"><img src="/logo-maxikia.png?v=6" alt="Maxikia Express" style="height:150px;width:auto" /></div>
         <h2>Bienvenido de vuelta</h2><p>Rápido como tú lo necesitas</p>
       </div>
       <div class="auth-body2">
@@ -702,7 +709,7 @@
   <div class="app-shell">
     <div class="app-header">
       <div class="app-header-top">
-        <div class="app-logo" style="text-align:center"><img src="/logo-maxikia.png?v=5" alt="Maxikia Express" style="height:110px;width:auto" /></div>
+        <div class="app-logo" style="text-align:center"><img src="/logo-maxikia.png?v=6" alt="Maxikia Express" style="height:110px;width:auto" /></div>
         <div style="display:flex;gap:8px;align-items:center">
           <button class="icon-btn"><i class="ti ti-bell"></i></button>
           <button class="logout-btn" onclick="doLogout()">Salir</button>
