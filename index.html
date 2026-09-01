@@ -399,7 +399,7 @@
 
 <nav class="nav">
   <div class="nav-inner">
-    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-maxikia.png?v=6" alt="Maxikia Express" style="height:150px;width:auto" /></div>
+    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-maxikia.png?v=7" alt="Maxikia Express" style="height:150px;width:auto" /></div>
     <div class="nav-links">
       <a href="/manual">Cómo funciona</a>
       <a href="/repartidores.html">Gana dinero</a>
@@ -581,7 +581,7 @@
 
   <footer class="footer">
     <div class="footer-inner">
-      <div class="logo" onclick="goPage('landing')" style="width:100%;text-align:center;cursor:pointer"><img src="/logo-maxikia.png?v=6" alt="Maxikia Express" style="height:140px;width:auto" /></div>
+      <div class="logo" onclick="goPage('landing')" style="width:100%;text-align:center;cursor:pointer"><img src="/logo-maxikia.png?v=7" alt="Maxikia Express" style="height:140px;width:auto" /></div>
       <div class="footer-links">
         <a href="/manual">Cómo funciona</a>
         <a href="/terminos.html">Términos</a>
@@ -599,7 +599,7 @@
   <div class="auth-wrap">
     <div class="auth-box">
       <div class="auth-head">
-        <div class="logo" onclick="goPage('landing')" style="margin-bottom:8px;text-align:center"><img src="/logo-maxikia.png?v=6" alt="Maxikia Express" style="height:150px;width:auto" /></div>
+        <div class="logo" onclick="goPage('landing')" style="margin-bottom:8px;text-align:center"><img src="/logo-maxikia.png?v=7" alt="Maxikia Express" style="height:150px;width:auto" /></div>
         <h2>Crear cuenta gratis</h2><p>Rápido como tú lo necesitas</p>
       </div>
       <div class="auth-body2">
@@ -619,7 +619,20 @@
           </div>
           <div class="field-group"><label class="field-label">Nombre completo</label><input type="text" class="field-input" id="reg-name" placeholder="Tu nombre y apellido"></div>
           <div class="field-group"><label class="field-label">Correo electrónico</label><input type="email" class="field-input" id="reg-email" placeholder="tu@correo.com"></div>
+          <div class="field-group"><label class="field-label">Tipo y número de documento</label>
+            <div style="display:flex;gap:8px">
+              <select class="field-input" id="reg-doctype" style="flex:0 0 40%">
+                <option value="CC">C.C.</option>
+                <option value="CE">C.E.</option>
+                <option value="TI">T.I.</option>
+                <option value="PA">Pasaporte</option>
+                <option value="NIT">NIT</option>
+              </select>
+              <input type="text" class="field-input" id="reg-docnum" placeholder="Número de documento" style="flex:1">
+            </div>
+          </div>
           <div class="field-group"><label class="field-label">Teléfono</label><input type="tel" class="field-input" id="reg-phone" placeholder="+57 300 000 0000"></div>
+          <div class="field-group"><label class="field-label">Dirección</label><input type="text" class="field-input" id="reg-address" placeholder="Calle 00 #00-00, barrio, ciudad"></div>
           <div class="field-group"><label class="field-label">Contraseña</label><input type="password" class="field-input" id="reg-pass" placeholder="Mínimo 8 caracteres"></div>
           <button class="btn-primary btn-full" id="reg-btn1" onclick="doRegister()" style="margin-top:.5rem">Continuar <i class="ti ti-arrow-right"></i></button>
           <div class="alink">¿Ya tienes cuenta? <span onclick="goPage('login')">Iniciar sesión</span></div>
@@ -687,7 +700,7 @@
   <div class="auth-wrap">
     <div class="auth-box">
       <div class="auth-head">
-        <div class="logo" onclick="goPage('landing')" style="margin-bottom:8px;text-align:center"><img src="/logo-maxikia.png?v=6" alt="Maxikia Express" style="height:150px;width:auto" /></div>
+        <div class="logo" onclick="goPage('landing')" style="margin-bottom:8px;text-align:center"><img src="/logo-maxikia.png?v=7" alt="Maxikia Express" style="height:150px;width:auto" /></div>
         <h2>Bienvenido de vuelta</h2><p>Rápido como tú lo necesitas</p>
       </div>
       <div class="auth-body2">
@@ -709,7 +722,7 @@
   <div class="app-shell">
     <div class="app-header">
       <div class="app-header-top">
-        <div class="app-logo" style="text-align:center"><img src="/logo-maxikia.png?v=6" alt="Maxikia Express" style="height:110px;width:auto" /></div>
+        <div class="app-logo" style="text-align:center"><img src="/logo-maxikia.png?v=7" alt="Maxikia Express" style="height:110px;width:auto" /></div>
         <div style="display:flex;gap:8px;align-items:center">
           <button class="icon-btn"><i class="ti ti-bell"></i></button>
           <button class="logout-btn" onclick="doLogout()">Salir</button>
@@ -2285,6 +2298,13 @@
     if (disponibleComoRepartidor) {
       await desactivarDisponible();
     } else {
+      // Barrera: sin documentos aprobados no puede ponerse disponible
+      const { data: perfil } = await sb.from('perfiles')
+        .select('docs_estado').eq('id', currentUser.id).single();
+      if (perfil?.docs_estado !== 'aprobado') {
+        verificarDocsRepartidor();
+        return;
+      }
       await activarDisponible();
     }
   }
@@ -2811,10 +2831,51 @@
         }, 300);
       }
     }
-    if (t === 'repartir') initMapRepartir();
+    if (t === 'repartir') { verificarDocsRepartidor(); initMapRepartir(); }
     if (t === 'transportista') { verificarDepositoTransportista(); cargarMudanzasDisponibles(); }
     if (t === 'historial') cargarHistorial();
     if (t === 'billetera') cargarWallet();
+  }
+
+  // ── Recordar subir documentos si quiere repartir sin verificación ──
+  async function verificarDocsRepartidor() {
+    if (!currentUser) return;
+    const { data: perfil } = await sb.from('perfiles')
+      .select('docs_estado, docs_enviados').eq('id', currentUser.id).single();
+
+    const cont = document.getElementById('pedidos-cercanos');
+    // Si ya está aprobado, todo normal
+    if (perfil?.docs_estado === 'aprobado') return;
+
+    // No aprobado: bloquear la bandeja con un recordatorio
+    let titulo, texto, boton;
+    if (!perfil?.docs_enviados) {
+      titulo = 'Falta verificar tu identidad';
+      texto = 'Para repartir y ganar dinero necesitas subir tus documentos (cédula y selfie). Es rápido y solo se hace una vez.';
+      boton = 'Subir documentos ahora';
+    } else if (perfil?.docs_estado === 'en_revision') {
+      titulo = 'Documentos en revisión';
+      texto = 'Ya recibimos tus documentos. Un administrador los está revisando. Te avisaremos cuando puedas empezar a repartir.';
+      boton = null;
+    } else {
+      titulo = 'Verificación pendiente';
+      texto = 'Necesitas completar la verificación de identidad para poder repartir.';
+      boton = 'Completar verificación';
+    }
+
+    if (cont) {
+      cont.innerHTML = `
+        <div style="text-align:center;padding:1.5rem;background:white;border:1px solid var(--border);border-radius:var(--radius)">
+          <i class="ti ti-id" style="font-size:32px;color:var(--mx);display:block;margin-bottom:10px"></i>
+          <div style="font-family:var(--font-head);font-weight:700;font-size:16px;margin-bottom:6px">${titulo}</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:${boton?'14px':'0'}">${texto}</div>
+          ${boton ? `<button onclick="reanudarVerificacion()" style="background:var(--mx);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px 22px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font-body)"><i class="ti ti-upload"></i> ${boton}</button>` : ''}
+        </div>`;
+    }
+    // Desactivar disponibilidad si estaba activa (no puede repartir sin verificar)
+    if (typeof disponibleComoRepartidor !== 'undefined' && disponibleComoRepartidor) {
+      if (typeof desactivarDisponible === 'function') desactivarDisponible();
+    }
   }
 
   // ── REGISTER ──
@@ -2833,10 +2894,16 @@
     const email = document.getElementById('reg-email').value.trim();
     const phone = document.getElementById('reg-phone').value.trim();
     const pass = document.getElementById('reg-pass').value;
+    const docType = document.getElementById('reg-doctype').value;
+    const docNum = document.getElementById('reg-docnum').value.trim();
+    const address = document.getElementById('reg-address').value.trim();
     const alertEl = document.getElementById('reg-alert');
     const btn = document.getElementById('reg-btn1');
 
     if (!name || !email || !pass) { alertEl.innerHTML = '<div class="alert error">Completa nombre, correo y contraseña.</div>'; return; }
+    if (!docNum) { alertEl.innerHTML = '<div class="alert error">Ingresa tu número de documento.</div>'; return; }
+    if (!phone) { alertEl.innerHTML = '<div class="alert error">Ingresa tu teléfono.</div>'; return; }
+    if (!address) { alertEl.innerHTML = '<div class="alert error">Ingresa tu dirección.</div>'; return; }
     if (pass.length < 8) { alertEl.innerHTML = '<div class="alert error">La contraseña debe tener mínimo 8 caracteres.</div>'; return; }
 
     btn.disabled = true;
@@ -2855,10 +2922,16 @@
       currentUser = loginData.user;
       await sb.from('perfiles').upsert({
         id: currentUser.id, nombre: name, telefono: phone,
+        tipo_documento: docType, numero_documento: docNum, direccion: address,
         rol: selectedRole, email, disponible: false, saldo: 0
       });
       btn.disabled = false;
       btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
+      // Cliente puro: no sube documentos, va directo al dashboard
+      if (selectedRole === 'client') {
+        alertEl.innerHTML = '';
+        showDashboard(); return;
+      }
       const { data: perfil } = await sb.from('perfiles').select('docs_estado').eq('id', currentUser.id).single();
       if (perfil?.docs_estado === 'aprobado') {
         alertEl.innerHTML = '';
@@ -2899,6 +2972,7 @@
     if (currentUser) {
       await sb.from('perfiles').upsert({
         id: currentUser.id, nombre: name, telefono: phone,
+        tipo_documento: docType, numero_documento: docNum, direccion: address,
         rol: selectedRole, email, disponible: false, saldo: 0
       });
     }
@@ -2906,6 +2980,11 @@
     btn.disabled = false;
     btn.innerHTML = 'Continuar <i class="ti ti-arrow-right"></i>';
     alertEl.innerHTML = '';
+    // Cliente puro: no sube documentos, entra directo al dashboard
+    if (selectedRole === 'client') {
+      showDashboard();
+      return;
+    }
     rStep(2);
   }
 
