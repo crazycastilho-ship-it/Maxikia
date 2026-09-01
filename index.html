@@ -79,7 +79,7 @@
     #page-dashboard .dp { padding-bottom: 80px; }
     /* ── NAV GLASSMORPHISM ── */
     .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; transition: all 0.4s cubic-bezier(.16,1,.3,1); }
-    .nav-inner { max-width: 1100px; margin: 0 auto; padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 84px; }
+    .nav-inner { max-width: 1100px; margin: 0 auto; padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 132px; }
     .nav.scrolled { background: rgba(14,13,13,0.82); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border-bottom: 1px solid rgba(255,255,255,0.06); }
     .logo { font-family: var(--font-head); font-weight: 800; font-size: 22px; color: white; text-decoration: none; letter-spacing: -0.5px; cursor: pointer; }
     .logo span { color: var(--mx2); }
@@ -97,7 +97,7 @@
     .nav-mobile a { color: rgba(255,255,255,0.7); text-decoration: none; padding: 12px 0; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
 
     /* ── HERO CINEMATIC ── */
-    .hero { background: var(--dark); display: flex; flex-direction: column; justify-content: center; padding: 6rem 1.5rem 3.5rem; position: relative; overflow: hidden; }
+    .hero { background: var(--dark); display: flex; flex-direction: column; justify-content: center; padding: 8.5rem 1.5rem 3rem; position: relative; overflow: hidden; }
     /* Animated radial mesh */
     .hero::before { content: ''; position: absolute; top: -30%; right: -15%; width: 70vw; height: 70vw; max-width: 900px; max-height: 900px; border-radius: 50%; background: radial-gradient(circle at center, rgba(212,0,26,0.18) 0%, rgba(212,0,26,0.05) 45%, transparent 70%); pointer-events: none; animation: driftA 12s ease-in-out infinite alternate; }
     .hero::after { content: ''; position: absolute; bottom: -20%; left: -10%; width: 50vw; height: 50vw; max-width: 600px; max-height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(212,0,26,0.07) 0%, transparent 70%); pointer-events: none; animation: driftB 16s ease-in-out infinite alternate; }
@@ -109,7 +109,7 @@
 
     /* Hero text animations */
     .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(212,0,26,0.15); border: 1px solid rgba(212,0,26,0.3); color: #FF8C9A; font-size: 11.5px; font-weight: 500; padding: 5px 14px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 1.5rem; opacity: 0; animation: fadeUp 0.7s 0.1s cubic-bezier(.16,1,.3,1) forwards; }
-    .hero h1 { font-family: var(--font-head); font-weight: 800; font-size: clamp(2.4rem, 4.5vw, 3.4rem); color: white; line-height: 1.05; margin-bottom: 1.1rem; opacity: 0; animation: fadeUp 0.8s 0.25s cubic-bezier(.16,1,.3,1) forwards; }
+    .hero h1 { font-family: var(--font-head); font-weight: 800; font-size: clamp(1.9rem, 3.4vw, 2.7rem); color: white; line-height: 1.08; margin-bottom: 1rem; opacity: 0; animation: fadeUp 0.8s 0.25s cubic-bezier(.16,1,.3,1) forwards; }
     .hero h1 em { color: var(--mx2); font-style: normal; }
     .hero-sub { color: rgba(255,255,255,0.45); font-size: 1.05rem; line-height: 1.75; margin-bottom: 2.25rem; max-width: 480px; opacity: 0; animation: fadeUp 0.8s 0.4s cubic-bezier(.16,1,.3,1) forwards; }
     .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 2rem; opacity: 0; animation: fadeUp 0.8s 0.55s cubic-bezier(.16,1,.3,1) forwards; }
@@ -392,7 +392,7 @@
 
 <nav class="nav">
   <div class="nav-inner">
-    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-maxikia.png" alt="Maxikia Express" style="height:72px;width:auto" /></div>
+    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-maxikia.png" alt="Maxikia Express" style="height:120px;width:auto" /></div>
     <div class="nav-links">
       <a href="/manual">Cómo funciona</a>
       <a href="/repartidores.html">Gana dinero</a>
@@ -574,7 +574,7 @@
 
   <footer class="footer">
     <div class="footer-inner">
-      <div class="logo" onclick="goPage('landing')" style="width:100%;text-align:center;cursor:pointer"><img src="/logo-maxikia.png" alt="Maxikia Express" style="height:100px;width:auto" /></div>
+      <div class="logo" onclick="goPage('landing')" style="width:100%;text-align:center;cursor:pointer"><img src="/logo-maxikia.png" alt="Maxikia Express" style="height:140px;width:auto" /></div>
       <div class="footer-links">
         <a href="/manual">Cómo funciona</a>
         <a href="/terminos.html">Términos</a>
@@ -592,7 +592,7 @@
   <div class="auth-wrap">
     <div class="auth-box">
       <div class="auth-head">
-        <div class="logo" onclick="goPage('landing')" style="margin-bottom:8px;text-align:center"><img src="/logo-maxikia.png" alt="Maxikia Express" style="height:110px;width:auto" /></div>
+        <div class="logo" onclick="goPage('landing')" style="margin-bottom:8px;text-align:center"><img src="/logo-maxikia.png" alt="Maxikia Express" style="height:150px;width:auto" /></div>
         <h2>Crear cuenta gratis</h2><p>Rápido como tú lo necesitas</p>
       </div>
       <div class="auth-body2">
@@ -680,7 +680,7 @@
   <div class="auth-wrap">
     <div class="auth-box">
       <div class="auth-head">
-        <div class="logo" onclick="goPage('landing')" style="margin-bottom:8px;text-align:center"><img src="/logo-maxikia.png" alt="Maxikia Express" style="height:110px;width:auto" /></div>
+        <div class="logo" onclick="goPage('landing')" style="margin-bottom:8px;text-align:center"><img src="/logo-maxikia.png" alt="Maxikia Express" style="height:150px;width:auto" /></div>
         <h2>Bienvenido de vuelta</h2><p>Rápido como tú lo necesitas</p>
       </div>
       <div class="auth-body2">
@@ -702,7 +702,7 @@
   <div class="app-shell">
     <div class="app-header">
       <div class="app-header-top">
-        <div class="app-logo" style="text-align:center"><img src="/logo-maxikia.png" alt="Maxikia Express" style="height:72px;width:auto" /></div>
+        <div class="app-logo" style="text-align:center"><img src="/logo-maxikia.png" alt="Maxikia Express" style="height:110px;width:auto" /></div>
         <div style="display:flex;gap:8px;align-items:center">
           <button class="icon-btn"><i class="ti ti-bell"></i></button>
           <button class="logout-btn" onclick="doLogout()">Salir</button>
