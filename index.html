@@ -392,7 +392,7 @@
 
 <nav class="nav">
   <div class="nav-inner">
-    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-maxikia.png?v=4" alt="Maxikia Express" style="height:150px;width:auto" /></div>
+    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-maxikia.png?v=5" alt="Maxikia Express" style="height:150px;width:auto" /></div>
     <div class="nav-links">
       <a href="/manual">Cómo funciona</a>
       <a href="/repartidores.html">Gana dinero</a>
@@ -574,7 +574,7 @@
 
   <footer class="footer">
     <div class="footer-inner">
-      <div class="logo" onclick="goPage('landing')" style="width:100%;text-align:center;cursor:pointer"><img src="/logo-maxikia.png?v=4" alt="Maxikia Express" style="height:140px;width:auto" /></div>
+      <div class="logo" onclick="goPage('landing')" style="width:100%;text-align:center;cursor:pointer"><img src="/logo-maxikia.png?v=5" alt="Maxikia Express" style="height:140px;width:auto" /></div>
       <div class="footer-links">
         <a href="/manual">Cómo funciona</a>
         <a href="/terminos.html">Términos</a>
@@ -592,7 +592,7 @@
   <div class="auth-wrap">
     <div class="auth-box">
       <div class="auth-head">
-        <div class="logo" onclick="goPage('landing')" style="margin-bottom:8px;text-align:center"><img src="/logo-maxikia.png?v=4" alt="Maxikia Express" style="height:150px;width:auto" /></div>
+        <div class="logo" onclick="goPage('landing')" style="margin-bottom:8px;text-align:center"><img src="/logo-maxikia.png?v=5" alt="Maxikia Express" style="height:150px;width:auto" /></div>
         <h2>Crear cuenta gratis</h2><p>Rápido como tú lo necesitas</p>
       </div>
       <div class="auth-body2">
@@ -680,7 +680,7 @@
   <div class="auth-wrap">
     <div class="auth-box">
       <div class="auth-head">
-        <div class="logo" onclick="goPage('landing')" style="margin-bottom:8px;text-align:center"><img src="/logo-maxikia.png?v=4" alt="Maxikia Express" style="height:150px;width:auto" /></div>
+        <div class="logo" onclick="goPage('landing')" style="margin-bottom:8px;text-align:center"><img src="/logo-maxikia.png?v=5" alt="Maxikia Express" style="height:150px;width:auto" /></div>
         <h2>Bienvenido de vuelta</h2><p>Rápido como tú lo necesitas</p>
       </div>
       <div class="auth-body2">
@@ -702,7 +702,7 @@
   <div class="app-shell">
     <div class="app-header">
       <div class="app-header-top">
-        <div class="app-logo" style="text-align:center"><img src="/logo-maxikia.png?v=4" alt="Maxikia Express" style="height:110px;width:auto" /></div>
+        <div class="app-logo" style="text-align:center"><img src="/logo-maxikia.png?v=5" alt="Maxikia Express" style="height:110px;width:auto" /></div>
         <div style="display:flex;gap:8px;align-items:center">
           <button class="icon-btn"><i class="ti ti-bell"></i></button>
           <button class="logout-btn" onclick="doLogout()">Salir</button>
@@ -2326,6 +2326,18 @@
 
     cont.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:14px"><i class="ti ti-loader-2" style="animation:spin 1s linear infinite;font-size:24px;display:block;margin-bottom:8px"></i>Buscando pedidos...</div>';
 
+    // Si ya tiene un pedido activo, no mostrar la bandeja (regla: 1 a la vez)
+    const { data: enCurso } = await sb.from('pedidos')
+      .select('descripcion, estado')
+      .eq('repartidor_id', currentUser.id)
+      .in('estado', ['aceptado', 'recogido']);
+
+    if (enCurso && enCurso.length > 0) {
+      if (contador) contador.style.display = 'none';
+      cont.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:14px;background:white;border:1px solid var(--border);border-radius:var(--radius)"><i class="ti ti-package" style="font-size:28px;display:block;margin-bottom:8px;color:var(--mx)"></i><strong style="color:var(--text)">Tienes un pedido en curso</strong><br>Entrégalo para poder tomar otro pedido de la bandeja.</div>';
+      return;
+    }
+
     const { data: pedidos, error } = await sb.from('pedidos')
       .select('*').eq('estado', 'buscando').order('created_at', { ascending: false }).limit(20);
 
@@ -2391,26 +2403,28 @@
     const btn = event?.target;
     if (btn) { btn.disabled = true; btn.textContent = 'Aceptando...'; }
 
-    // UPDATE atómico — solo funciona si estado sigue siendo 'buscando'
-    // Si otro repartidor ya lo aceptó, rowsAffected = 0
-    const { data, error } = await sb.from('pedidos')
-      .update({
-        estado: 'aceptado',
-        repartidor_id: currentUser.id,
-        aceptado_at: new Date().toISOString()
-      })
-      .eq('id', pedidoId)
-      .eq('estado', 'buscando') // condición atómica
-      .select();
+    // Aceptación SEGURA en el servidor:
+    // valida atómicamente que el pedido siga disponible Y que el
+    // repartidor no tenga ya otro pedido activo (regla: 1 a la vez).
+    const { data, error } = await sb.rpc('aceptar_pedido_seguro', { p_pedido_id: pedidoId });
 
-    if (error || !data || data.length === 0) {
+    if (error || !data) {
       if (btn) { btn.disabled = false; btn.textContent = 'Aceptar'; }
-      alert('⚡ Este pedido ya fue tomado por otro repartidor. Espera el próximo.');
-      cargarPedidosCercanos();
+      const msg = error?.message || '';
+      if (msg.includes('en curso')) {
+        alert('⚠️ Ya tienes un pedido en curso.\n\nDebes entregarlo antes de tomar otro. Cuando lo completes, podrás aceptar un nuevo pedido.');
+        dTab('repartir');
+      } else if (msg.includes('ya fue tomado') || msg.includes('otro repartidor')) {
+        alert('⚡ Este pedido ya fue tomado por otro repartidor. Espera el próximo.');
+        cargarPedidosCercanos();
+      } else {
+        alert('No se pudo aceptar el pedido: ' + (msg || 'intenta de nuevo'));
+        cargarPedidosCercanos();
+      }
       return;
     }
 
-    const pedido = data[0];
+    const pedido = Array.isArray(data) ? data[0] : data;
     const ganancia = Math.round(pedido.precio * COMISION_REPARTIDOR);
 
     // Notificar al cliente
@@ -2538,6 +2552,8 @@
 
     // El repartidor NO califica — solo el cliente califica al repartidor
     cargarPedidosHome();
+    // Quedó libre: recargar la bandeja para que pueda tomar otro pedido
+    if (disponibleComoRepartidor) cargarPedidosCercanos();
     dTab('home');
   }
 
