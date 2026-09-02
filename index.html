@@ -403,7 +403,7 @@
 
 <nav class="nav">
   <div class="nav-inner">
-    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=4" alt="Maxikia Express" style="height:82px;width:auto" /></div>
+    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=5" alt="Maxikia Express" style="height:82px;width:auto" /></div>
     <div class="nav-links">
       <a href="/manual">Cómo funciona</a>
       <a href="/repartidores.html">Gana dinero</a>
@@ -1307,19 +1307,12 @@
     if (session) {
       currentUser = session.user;
 
-      // Si hay sesión activa — siempre entrar directo al dashboard
-      // Solo pedir contraseña si llevan más de 24 horas sin usar la app
-      const ultimaAuth = parseInt(localStorage.getItem('mx_last_auth') || '0');
-      const horasInactivo = (Date.now() - ultimaAuth) / (1000 * 60 * 60);
-
-      if (horasInactivo < 24) {
-        // Menos de 24h — entrar directo
-        localStorage.setItem('mx_last_auth', Date.now().toString());
-        await showDashboard();
-      } else {
-        // Más de 24h inactivo — pedir autenticación
-        mostrarBienvenida();
-      }
+      // Hay sesión válida de Supabase → entrar directo al dashboard.
+      // Refrescar la página NUNCA debe cerrar la sesión.
+      // (El bloqueo por seguridad, si se requiere, se maneja aparte con
+      //  biometría/PIN, no cerrando la sesión de Supabase.)
+      localStorage.setItem('mx_last_auth', Date.now().toString());
+      await showDashboard();
     } else if (window._abrirRegistro) {
       // Llegó escaneando el QR del panfleto — abrir registro directamente
       setTimeout(() => goPage('register'), 300);
@@ -3783,19 +3776,28 @@
       customerData: customerData,
     });
 
-    checkout.open(function (result) {
-      const tx = result.transaction;
+    // Restaurar el botón inmediatamente: el widget ya se abrió en su propia
+    // ventana. Si el usuario lo cierra/cancela, el botón ya estará listo.
+    const restaurarBoton = () => {
       btn.disabled = false;
       btn.innerHTML = '<i class="ti ti-credit-card"></i> Pagar con Wompi';
+    };
+
+    checkout.open(function (result) {
+      const tx = result.transaction;
+      restaurarBoton();
       if (tx && tx.status === 'APPROVED') {
-        // El saldo se acredita por el webhook; aquí solo confirmamos visualmente
         mostrarPagoExitoso(wompiMontoSeleccionado);
+        setTimeout(() => { refrescarSaldoMaxikia(); cargarWallet(); }, 3000);
       } else if (tx) {
-        alert('El pago no se completó (estado: ' + tx.status + '). Si se te descontó, se reversará.');
+        alert('El pago no se completó (estado: ' + tx.status + '). Si se te descontó, se reversará automáticamente.');
       }
-      // Refrescar saldo tras unos segundos (dar tiempo al webhook)
-      setTimeout(() => { refrescarSaldoMaxikia(); cargarWallet(); }, 3000);
+      // Si tx es null/undefined, el usuario cerró sin pagar: solo restauramos.
     });
+
+    // Red de seguridad: restaurar el botón a los 2 segundos pase lo que pase,
+    // por si el widget se cierra sin disparar el callback.
+    setTimeout(restaurarBoton, 2000);
   }
 
   function mostrarPagoExitoso(monto) {
