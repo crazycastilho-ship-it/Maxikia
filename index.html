@@ -403,7 +403,7 @@
 
 <nav class="nav">
   <div class="nav-inner">
-    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=3" alt="Maxikia Express" style="height:82px;width:auto" /></div>
+    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=4" alt="Maxikia Express" style="height:82px;width:auto" /></div>
     <div class="nav-links">
       <a href="/manual">Cómo funciona</a>
       <a href="/repartidores.html">Gana dinero</a>
@@ -3689,7 +3689,7 @@
   // ══════════════════════════════════════════
   // ⚠️ Reemplaza estos dos valores por los TUYOS (del dashboard de Wompi):
   const WOMPI_PUBLIC_KEY = 'pub_prod_3ReSrGD8KMfLCzRzgn277t6zT6gkqGAK';
-  const WOMPI_INTEGRITY_SECRET = 'prod_integrity_pvPv7YVm48Y1PmxrqqOfdmohRUSa34kM';
+  const WOMPI_INTEGRITY_SECRET = 'prod_integrity_REEMPLAZA_CON_TU_SECRETO';
   // (Para pruebas usa las llaves pub_test_... y test_integrity_...)
 
   let wompiMontoSeleccionado = 0;
@@ -3760,6 +3760,18 @@
 
     const firma = await generarFirmaIntegridad(referencia, montoEnCentavos, 'COP');
 
+    // Datos del cliente — Wompi exige teléfono y email no vacíos.
+    const telefonoLimpio = (perfil?.telefono || '').replace(/\D/g, '');
+    const customerData = {
+      email: perfil?.email || currentUser.email || 'cliente@maxikia.com',
+      fullName: perfil?.nombre || 'Cliente Maxikia',
+    };
+    // Solo agregar teléfono si existe (si va vacío, Wompi rechaza)
+    if (telefonoLimpio.length >= 10) {
+      customerData.phoneNumber = telefonoLimpio.slice(-10);
+      customerData.phoneNumberPrefix = '+57';
+    }
+
     // Abrir el Widget de Wompi
     const checkout = new WidgetCheckout({
       currency: 'COP',
@@ -3768,12 +3780,7 @@
       publicKey: WOMPI_PUBLIC_KEY,
       signature: { integrity: firma },
       redirectUrl: window.location.origin,
-      customerData: {
-        email: perfil?.email || currentUser.email || '',
-        fullName: perfil?.nombre || '',
-        phoneNumber: (perfil?.telefono || '').replace(/\D/g, ''),
-        phoneNumberPrefix: '+57',
-      },
+      customerData: customerData,
     });
 
     checkout.open(function (result) {
