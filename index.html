@@ -403,7 +403,7 @@
 
 <nav class="nav">
   <div class="nav-inner">
-    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=5" alt="Maxikia Express" style="height:82px;width:auto" /></div>
+    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=8" alt="Maxikia Express" style="height:82px;width:auto" /></div>
     <div class="nav-links">
       <a href="/manual">Cómo funciona</a>
       <a href="/repartidores.html">Gana dinero</a>
@@ -1095,12 +1095,12 @@
 
             <!-- Monto libre -->
             <div class="field-group">
-              <label class="field-label">O ingresa otro monto</label>
-              <input type="number" class="field-input" id="wompi-monto" placeholder="Ej: 15000" min="1500" step="1000" oninput="montoLibre()">
+              <label class="field-label">O ingresa otro monto (saldo a recibir)</label>
+              <input type="number" class="field-input" id="wompi-monto" placeholder="Ej: 15000" min="10000" step="1000" oninput="montoLibre()">
             </div>
 
             <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--surface);border-radius:var(--radius-sm);margin:12px 0">
-              <span style="font-size:13px;color:var(--muted)">Vas a recargar</span>
+              <span style="font-size:13px;color:var(--muted)">Pagas</span>
               <span id="wompi-total" style="font-family:var(--font-head);font-weight:800;font-size:20px;color:var(--mx)">$0</span>
             </div>
 
@@ -1111,16 +1111,34 @@
               <i class="ti ti-lock"></i> Pago seguro procesado por Wompi
             </div>
 
-            <!-- Respaldo manual (colapsado) -->
-            <details style="margin-top:1rem">
-              <summary style="font-size:13px;color:var(--muted);cursor:pointer">¿Prefieres transferencia manual?</summary>
-              <div style="margin-top:10px;border:1px solid var(--border);border-radius:var(--radius);padding:1rem;display:flex;align-items:center;gap:10px">
-                <div style="width:36px;height:36px;border-radius:8px;background:#8B1A8B;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="color:white;font-weight:800;font-size:13px">N</span></div>
-                <div><div style="font-weight:500;font-size:14px">Nequi / Daviplata</div><div style="font-size:13px;color:var(--muted)">3243334302</div></div>
-                <button onclick="copiar('3243334302','nc')" id="nc" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--muted)"><i class="ti ti-copy"></i> Copiar</button>
+            <!-- Separador de opciones -->
+            <div style="display:flex;align-items:center;gap:10px;margin:1.25rem 0 1rem">
+              <div style="flex:1;height:1px;background:var(--border)"></div>
+              <span style="font-size:12px;color:var(--muted);font-weight:500">O AHORRA LA COMISIÓN</span>
+              <div style="flex:1;height:1px;background:var(--border)"></div>
+            </div>
+
+            <!-- Nequi manual — sin comisión -->
+            <div style="border:1.5px solid #8B1A8B;border-radius:var(--radius);padding:1rem;background:rgba(139,26,139,0.04)">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                <div style="width:40px;height:40px;border-radius:10px;background:#8B1A8B;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="color:white;font-weight:800;font-size:15px">N</span></div>
+                <div style="flex:1">
+                  <div style="font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px">Transfiere por Nequi <span style="background:#1D9E75;color:white;font-size:10px;font-weight:700;padding:2px 7px;border-radius:50px">SIN COMISIÓN</span></div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:1px">Recibes el 100% de lo que transfieres</div>
+                </div>
               </div>
-              <a href="#" onclick="abrirWARecarga()" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:white;font-size:13px;font-weight:500;padding:10px;border-radius:var(--radius-sm);text-decoration:none;margin-top:8px"><i class="ti ti-brand-whatsapp"></i> Enviar comprobante por WhatsApp</a>
-            </details>
+              <div style="display:flex;align-items:center;gap:8px;background:white;border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px">
+                <div style="flex:1">
+                  <div style="font-size:11px;color:var(--muted)">Número Nequi / Daviplata</div>
+                  <div style="font-family:var(--font-head);font-weight:700;font-size:17px">324 333 4302</div>
+                </div>
+                <button onclick="copiar('3243334302','nc')" id="nc" style="background:var(--mx);color:white;border:none;border-radius:6px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body)"><i class="ti ti-copy"></i> Copiar</button>
+              </div>
+              <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px">
+                <strong>1.</strong> Transfiere el monto que quieras recargar &nbsp;<strong>2.</strong> Envía el comprobante por WhatsApp &nbsp;<strong>3.</strong> Acreditamos tu saldo en minutos
+              </div>
+              <a href="#" onclick="abrirWARecarga()" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:white;font-size:14px;font-weight:600;padding:11px;border-radius:var(--radius-sm);text-decoration:none"><i class="ti ti-brand-whatsapp" style="font-size:17px"></i> Ya transferí, enviar comprobante</a>
+            </div>
           </div>
         </div>
 
@@ -3138,45 +3156,66 @@
     setTimeout(() => { alerta.innerHTML = ''; rStep(3); }, 1500);
   }
 
-  // ── BIOMETRÍA — verificación local simple ──
-  // No usa Passkeys/WebAuthn. Usa la huella del dispositivo como
-  // confirmación local de que el usuario es quien dice ser.
+  // ── BIOMETRÍA — verificación local ──
+  // Usa WebAuthn con la credencial de plataforma (huella/Face ID) del dispositivo.
   // La sesión real sigue siendo de Supabase.
 
   async function verificarHuellaLocal(onExito, onError) {
-    // Método 1: Web Authentication API con credencial existente
-    if (window.PublicKeyCredential) {
-      try {
-        // Verificar si hay autenticador de plataforma disponible
-        const disponible = await PublicKeyCredential
-          .isUserVerifyingPlatformAuthenticatorAvailable()
-          .catch(() => false);
+    if (!window.PublicKeyCredential) {
+      onError('Este dispositivo no soporta biometría. Usa tu contraseña.');
+      return;
+    }
+    try {
+      const disponible = await PublicKeyCredential
+        .isUserVerifyingPlatformAuthenticatorAvailable().catch(() => false);
+      if (!disponible) {
+        onError('Este dispositivo no tiene huella o Face ID configurado. Usa tu contraseña.');
+        return;
+      }
 
-        if (disponible) {
-          // Intentar verificación sin credencial específica
-          // Esto activa la huella/Face ID del dispositivo
-          const resultado = await navigator.credentials.get({
-            publicKey: {
-              challenge: crypto.getRandomValues(new Uint8Array(32)),
-              rpId: window.location.hostname,
-              userVerification: 'required',
-              allowCredentials: [], // lista vacía = cualquier credencial del dispositivo
-              timeout: 60000
-            },
-            mediation: 'optional'
-          });
-          if (resultado) { onExito(); return; }
-        }
-      } catch(e) {
-        if (e.name === 'NotAllowedError') {
-          onError('Cancelaste la verificación.'); return;
-        }
-        // Si falla por falta de credencial, intentar método 2
+      // Recuperar el ID de la credencial registrada (si existe)
+      const credId = localStorage.getItem('mx_cred_' + window.location.hostname);
+      const allowCreds = [];
+      if (credId) {
+        allowCreds.push({
+          id: base64urlToBuffer(credId),
+          type: 'public-key',
+          transports: ['internal'],
+        });
+      }
+
+      const resultado = await navigator.credentials.get({
+        publicKey: {
+          challenge: crypto.getRandomValues(new Uint8Array(32)),
+          rpId: window.location.hostname,
+          userVerification: 'required',
+          allowCredentials: allowCreds,
+          timeout: 60000,
+        },
+      });
+      if (resultado) { onExito(); return; }
+      onError('No se pudo verificar. Intenta de nuevo.');
+    } catch (e) {
+      if (e.name === 'NotAllowedError') {
+        onError('Verificación cancelada o sin huella. Usa tu contraseña.');
+      } else {
+        onError('No se pudo verificar con huella. Usa tu contraseña.');
       }
     }
+  }
 
-    // Método 2: Si no hay credencial registrada, pedirle que la registre primero
-    onError('No hay huella registrada en esta app. Primero debes registrar tu huella al crear la cuenta, o usa tu contraseña.');
+  // Helpers para convertir el ID de credencial (base64url ↔ buffer)
+  function bufferToBase64url(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let str = '';
+    for (const b of bytes) str += String.fromCharCode(b);
+    return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  function base64urlToBuffer(base64url) {
+    const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
+    const raw = atob(padded);
+    return Uint8Array.from([...raw].map(c => c.charCodeAt(0))).buffer;
   }
 
   // ── REGISTRO DE HUELLA ──
@@ -3241,8 +3280,9 @@
         sub.textContent = isIOS() ? 'Podrás entrar con Face ID o Touch ID' : 'Podrás entrar con tu huella dactilar';
         alertEl.innerHTML = '';
         cont.style.opacity = '1'; cont.disabled = false;
-        // Guardar que este usuario tiene huella registrada
+        // Guardar el ID de la credencial para poder usarla al hacer login
         localStorage.setItem('mx_bio_' + window.location.hostname, currentUser?.id || '1');
+        localStorage.setItem('mx_cred_' + window.location.hostname, bufferToBase64url(credential.rawId));
       }
     } catch(err) {
       btn.classList.remove('scanning');
@@ -3273,10 +3313,10 @@
       alertEl.innerHTML = '<div class="alert error">Sesión expirada. Ingresa con tu contraseña primero.</div>'; return;
     }
 
-    // Verificar si tiene huella registrada
-    const tieneBio = localStorage.getItem('mx_bio_' + window.location.hostname);
+    // Verificar si tiene huella registrada EN ESTA APP
+    const tieneBio = localStorage.getItem('mx_cred_' + window.location.hostname);
     if (!tieneBio) {
-      alertEl.innerHTML = '<div class="alert error">No tienes huella registrada. Ingresa con contraseña y regístrala al crear tu cuenta.</div>'; return;
+      alertEl.innerHTML = '<div class="alert error">Aún no has activado la huella en Maxikia. Ingresa con tu contraseña una vez; podrás activar la huella desde tu perfil.</div>'; return;
     }
 
     verificarHuellaLocal(
@@ -3687,6 +3727,14 @@
 
   let wompiMontoSeleccionado = 0;
 
+  // Comisión de Wompi: 2.65% + $700 + IVA(19%)
+  // Se cobra la más alta (esta) a todos los métodos, para nunca perder.
+  // Cálculo inverso: cuánto debe PAGAR el cliente para recibir X neto.
+  function calcularPagoConComision(neto) {
+    const pago = (neto + 700 * 1.19) / (1 - 0.0265 * 1.19);
+    return Math.round(pago);
+  }
+
   function seleccionarMonto(monto, btn) {
     wompiMontoSeleccionado = monto;
     document.querySelectorAll('.monto-chip').forEach(c => c.classList.remove('sel'));
@@ -3705,9 +3753,11 @@
   function actualizarTotalWompi() {
     const total = document.getElementById('wompi-total');
     const btn = document.getElementById('wompi-btn');
-    if (total) total.textContent = '$' + wompiMontoSeleccionado.toLocaleString('es-CO');
+    const valido = wompiMontoSeleccionado >= 10000;
+    // Mostrar lo que PAGA (neto + comisión)
+    const pago = valido ? calcularPagoConComision(wompiMontoSeleccionado) : 0;
+    if (total) total.textContent = '$' + pago.toLocaleString('es-CO');
     if (btn) {
-      const valido = wompiMontoSeleccionado >= 1500;
       btn.disabled = !valido;
       btn.style.opacity = valido ? '1' : '0.5';
     }
@@ -3723,20 +3773,24 @@
 
   async function pagarConWompi() {
     if (!currentUser) { goPage('login'); return; }
-    if (wompiMontoSeleccionado < 1500) { alert('El monto mínimo es $1.500'); return; }
+    if (wompiMontoSeleccionado < 10000) { alert('El monto mínimo de recarga es $10.000'); return; }
 
     const btn = document.getElementById('wompi-btn');
     btn.disabled = true;
     btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Preparando...';
 
+    // El cliente RECIBE wompiMontoSeleccionado (neto), pero PAGA el monto con comisión.
+    const montoNeto = wompiMontoSeleccionado;
+    const montoAPagar = calcularPagoConComision(montoNeto);
+
     // Referencia única para esta transacción
     const referencia = 'MXK_' + currentUser.id.slice(0, 8) + '_' + Date.now();
-    const montoEnCentavos = wompiMontoSeleccionado * 100;
+    const montoEnCentavos = montoAPagar * 100; // Wompi cobra el monto CON comisión
 
-    // Registrar la transacción pendiente en la base (de forma segura)
+    // Registrar la transacción: guardamos el NETO (lo que se acredita al saldo)
     const { error } = await sb.rpc('wompi_crear_transaccion', {
       p_referencia: referencia,
-      p_monto: wompiMontoSeleccionado,
+      p_monto: montoNeto, // ← lo que recibe de saldo, NO lo que paga
       p_tipo: 'recarga',
     });
 
@@ -4665,10 +4719,22 @@
   async function cargarWallet() {
     if (!currentUser) return;
     document.getElementById('wallet-email').textContent = currentUser.email;
-    const { data: perfil } = await sb.from('perfiles').select('saldo, nombre').eq('id', currentUser.id).single();
+    const { data: perfil } = await sb.from('perfiles').select('saldo, nombre, rol').eq('id', currentUser.id).single();
     const saldo = perfil?.saldo || 0;
     document.getElementById('wallet-saldo').textContent = '$' + saldo.toLocaleString('es-CO');
     document.getElementById('dash-saldo').textContent = '$' + saldo.toLocaleString('es-CO');
+
+    // Solo repartidores/transportistas/ambos pueden retirar.
+    // Los clientes puros no ven la opción de retiro.
+    const rol = perfil?.rol || 'cliente';
+    const puedeRetirar = ['repartidor', 'transportista', 'both', 'ambos'].includes(rol);
+    const tabRetiro = document.getElementById('tab-retiro');
+    const btnRetirarTop = document.querySelector('.withdraw-btn');
+    if (tabRetiro) tabRetiro.style.display = puedeRetirar ? '' : 'none';
+    if (btnRetirarTop) btnRetirarTop.style.display = puedeRetirar ? '' : 'none';
+    // Si es cliente y estaba en la sección retiro, mandarlo a recarga
+    if (!puedeRetirar) mostrarSeccion('recarga');
+
     cargarMovimientos();
   }
 
