@@ -59,6 +59,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://checkout.wompi.co/widget.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -393,13 +394,16 @@
         body { padding-bottom: env(safe-area-inset-bottom); }
       }
     }
+    .monto-chip { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 12px 4px; font-size: 14px; font-weight: 600; color: var(--text); cursor: pointer; font-family: var(--font-body); transition: all .15s; }
+    .monto-chip:hover { border-color: var(--mx); }
+    .monto-chip.sel { border-color: var(--mx); background: var(--mx); color: white; }
   </style>
 </head>
 <body>
 
 <nav class="nav">
   <div class="nav-inner">
-    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=2" alt="Maxikia Express" style="height:82px;width:auto" /></div>
+    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=3" alt="Maxikia Express" style="height:82px;width:auto" /></div>
     <div class="nav-links">
       <a href="/manual">Cómo funciona</a>
       <a href="/repartidores.html">Gana dinero</a>
@@ -1074,30 +1078,49 @@
           <div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1rem">
             <div style="font-family:var(--font-head);font-weight:700;font-size:15px;margin-bottom:.75rem">Recargar saldo</div>
             <div style="background:var(--surface);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:1rem;font-size:13px;color:var(--muted)">
-              <i class="ti ti-info-circle" style="color:var(--mx)"></i>
-              Recarga mínima <strong style="color:var(--text)">$10.000</strong>. Transfiere y envía el comprobante — acreditamos en menos de 30 minutos.
+              <i class="ti ti-bolt" style="color:var(--mx)"></i>
+              Recarga al instante con <strong style="color:var(--text)">tarjeta, Nequi o PSE</strong>. El saldo se acredita automáticamente.
             </div>
-            <!-- Wompi (cuando esté activo) -->
-            <div id="wompi-container" style="display:none;margin-bottom:1rem">
-              <div style="font-size:12px;font-weight:500;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.3px">Pago con tarjeta / PSE</div>
-              <div class="field-group">
-                <label class="field-label">Monto a recargar</label>
-                <input type="number" class="field-input" id="wompi-monto" placeholder="10000" min="10000" step="1000" oninput="actualizarWompi()">
+
+            <!-- Montos fijos -->
+            <div style="font-size:12px;font-weight:500;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.3px">Elige un monto</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+              <button class="monto-chip" onclick="seleccionarMonto(10000,this)">$10.000</button>
+              <button class="monto-chip" onclick="seleccionarMonto(20000,this)">$20.000</button>
+              <button class="monto-chip" onclick="seleccionarMonto(50000,this)">$50.000</button>
+              <button class="monto-chip" onclick="seleccionarMonto(30000,this)">$30.000</button>
+              <button class="monto-chip" onclick="seleccionarMonto(70000,this)">$70.000</button>
+              <button class="monto-chip" onclick="seleccionarMonto(100000,this)">$100.000</button>
+            </div>
+
+            <!-- Monto libre -->
+            <div class="field-group">
+              <label class="field-label">O ingresa otro monto</label>
+              <input type="number" class="field-input" id="wompi-monto" placeholder="Ej: 15000" min="1500" step="1000" oninput="montoLibre()">
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--surface);border-radius:var(--radius-sm);margin:12px 0">
+              <span style="font-size:13px;color:var(--muted)">Vas a recargar</span>
+              <span id="wompi-total" style="font-family:var(--font-head);font-weight:800;font-size:20px;color:var(--mx)">$0</span>
+            </div>
+
+            <button id="wompi-btn" onclick="pagarConWompi()" disabled style="width:100%;background:var(--mx);color:white;border:none;font-family:var(--font-body);font-size:15px;font-weight:600;padding:13px;border-radius:var(--radius-sm);cursor:pointer;opacity:0.5">
+              <i class="ti ti-credit-card"></i> Pagar con Wompi
+            </button>
+            <div style="text-align:center;margin-top:8px;font-size:11px;color:var(--muted)">
+              <i class="ti ti-lock"></i> Pago seguro procesado por Wompi
+            </div>
+
+            <!-- Respaldo manual (colapsado) -->
+            <details style="margin-top:1rem">
+              <summary style="font-size:13px;color:var(--muted);cursor:pointer">¿Prefieres transferencia manual?</summary>
+              <div style="margin-top:10px;border:1px solid var(--border);border-radius:var(--radius);padding:1rem;display:flex;align-items:center;gap:10px">
+                <div style="width:36px;height:36px;border-radius:8px;background:#8B1A8B;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="color:white;font-weight:800;font-size:13px">N</span></div>
+                <div><div style="font-weight:500;font-size:14px">Nequi / Daviplata</div><div style="font-size:13px;color:var(--muted)">3243334302</div></div>
+                <button onclick="copiar('3243334302','nc')" id="nc" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--muted)"><i class="ti ti-copy"></i> Copiar</button>
               </div>
-              <div id="wompi-btn-container"></div>
-            </div>
-            <!-- Nequi -->
-            <div style="border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:10px;display:flex;align-items:center;gap:10px">
-              <div style="width:36px;height:36px;border-radius:8px;background:#8B1A8B;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="color:white;font-weight:800;font-size:13px">N</span></div>
-              <div><div style="font-weight:500;font-size:14px">Nequi</div><div style="font-size:13px;color:var(--muted)">3243334302</div></div>
-              <button onclick="copiar('3243334302','nc')" id="nc" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--muted)"><i class="ti ti-copy"></i> Copiar</button>
-            </div>
-            <div style="border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;display:flex;align-items:center;gap:10px">
-              <div style="width:36px;height:36px;border-radius:8px;background:#E8001C;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="color:white;font-weight:800;font-size:13px">D</span></div>
-              <div><div style="font-weight:500;font-size:14px">Daviplata</div><div style="font-size:13px;color:var(--muted)">3243334302</div></div>
-              <button onclick="copiar('3243334302','dc')" id="dc" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--muted)"><i class="ti ti-copy"></i> Copiar</button>
-            </div>
-            <a href="#" onclick="abrirWARecarga()" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:white;border:none;font-family:var(--font-body);font-size:14px;font-weight:500;padding:12px;border-radius:var(--radius-sm);cursor:pointer;text-decoration:none"><i class="ti ti-brand-whatsapp" style="font-size:18px"></i> Enviar comprobante por WhatsApp</a>
+              <a href="#" onclick="abrirWARecarga()" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:white;font-size:13px;font-weight:500;padding:10px;border-radius:var(--radius-sm);text-decoration:none;margin-top:8px"><i class="ti ti-brand-whatsapp"></i> Enviar comprobante por WhatsApp</a>
+            </details>
           </div>
         </div>
 
@@ -3661,12 +3684,115 @@
     document.getElementById('wompi-container').style.display = 'block';
   }
 
-  function actualizarWompi() {
-    const monto = parseInt(document.getElementById('wompi-monto').value) || 0;
-    if (monto >= 10000) {
-      const script = document.querySelector('#wompi-btn-container script');
-      if (script) script.setAttribute('data-amount-in-cents', monto * 100);
+  // ══════════════════════════════════════════
+  //  WOMPI — Recarga de saldo
+  // ══════════════════════════════════════════
+  // ⚠️ Reemplaza estos dos valores por los TUYOS (del dashboard de Wompi):
+  const WOMPI_PUBLIC_KEY = 'pub_prod_3ReSrGD8KMfLCzRzgn277t6zT6gkqGAK';
+  const WOMPI_INTEGRITY_SECRET = 'prod_integrity_pvPv7YVm48Y1PmxrqqOfdmohRUSa34kM';
+  // (Para pruebas usa las llaves pub_test_... y test_integrity_...)
+
+  let wompiMontoSeleccionado = 0;
+
+  function seleccionarMonto(monto, btn) {
+    wompiMontoSeleccionado = monto;
+    document.querySelectorAll('.monto-chip').forEach(c => c.classList.remove('sel'));
+    if (btn) btn.classList.add('sel');
+    document.getElementById('wompi-monto').value = '';
+    actualizarTotalWompi();
+  }
+
+  function montoLibre() {
+    const v = parseInt(document.getElementById('wompi-monto').value) || 0;
+    wompiMontoSeleccionado = v;
+    document.querySelectorAll('.monto-chip').forEach(c => c.classList.remove('sel'));
+    actualizarTotalWompi();
+  }
+
+  function actualizarTotalWompi() {
+    const total = document.getElementById('wompi-total');
+    const btn = document.getElementById('wompi-btn');
+    if (total) total.textContent = '$' + wompiMontoSeleccionado.toLocaleString('es-CO');
+    if (btn) {
+      const valido = wompiMontoSeleccionado >= 1500;
+      btn.disabled = !valido;
+      btn.style.opacity = valido ? '1' : '0.5';
     }
+  }
+
+  // Generar la firma de integridad (requerida por Wompi)
+  async function generarFirmaIntegridad(referencia, montoEnCentavos, moneda) {
+    const cadena = referencia + montoEnCentavos + moneda + WOMPI_INTEGRITY_SECRET;
+    const enc = new TextEncoder();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', enc.encode(cadena));
+    return [...new Uint8Array(hashBuffer)].map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function pagarConWompi() {
+    if (!currentUser) { goPage('login'); return; }
+    if (wompiMontoSeleccionado < 1500) { alert('El monto mínimo es $1.500'); return; }
+
+    const btn = document.getElementById('wompi-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Preparando...';
+
+    // Referencia única para esta transacción
+    const referencia = 'MXK_' + currentUser.id.slice(0, 8) + '_' + Date.now();
+    const montoEnCentavos = wompiMontoSeleccionado * 100;
+
+    // Registrar la transacción pendiente en la base (de forma segura)
+    const { error } = await sb.rpc('wompi_crear_transaccion', {
+      p_referencia: referencia,
+      p_monto: wompiMontoSeleccionado,
+      p_tipo: 'recarga',
+    });
+
+    if (error) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-credit-card"></i> Pagar con Wompi';
+      alert('No se pudo iniciar el pago: ' + error.message);
+      return;
+    }
+
+    // Datos del usuario para prellenar
+    const { data: perfil } = await sb.from('perfiles')
+      .select('email, telefono, nombre').eq('id', currentUser.id).single();
+
+    const firma = await generarFirmaIntegridad(referencia, montoEnCentavos, 'COP');
+
+    // Abrir el Widget de Wompi
+    const checkout = new WidgetCheckout({
+      currency: 'COP',
+      amountInCents: montoEnCentavos,
+      reference: referencia,
+      publicKey: WOMPI_PUBLIC_KEY,
+      signature: { integrity: firma },
+      redirectUrl: window.location.origin,
+      customerData: {
+        email: perfil?.email || currentUser.email || '',
+        fullName: perfil?.nombre || '',
+        phoneNumber: (perfil?.telefono || '').replace(/\D/g, ''),
+        phoneNumberPrefix: '+57',
+      },
+    });
+
+    checkout.open(function (result) {
+      const tx = result.transaction;
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-credit-card"></i> Pagar con Wompi';
+      if (tx && tx.status === 'APPROVED') {
+        // El saldo se acredita por el webhook; aquí solo confirmamos visualmente
+        mostrarPagoExitoso(wompiMontoSeleccionado);
+      } else if (tx) {
+        alert('El pago no se completó (estado: ' + tx.status + '). Si se te descontó, se reversará.');
+      }
+      // Refrescar saldo tras unos segundos (dar tiempo al webhook)
+      setTimeout(() => { refrescarSaldoMaxikia(); cargarWallet(); }, 3000);
+    });
+  }
+
+  function mostrarPagoExitoso(monto) {
+    alert('¡Pago aprobado! 🎉\n\nSe acreditarán $' + monto.toLocaleString('es-CO') + ' a tu billetera en unos segundos.');
   }
 
   // ── REANUDAR VERIFICACIÓN EN EL PASO CORRECTO ──
