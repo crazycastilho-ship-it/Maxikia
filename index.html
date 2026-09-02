@@ -399,7 +399,7 @@
 
 <nav class="nav">
   <div class="nav-inner">
-    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=1" alt="Maxikia Express" style="height:82px;width:auto" /></div>
+    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=2" alt="Maxikia Express" style="height:82px;width:auto" /></div>
     <div class="nav-links">
       <a href="/manual">Cómo funciona</a>
       <a href="/repartidores.html">Gana dinero</a>
@@ -1201,6 +1201,7 @@
   });
 
   let currentUser = null;
+  let esRepartidorAprobado = false;
 
   // ── Helper: refrescar el saldo mostrado con el valor REAL del servidor ──
   async function refrescarSaldoMaxikia() {
@@ -2252,6 +2253,7 @@
 
     // Guardar disponibilidad en Supabase y localStorage
     localStorage.setItem('mx_disponible', '1');
+    actualizarDisponiblePush(true);
 
     navigator.geolocation.getCurrentPosition(async pos => {
       ubicacionActual = { lat: pos.coords.latitude, lng: pos.coords.longitude };
@@ -2283,6 +2285,7 @@
 
   async function desactivarDisponible() {
     disponibleComoRepartidor = false;
+    actualizarDisponiblePush(false);
     const tsw = document.getElementById('tsw');
     const txt = document.getElementById('rep-status-txt');
     if (tsw) tsw.classList.remove('on');
@@ -2671,12 +2674,15 @@
         table: 'pedidos'
       }, payload => {
         const p = payload.new;
-        // Solo notificar si el repartidor está disponible y el pedido no es de mudanza
+        // Repartidor disponible: notificar el pedido para que lo tome
         if (disponibleComoRepartidor && p.tipo_envio !== 'mudanza') {
-          
           cargarPedidosCercanos();
           alertarNuevoPedido();
           mostrarNotificacion('¡Nuevo pedido!', '📦 ' + (p.descripcion || 'Pedido disponible') + ' — $' + Math.round((p.precio||0)*0.75).toLocaleString('es-CO'));
+        }
+        // Repartidor aprobado pero INACTIVO: invitarlo a activarse
+        else if (!disponibleComoRepartidor && p.tipo_envio !== 'mudanza' && esRepartidorAprobado) {
+          alertaPedidosDisponibles();
         }
       })
       .subscribe((status) => {
@@ -3370,7 +3376,7 @@
     setTimeout(() => resetTimerInactividad(), 500);
 
     const { data: perfil } = await sb.from('perfiles')
-      .select('docs_estado, docs_motivo, nombre').eq('id', currentUser.id).single();
+      .select('docs_estado, docs_motivo, nombre, rol, docs_enviados').eq('id', currentUser.id).single();
 
     // Nombre desde perfiles primero, luego metadata, luego email
     const name = perfil?.nombre ||
@@ -3394,16 +3400,118 @@
 
     const estado = perfil?.docs_estado || 'pendiente';
     const motivo = perfil?.docs_motivo || '';
+    const rol = perfil?.rol || 'cliente';
+    const esClientePuro = (rol === 'cliente' || rol === 'client');
 
-    if (estado === 'aprobado') {
+    goPage('dashboard');
+    cargarPedidosHome();
+
+    // Cliente puro: nunca se bloquea ni recibe alerta de documentos
+    if (esClientePuro) {
       ocultarBannerRevision();
-      goPage('dashboard');
-      cargarPedidosHome();
+    } else if (estado === 'aprobado') {
+      // Repartidor aprobado: todo normal
+      esRepartidorAprobado = true;
+      ocultarBannerRevision();
+      // Si está inactivo y hay pedidos esperando, invitarlo a activarse
+      setTimeout(() => alertaPedidosDisponibles(), 2500);
     } else {
-      goPage('dashboard');
-      mostrarBannerRevision(estado, motivo);
-      cargarPedidosHome();
+      // Repartidor/ambos SIN verificación aprobada:
+      // NO bloquear la app (puede usarla como cliente),
+      // pero ALERTAR que le faltan documentos para repartir.
+      alertaDocsPendientes(estado, perfil?.docs_enviados);
     }
+  }
+
+  // ── ALERTA 1: documentos pendientes para repartir ──
+  async function alertaDocsPendientes(estado, docsEnviados) {
+    // La app sigue usable como cliente; solo se avisa sobre repartir.
+    let titulo, msg;
+    if (estado === 'en_revision') {
+      titulo = 'Documentos en revisión';
+      msg = 'Estamos verificando tus documentos. Cuando se aprueben podrás empezar a repartir y ganar dinero.';
+    } else if (estado === 'rechazado') {
+      titulo = 'Documentos rechazados';
+      msg = 'Tus documentos fueron rechazados. Vuelve a subirlos para poder repartir.';
+    } else {
+      titulo = '¡Completa tu registro de repartidor!';
+      msg = 'Te falta subir tus documentos (cédula y selfie) para activarte como repartidor y empezar a ganar dinero. Solo toma un minuto.';
+    }
+
+    // Banner dentro de la app
+    mostrarBannerDocs(titulo, msg, estado !== 'en_revision');
+
+    // Notificación (si la app está abierta/segundo plano y hay permiso)
+    if (typeof mostrarNotificacion === 'function') {
+      mostrarNotificacion('Maxikia Express', titulo + ' — ' + msg);
+    }
+  }
+
+  function mostrarBannerDocs(titulo, msg, mostrarBoton) {
+    document.getElementById('banner-docs-pend')?.remove();
+    const banner = document.createElement('div');
+    banner.id = 'banner-docs-pend';
+    banner.style.cssText = 'margin:12px 16px;background:linear-gradient(135deg,#FFF3E0,#FFE0B2);border:1px solid #FFB74D;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px';
+    banner.innerHTML = `
+      <div style="width:42px;height:42px;border-radius:10px;background:#FF9800;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0"><i class="ti ti-id"></i></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:14px;color:#7A4F01">${titulo}</div>
+        <div style="font-size:12.5px;color:#8A6D3B;line-height:1.5;margin-top:2px">${msg}</div>
+        ${mostrarBoton ? '<button onclick="dTab(\'repartir\');document.getElementById(\'banner-docs-pend\').remove()" style="margin-top:8px;background:#FF9800;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)"><i class="ti ti-upload"></i> Subir documentos</button>' : ''}
+      </div>
+      <button onclick="document.getElementById('banner-docs-pend').remove()" style="background:none;border:none;color:#B08D57;font-size:20px;cursor:pointer;align-self:flex-start;line-height:1">×</button>
+    `;
+    // Insertar al inicio del contenido del dashboard
+    const home = document.getElementById('dp-home') || document.querySelector('.dash-content');
+    if (home) home.insertBefore(banner, home.firstChild);
+  }
+
+  // ── ALERTA 2: hay pedidos, actívate ──
+  async function alertaPedidosDisponibles() {
+    if (!currentUser) return;
+    // Si ya está disponible, no molestar
+    if (typeof disponibleComoRepartidor !== 'undefined' && disponibleComoRepartidor) return;
+    // No repetir más de una vez cada 5 minutos
+    const ahora = Date.now();
+    if (window._ultimaAlertaActivar && (ahora - window._ultimaAlertaActivar) < 5*60*1000) return;
+
+    // Contar pedidos esperando repartidor
+    const { count } = await sb.from('pedidos')
+      .select('*', { count: 'exact', head: true })
+      .eq('estado', 'buscando');
+
+    if (!count || count === 0) return; // no hay pedidos, no alertar
+    window._ultimaAlertaActivar = ahora;
+
+    const texto = count === 1
+      ? 'Hay 1 pedido esperando repartidor cerca de ti.'
+      : 'Hay ' + count + ' pedidos esperando repartidor cerca de ti.';
+
+    // Banner dentro de la app
+    mostrarBannerActivate(texto, count);
+
+    // Notificación (app abierta/segundo plano)
+    if (typeof mostrarNotificacion === 'function') {
+      mostrarNotificacion('Maxikia Express 🛵', texto + ' ¡Actívate y gana dinero!');
+    }
+  }
+
+  function mostrarBannerActivate(texto, count) {
+    document.getElementById('banner-activate')?.remove();
+    const banner = document.createElement('div');
+    banner.id = 'banner-activate';
+    banner.style.cssText = 'margin:12px 16px;background:linear-gradient(135deg,#E1F5EE,#C8F0E0);border:1px solid #1D9E75;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px';
+    banner.innerHTML = `
+      <div style="width:42px;height:42px;border-radius:10px;background:#1D9E75;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;position:relative"><i class="ti ti-motorbike"></i><span style="position:absolute;top:-4px;right:-4px;background:var(--mx);color:#fff;font-size:11px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px">${count}</span></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:14px;color:#0F6E56">¡Hay pedidos para ti!</div>
+        <div style="font-size:12.5px;color:#2A7D63;line-height:1.5;margin-top:2px">${texto}</div>
+        <button onclick="dTab('repartir');document.getElementById('banner-activate').remove()" style="margin-top:8px;background:#1D9E75;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)"><i class="ti ti-bolt"></i> Activarme ahora</button>
+      </div>
+      <button onclick="document.getElementById('banner-activate').remove()" style="background:none;border:none;color:#5FA88E;font-size:20px;cursor:pointer;align-self:flex-start;line-height:1">×</button>
+    `;
+    const home = document.getElementById('dp-home') || document.querySelector('.dash-content');
+    if (home) home.insertBefore(banner, home.firstChild);
   }
 
   function mostrarBannerRevision(estado, motivo) {
@@ -3786,10 +3894,68 @@
 
   async function pedirPermisoNotificaciones() {
     if (!('Notification' in window)) return false;
-    if (Notification.permission === 'granted') return true;
+    if (Notification.permission === 'granted') { suscribirPush(); return true; }
     if (Notification.permission === 'denied') return false;
     const perm = await Notification.requestPermission();
-    return perm === 'granted';
+    if (perm === 'granted') { suscribirPush(); return true; }
+    return false;
+  }
+
+  // ── SUSCRIPCIÓN A WEB PUSH (para notificar con la app cerrada) ──
+  const VAPID_PUBLIC_KEY = 'BGa3wsBPXQ8Z3ZjD6ZX4rab3culQBLKM6CPR8BnHGoRIxfr0v3QkaerHcCFMc02csYD0RrHiiLJUtMleMK8dwXc';
+
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(base64);
+    return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+  }
+
+  async function suscribirPush() {
+    try {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+      if (!currentUser) return;
+      const reg = await navigator.serviceWorker.ready;
+
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        });
+      }
+
+      const json = sub.toJSON();
+      // Traer el rol y disponibilidad actual para guardarlos
+      const { data: perfil } = await sb.from('perfiles')
+        .select('rol, disponible').eq('id', currentUser.id).single();
+
+      await sb.from('push_subscriptions').upsert({
+        usuario_id: currentUser.id,
+        endpoint: json.endpoint,
+        p256dh: json.keys.p256dh,
+        auth: json.keys.auth,
+        rol: perfil?.rol || 'cliente',
+        disponible: perfil?.disponible || false,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'endpoint' });
+    } catch (e) {
+      console.warn('No se pudo suscribir al push:', e);
+    }
+  }
+
+  // Mantener actualizado el estado "disponible" en la suscripción push
+  async function actualizarDisponiblePush(disponible) {
+    if (!currentUser) return;
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        await sb.from('push_subscriptions')
+          .update({ disponible, updated_at: new Date().toISOString() })
+          .eq('endpoint', sub.toJSON().endpoint);
+      }
+    } catch (e) {}
   }
 
   // ── NOTIFICAR AL CLIENTE QUIÉN VA A RECOGER (nombre + foto) ──

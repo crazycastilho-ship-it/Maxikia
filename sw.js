@@ -1,4 +1,4 @@
-const CACHE = 'maxikia-v5';
+const CACHE = 'maxikia-v6';
 const PRECACHE = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -44,16 +44,19 @@ self.addEventListener('fetch', e => {
 // ── PUSH NOTIFICATIONS ──
 self.addEventListener('push', e => {
   const data = e.data?.json() || {};
-  const titulo = data.titulo || 'Maxi⋊ia Express';
-  const cuerpo = data.cuerpo || 'Actualización de tu pedido';
+  const titulo = data.title || data.titulo || 'Maxikia Express';
+  const cuerpo = data.body || data.cuerpo || 'Actualización de tu pedido';
   e.waitUntil(
     self.registration.showNotification(titulo, {
       body: cuerpo,
       icon: data.icono || '/icon-192.png',
       badge: '/icon-192.png',
+      image: data.image || undefined,
       vibrate: [200, 100, 200],
       data: { url: data.url || '/' },
-      actions: [{ action: 'ver', title: 'Ver pedido' }]
+      actions: [{ action: 'ver', title: 'Ver' }],
+      tag: data.tipo || 'maxikia',
+      renotify: true
     })
   );
 });
