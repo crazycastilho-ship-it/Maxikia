@@ -268,7 +268,7 @@
     .alert { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 1rem; }
     .alert.error { background: #FFF0F2; border: 1px solid rgba(212,0,26,0.2); color: var(--mx-dark); }
     .alert.success { background: var(--green-light); border: 1px solid rgba(29,158,117,0.2); color: #0F6E56; }
-    .app-shell { min-height: calc(100vh - 62px); display: flex; flex-direction: column; background: var(--surface); }
+    .app-shell { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; background: var(--surface); }
     .app-header { background: var(--dark); padding: 1.25rem 1.5rem; }
     .app-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
     .app-logo { font-family: var(--font-head); font-weight: 800; font-size: 20px; color: white; }
@@ -397,13 +397,31 @@
     .monto-chip { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 12px 4px; font-size: 14px; font-weight: 600; color: var(--text); cursor: pointer; font-family: var(--font-body); transition: all .15s; }
     .monto-chip:hover { border-color: var(--mx); }
     .monto-chip.sel { border-color: var(--mx); background: var(--mx); color: white; }
+    /* Prevenir desbordes: mapas y contenedores nunca se salen */
+    #page-dashboard, .app-shell, .abody, .dp { overflow-x: hidden; max-width: 100%; }
+    .leaflet-container { max-width: 100%; overflow: hidden; }
+    #map-repartir, [id^="map-"] { max-width: 100%; overflow: hidden; }
+    /* Transición del mensajero corriendo entre secciones */
+    @keyframes runAcross {
+      0%   { left: -140px; transform: translateY(-50%) rotate(-2deg); }
+      50%  { transform: translateY(-58%) rotate(1deg); }
+      100% { left: 100%; transform: translateY(-50%) rotate(-2deg); }
+    }
+    @keyframes runOverlayFade {
+      0%   { opacity: 0; }
+      25%  { opacity: 1; }
+      75%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    #run-messenger.running { animation: runAcross 0.7s cubic-bezier(.4,0,.5,1) forwards; }
+    #run-overlay.running { animation: runOverlayFade 0.7s ease forwards; }
   </style>
 </head>
 <body>
 
 <nav class="nav">
   <div class="nav-inner">
-    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=9" alt="Maxikia Express" style="height:82px;width:auto" /></div>
+    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=11" alt="Maxikia Express" style="height:82px;width:auto" /></div>
     <div class="nav-links">
       <a href="/manual">Cómo funciona</a>
       <a href="/repartidores.html">Gana dinero</a>
@@ -605,6 +623,7 @@
 <div id="page-register" class="page">
   <div class="auth-wrap">
     <div class="auth-box">
+      <button onclick="goPage('landing')" style="background:none;border:none;color:var(--muted);font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font-body);padding:0 0 12px 0;display:flex;align-items:center;gap:6px"><i class="ti ti-arrow-left"></i> Volver al inicio</button>
       <div class="auth-head">
         <div class="logo" onclick="goPage('landing')" style="margin-bottom:8px;text-align:center"><img src="/logo-maxikia.png?v=7" alt="Maxikia Express" style="height:150px;width:auto" /></div>
         <h2>Crear cuenta gratis</h2><p>Rápido como tú lo necesitas</p>
@@ -645,6 +664,7 @@
           <div class="alink">¿Ya tienes cuenta? <span onclick="goPage('login')">Iniciar sesión</span></div>
         </div>
         <div class="sp" id="sp2">
+          <button onclick="rStep(1)" style="background:none;border:none;color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body);padding:0 0 10px 0;display:flex;align-items:center;gap:6px"><i class="ti ti-arrow-left"></i> Volver</button>
           <div class="step-h">Verificar identidad</div>
           <div class="step-s">Sube o fotografía los 3 documentos para continuar.</div>
 
@@ -706,6 +726,7 @@
 <div id="page-login" class="page">
   <div class="auth-wrap">
     <div class="auth-box">
+      <button onclick="goPage('landing')" style="background:none;border:none;color:var(--muted);font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font-body);padding:0 0 12px 0;display:flex;align-items:center;gap:6px"><i class="ti ti-arrow-left"></i> Volver al inicio</button>
       <div class="auth-head">
         <div class="logo" onclick="goPage('landing')" style="margin-bottom:8px;text-align:center"><img src="/logo-maxikia.png?v=7" alt="Maxikia Express" style="height:150px;width:auto" /></div>
         <h2>Bienvenido de vuelta</h2><p>Rápido como tú lo necesitas</p>
@@ -1008,7 +1029,7 @@
         <!-- Info navegación activa -->
       <div id="nav-info-repartir" style="display:none;background:white;border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:1rem;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,.06)"></div>
 
-      <div id="map-repartir" style="height:200px;border-radius:var(--radius);margin-bottom:1rem;background:#E0EAF0"></div>
+      <div id="map-repartir" style="height:200px;border-radius:var(--radius);margin-bottom:1rem;background:#E0EAF0;overflow:hidden"></div>
         <div class="sec-row"><div class="sec-t">Pedidos disponibles cerca <span id="bandeja-contador" style="display:none;background:var(--mx);color:#fff;font-size:12px;font-weight:700;padding:2px 9px;border-radius:50px;margin-left:6px;vertical-align:middle"></span></div><button class="see-all" onclick="cargarPedidosCercanos()"><i class="ti ti-refresh"></i></button></div>
         <div id="pedidos-cercanos"><div style="text-align:center;padding:2rem;color:var(--muted);font-size:14px;background:white;border:1px solid var(--border);border-radius:var(--radius)"><i class="ti ti-motorbike" style="font-size:32px;display:block;margin-bottom:8px;opacity:.4"></i>Activa el interruptor para ver pedidos.</div></div>
       </div>
@@ -2009,8 +2030,21 @@
           </div>
           <i class="ti ti-chevron-right" style="color:var(--muted)"></i>
         </button>
+
+        <button onclick="cancelarSeleccionPago()" style="width:100%;margin-top:12px;background:none;border:none;color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body);padding:8px">
+          <i class="ti ti-arrow-left"></i> Cancelar y volver
+        </button>
       </div>`;
     return;
+  }
+
+  // Cancelar el selector de pago y volver al formulario de envío
+  function cancelarSeleccionPago() {
+    window._pedidoPendiente = null;
+    const alerta = document.getElementById('envio-alert');
+    if (alerta) alerta.innerHTML = '';
+    const btn = document.getElementById('btn-buscar');
+    if (btn) { btn.disabled = false; btn.innerHTML = 'Buscar repartidor <i class="ti ti-motorbike"></i>'; }
   }
 
   // ── PAGAR ENVÍO CON SALDO ──
@@ -2921,13 +2955,38 @@
   document.getElementById('burger').addEventListener('click', () => document.getElementById('nav-mobile').classList.toggle('open'));
 
   // ── DASHBOARD TABS ──
+  // Reproduce la animación del mensajero corriendo entre secciones
+  function reproducirTransicion() {
+    const cont = document.getElementById('run-transition');
+    const msj = document.getElementById('run-messenger');
+    const ov = document.getElementById('run-overlay');
+    if (!cont || !msj) return;
+    cont.style.display = 'block';
+    // Reiniciar animación
+    msj.classList.remove('running'); ov.classList.remove('running');
+    void msj.offsetWidth; // forzar reflow
+    msj.classList.add('running'); ov.classList.add('running');
+    // Ocultar al terminar
+    setTimeout(() => {
+      cont.style.display = 'none';
+      msj.classList.remove('running'); ov.classList.remove('running');
+    }, 700);
+  }
+
   function dTab(t) {
+    reproducirTransicion();
+    // Cambiar la sección a mitad de la animación (cuando el mensajero tapa la pantalla)
+    setTimeout(() => cambiarTab(t), 300);
+  }
+
+  function cambiarTab(t) {
     document.querySelectorAll('.dp').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.bitem').forEach(b => b.classList.remove('active'));
     document.getElementById('dp-' + t).classList.add('active');
     const bn = document.getElementById('bn-' + t);
     if (bn) bn.classList.add('active');
     else document.getElementById('bn-home').classList.add('active');
+    window.scrollTo(0, 0);
     if (t === 'envio') {
       limpiarFormularioEnvio();
       initMapEnvio();
@@ -5088,6 +5147,7 @@
 <div id="modal-entrega" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:400;align-items:flex-end;justify-content:center">
   <div style="background:white;border-radius:16px 16px 0 0;width:100%;max-width:440px;padding:1.5rem;margin:0 auto">
     <input type="hidden" id="entrega-pedido-id">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:-8px"><button onclick="document.getElementById('modal-entrega').style.display='none'" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted)"><i class="ti ti-x"></i></button></div>
     <div style="text-align:center;margin-bottom:1.25rem">
       <div style="font-family:var(--font-head);font-weight:700;font-size:17px">Confirmar entrega</div>
       <div style="font-size:13px;color:var(--muted);margin-top:4px">Toma una foto como prueba de entrega</div>
@@ -5182,5 +5242,11 @@
   </div>
 </div>
 
+<!-- TRANSICIÓN: mensajero corriendo entre secciones -->
+<div id="run-transition" style="display:none;position:fixed;inset:0;z-index:9998;pointer-events:none;overflow:hidden">
+  <div id="run-overlay" style="position:absolute;inset:0;background:var(--surface);opacity:0"></div>
+  <img id="run-messenger" src="/mensajero.png?v=1" alt=""
+    style="position:absolute;top:50%;left:-140px;width:110px;height:auto;transform:translateY(-50%)" />
+</div>
 </body>
 </html>
