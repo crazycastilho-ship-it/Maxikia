@@ -403,7 +403,7 @@
 
 <nav class="nav">
   <div class="nav-inner">
-    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=8" alt="Maxikia Express" style="height:82px;width:auto" /></div>
+    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=9" alt="Maxikia Express" style="height:82px;width:auto" /></div>
     <div class="nav-links">
       <a href="/manual">Cómo funciona</a>
       <a href="/repartidores.html">Gana dinero</a>
@@ -1963,79 +1963,151 @@
       alerta.innerHTML = '<div class="alert error">Escribe el nombre del local que te envía.</div>'; return;
     }
 
-    // ── VERIFICACIÓN PREVIA DE SALDO (solo para avisar al usuario antes de enviar) ──
-    // El descuento REAL y la validación definitiva ocurren en el servidor (RPC crear_pedido_seguro).
+    // ── ELECCIÓN DE MÉTODO DE PAGO ──
     const { data: perfil } = await sb.from('perfiles').select('saldo').eq('id', currentUser.id).single();
     const saldoActual = perfil?.saldo || 0;
+    const tieneSaldo = saldoActual >= precio;
 
-    if (saldoActual < precio) {
-      const faltante = precio - saldoActual;
-      alerta.innerHTML = `
-        <div style="background:var(--mx-light);border:1px solid rgba(212,0,26,0.2);border-radius:var(--radius);padding:1.25rem;text-align:center">
-          <i class="ti ti-wallet" style="font-size:28px;color:var(--mx);display:block;margin-bottom:8px"></i>
-          <div style="font-family:var(--font-head);font-weight:700;font-size:15px;margin-bottom:4px">Saldo insuficiente</div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:10px">
-            Tienes <strong>$${saldoActual.toLocaleString('es-CO')}</strong> y el pedido cuesta <strong>$${precio.toLocaleString('es-CO')}</strong>.<br>
-            Necesitas recargar al menos <strong>$${faltante.toLocaleString('es-CO')}</strong> más.
-          </div>
-          <button onclick="dTab('billetera')" style="background:var(--mx);color:white;border:none;border-radius:var(--radius-sm);padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body)">
-            <i class="ti ti-wallet"></i> Recargar ahora
-          </button>
-        </div>`;
-      return;
-    }
-
-    const btn = document.getElementById('btn-buscar');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Procesando pago...';
-    alerta.innerHTML = '';
-
-    // Construir descripción completa según tipo
-    const mandado = tipoEnvio === 'especial' ? (document.getElementById('env-mandado')?.value || '') : '';
-    const local = tipoEnvio === 'comercial' ? (document.getElementById('env-local')?.value || '') : '';
+    // Guardar los datos del pedido para usarlos tras elegir el pago
+    const mandado0 = tipoEnvio === 'especial' ? (document.getElementById('env-mandado')?.value || '') : '';
+    const local0 = tipoEnvio === 'comercial' ? (document.getElementById('env-local')?.value || '') : '';
     const descCompleta = tipoEnvio === 'especial'
-      ? '🛋️ [Acólitamos] ' + (mandado || desc)
+      ? '🛋️ [Acólitamos] ' + (mandado0 || desc)
       : tipoEnvio === 'comercial'
-      ? '🏪 [Comercial - ' + local + '] ' + desc
+      ? '🏪 [Comercial - ' + local0 + '] ' + desc
       : desc;
 
-    // ── CREAR PEDIDO DE FORMA SEGURA (el servidor descuenta el saldo de forma atómica) ──
+    window._pedidoPendiente = {
+      origen, destino, descripcion: descCompleta, tipoEnvio, precio,
+      lat_origen: coordOrigen?.lat ?? null, lng_origen: coordOrigen?.lng ?? null,
+      lat_destino: coordDestino?.lat ?? null, lng_destino: coordDestino?.lng ?? null,
+      distancia, peso: tipoEnvio === 'express' ? ['liviano','mediano','pesado'][pesoSel] : 'liviano',
+      notas: document.getElementById('env-notas').value,
+    };
+
+    // Mostrar el selector de método de pago
+    const pagoWompi = calcularPagoConComision(precio);
+    alerta.innerHTML = `
+      <div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem">
+        <div style="font-family:var(--font-head);font-weight:700;font-size:15px;margin-bottom:2px">¿Cómo quieres pagar?</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Envío por <strong>$${precio.toLocaleString('es-CO')}</strong></div>
+
+        <button onclick="pagarEnvioConSaldo()" ${tieneSaldo ? '' : 'disabled'} style="width:100%;display:flex;align-items:center;gap:12px;padding:12px;border:1.5px solid ${tieneSaldo ? 'var(--mx)' : 'var(--border)'};border-radius:var(--radius-sm);background:${tieneSaldo ? 'rgba(212,0,26,0.04)' : 'var(--surface)'};cursor:${tieneSaldo ? 'pointer' : 'not-allowed'};margin-bottom:10px;font-family:var(--font-body);text-align:left;opacity:${tieneSaldo ? '1' : '0.55'}">
+          <div style="width:38px;height:38px;border-radius:9px;background:var(--mx);color:white;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-wallet" style="font-size:18px"></i></div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:14px">Pagar con mi saldo</div>
+            <div style="font-size:12px;color:var(--muted)">${tieneSaldo ? 'Tienes $' + saldoActual.toLocaleString('es-CO') + ' · sin comisión' : 'Saldo insuficiente ($' + saldoActual.toLocaleString('es-CO') + ')'}</div>
+          </div>
+          ${tieneSaldo ? '<i class="ti ti-chevron-right" style="color:var(--muted)"></i>' : ''}
+        </button>
+
+        <button onclick="pagarEnvioConWompi()" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:white;cursor:pointer;font-family:var(--font-body);text-align:left">
+          <div style="width:38px;height:38px;border-radius:9px;background:#3A0CA3;color:white;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-credit-card" style="font-size:18px"></i></div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:14px">Pagar con tarjeta / Nequi / PSE</div>
+            <div style="font-size:12px;color:var(--muted)">Pagas $${pagoWompi.toLocaleString('es-CO')} (incluye comisión)</div>
+          </div>
+          <i class="ti ti-chevron-right" style="color:var(--muted)"></i>
+        </button>
+      </div>`;
+    return;
+  }
+
+  // ── PAGAR ENVÍO CON SALDO ──
+  async function pagarEnvioConSaldo() {
+    const p = window._pedidoPendiente;
+    if (!p) return;
+    const alerta = document.getElementById('envio-alert');
+    alerta.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted)"><i class="ti ti-loader-2" style="animation:spin 1s linear infinite;font-size:22px"></i></div>';
+
     const { data: pedido, error } = await sb.rpc('crear_pedido_seguro', {
-      p_origen:       origen,
-      p_destino:      destino,
-      p_descripcion:  descCompleta,
-      p_tipo_envio:   tipoEnvio,
-      p_precio:       precio,
-      p_lat_origen:   coordOrigen?.lat ?? null,
-      p_lng_origen:   coordOrigen?.lng ?? null,
-      p_lat_destino:  coordDestino?.lat ?? null,
-      p_lng_destino:  coordDestino?.lng ?? null,
-      p_distancia_km: distancia,
-      p_peso:         tipoEnvio === 'express' ? ['liviano','mediano','pesado'][pesoSel] : 'liviano',
-      p_notas:        document.getElementById('env-notas').value
+      p_origen: p.origen, p_destino: p.destino, p_descripcion: p.descripcion,
+      p_tipo_envio: p.tipoEnvio, p_precio: p.precio,
+      p_lat_origen: p.lat_origen, p_lng_origen: p.lng_origen,
+      p_lat_destino: p.lat_destino, p_lng_destino: p.lng_destino,
+      p_distancia_km: p.distancia, p_peso: p.peso, p_notas: p.notas,
     });
 
-    btn.disabled = false;
-    btn.innerHTML = 'Buscar repartidor <i class="ti ti-motorbike"></i>';
-
     if (error) {
-      // El servidor no descontó nada si falló: no hay que revertir.
       alerta.innerHTML = '<div class="alert error">' + (error.message || 'Error al publicar el pedido.') + '</div>';
       return;
     }
-
-    // Refrescar saldo mostrado con el valor real del servidor
+    window._pedidoPendiente = null;
     refrescarSaldoMaxikia();
+    finalizarPedidoCreado(pedido);
+  }
 
-    document.getElementById('resultado-busqueda').innerHTML = `
+  // ── PAGAR ENVÍO DIRECTO CON WOMPI ──
+  async function pagarEnvioConWompi() {
+    const p = window._pedidoPendiente;
+    if (!p) return;
+    const alerta = document.getElementById('envio-alert');
+
+    const montoAPagar = calcularPagoConComision(p.precio);
+    const referencia = 'ENV_' + currentUser.id.slice(0, 8) + '_' + Date.now();
+    const montoEnCentavos = montoAPagar * 100;
+
+    // 1) Crear el pedido en estado "pendiente_pago" (aún no busca repartidor)
+    const { data: pedido, error } = await sb.rpc('crear_pedido_pendiente_pago', {
+      p_origen: p.origen, p_destino: p.destino, p_descripcion: p.descripcion,
+      p_tipo_envio: p.tipoEnvio, p_precio: p.precio,
+      p_lat_origen: p.lat_origen, p_lng_origen: p.lng_origen,
+      p_lat_destino: p.lat_destino, p_lng_destino: p.lng_destino,
+      p_distancia_km: p.distancia, p_peso: p.peso, p_notas: p.notas,
+    });
+    if (error || !pedido) {
+      alerta.innerHTML = '<div class="alert error">' + (error?.message || 'Error al crear el pedido.') + '</div>';
+      return;
+    }
+
+    // 2) Registrar la transacción Wompi ligada a ese pedido
+    await sb.rpc('wompi_crear_transaccion', {
+      p_referencia: referencia, p_monto: p.precio, p_tipo: 'envio', p_pedido_id: pedido.id,
+    });
+
+    // 3) Abrir el widget de Wompi
+    const { data: perfilU } = await sb.from('perfiles').select('email, telefono, nombre').eq('id', currentUser.id).single();
+    const firma = await generarFirmaIntegridad(referencia, montoEnCentavos, 'COP');
+    const telLimpio = (perfilU?.telefono || '').replace(/\D/g, '');
+    const customerData = { email: perfilU?.email || currentUser.email || 'cliente@maxikia.com', fullName: perfilU?.nombre || 'Cliente Maxikia' };
+    if (telLimpio.length >= 10) { customerData.phoneNumber = telLimpio.slice(-10); customerData.phoneNumberPrefix = '+57'; }
+
+    try {
+      const checkout = new WidgetCheckout({
+        currency: 'COP', amountInCents: montoEnCentavos, reference: referencia,
+        publicKey: WOMPI_PUBLIC_KEY, signature: { integrity: firma },
+        redirectUrl: window.location.origin, customerData,
+      });
+      checkout.open(function (result) {
+        const tx = result.transaction;
+        if (tx && tx.status === 'APPROVED') {
+          window._pedidoPendiente = null;
+          alerta.innerHTML = '<div class="alert success">¡Pago aprobado! Buscando repartidor...</div>';
+          // El webhook activará el pedido; refrescamos en unos segundos
+          setTimeout(() => { cargarPedidosHome(); finalizarPedidoCreado(pedido); }, 3000);
+        } else {
+          alerta.innerHTML = '<div class="alert error">El pago no se completó. El pedido no se publicó.</div>';
+        }
+      });
+    } catch (e) {
+      alerta.innerHTML = '<div class="alert error">No se pudo abrir el pago: ' + (e.message || 'error') + '</div>';
+    }
+  }
+
+  // ── Mostrar resultado tras crear el pedido ──
+  function finalizarPedidoCreado(pedido) {
+    const alerta = document.getElementById('envio-alert');
+    if (alerta) alerta.innerHTML = '';
+    const rb = document.getElementById('resultado-busqueda');
+    if (rb) rb.innerHTML = `
       <div style="background:var(--green-light);border:1px solid rgba(29,158,117,0.2);border-radius:var(--radius);padding:1.25rem">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
           <i class="ti ti-circle-check" style="color:var(--green);font-size:22px"></i>
           <div style="font-weight:600;color:#0F6E56">¡Pedido publicado!</div>
         </div>
-        <div style="font-size:13px;color:#0F6E56;margin-bottom:4px">Pago de <strong>$${precio.toLocaleString('es-CO')}</strong> descontado de tu saldo.</div>
-        <div style="font-size:13px;color:#0F6E56;margin-bottom:10px">Buscando repartidor en un radio de ${RADIO_REPARTIDOR_KM}km...</div>
-        <div style="font-size:13px;color:var(--muted)">📦 ${desc}<br>📍 ${origen}<br>🏁 ${destino}</div>
+        <div style="font-size:13px;color:#0F6E56;margin-bottom:4px">Pago de <strong>$${(pedido.precio||0).toLocaleString('es-CO')}</strong> confirmado.</div>
+        <div style="font-size:13px;color:#0F6E56;margin-bottom:10px">Buscando repartidor cerca...</div>
+        <div style="font-size:13px;color:var(--muted)">📦 ${pedido.descripcion || ''}<br>📍 ${pedido.origen || ''}<br>🏁 ${pedido.destino || ''}</div>
         <a href="https://wa.me/${WHATSAPP}?text=Hola%20Maxikia%2C%20hice%20un%20pedido.%20ID%3A%20${pedido.id}" target="_blank"
           style="display:flex;align-items:center;gap:6px;margin-top:12px;background:#25D366;color:white;padding:10px;border-radius:var(--radius-sm);text-decoration:none;font-size:13px;font-weight:500;justify-content:center">
           <i class="ti ti-brand-whatsapp"></i> Seguimiento por WhatsApp
