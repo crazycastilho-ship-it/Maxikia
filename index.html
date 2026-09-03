@@ -450,13 +450,23 @@
       40%  { opacity: 0.95; transform: scaleX(1); }
       100% { opacity: 0; transform: scaleX(1.2); }
     }
+    /* Mensajero del logo del dashboard: corre de lado a lado y vuelve */
+    @keyframes dashRun {
+      0%   { transform: translateX(0) scaleX(1); }
+      25%  { transform: translateX(70px) scaleX(1); }   /* corre a la derecha */
+      50%  { transform: translateX(70px) scaleX(-1); }  /* voltea */
+      75%  { transform: translateX(-8px) scaleX(-1); }  /* corre de vuelta a la izquierda */
+      88%  { transform: translateX(-8px) scaleX(1); }   /* voltea de nuevo */
+      100% { transform: translateX(0) scaleX(1); }      /* vuelve a su sitio */
+    }
+    #dash-messenger.run { animation: dashRun 1.6s cubic-bezier(.5,0,.5,1); }
   </style>
 </head>
 <body>
 
 <nav class="nav">
   <div class="nav-inner">
-    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=14" alt="Maxikia Express" style="height:82px;width:auto" /></div>
+    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=15" alt="Maxikia Express" style="height:82px;width:auto" /></div>
     <div class="nav-links">
       <a href="/manual">Cómo funciona</a>
       <a href="/repartidores.html">Gana dinero</a>
@@ -785,7 +795,10 @@
   <div class="app-shell">
     <div class="app-header">
       <div class="app-header-top">
-        <div class="app-logo" style="text-align:center"><img src="/logo-maxikia.png?v=7" alt="Maxikia Express" style="height:110px;width:auto" /></div>
+        <div class="app-logo" style="display:flex;align-items:center;justify-content:center;gap:10px">
+          <img id="dash-messenger" src="/mensajero.png?v=1" alt="" style="height:52px;width:auto" />
+          <span style="font-family:var(--font-head);font-weight:800;font-size:22px;color:white">Maxi<span style="color:var(--mx2)">⋊</span>ia<span class="express">Express</span></span>
+        </div>
         <div style="display:flex;gap:8px;align-items:center">
           <button class="icon-btn"><i class="ti ti-bell"></i></button>
           <button class="logout-btn" onclick="doLogout()">Salir</button>
@@ -3029,6 +3042,7 @@
     if (bn) bn.classList.add('active');
     else document.getElementById('bn-home').classList.add('active');
     window.scrollTo(0, 0);
+    if (t === 'home') setTimeout(animarMensajeroLogo, 550);
     if (t === 'envio') {
       limpiarFormularioEnvio();
       initMapEnvio();
@@ -3595,11 +3609,22 @@
     if (window._transInterval) clearInterval(window._transInterval);
   });
 
+  // Anima el mensajero del logo (corre de lado a lado y vuelve)
+  function animarMensajeroLogo() {
+    const m = document.getElementById('dash-messenger');
+    if (!m) return;
+    m.classList.remove('run');
+    void m.offsetWidth; // reflow para reiniciar
+    m.classList.add('run');
+    setTimeout(() => m.classList.remove('run'), 1700);
+  }
+
   async function showDashboard() {
     // Ocultar nav de landing
     const navEl = document.querySelector('.nav');
     if (navEl) navEl.style.display = 'none';
     goPage('dashboard');
+    setTimeout(animarMensajeroLogo, 400);
     const lockUserEl = document.getElementById('lock-user');
     if (lockUserEl) lockUserEl.textContent = currentUser?.email || '';
     setTimeout(() => resetTimerInactividad(), 500);
