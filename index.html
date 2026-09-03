@@ -389,6 +389,15 @@
       .casos-grid { grid-template-columns: repeat(2,1fr) !important; }
       .tipos-grid { grid-template-columns: 1fr 1fr !important; }
       .section { padding: 3.5rem 1.25rem; }
+      /* Header del dashboard: que la campana y Salir no se salgan */
+      .app-header { padding: 1rem 1rem !important; }
+      .app-header-top { gap: 8px; flex-wrap: nowrap; }
+      .app-header-top .app-logo { justify-content: flex-start !important; gap: 6px !important; min-width: 0; flex: 1; }
+      .app-header-top .app-logo img { height: 38px !important; }
+      .app-header-top .app-logo span { font-size: 17px !important; white-space: nowrap; }
+      .app-header-top > div:last-child { flex-shrink: 0; }
+      .logout-btn { font-size: 11px !important; padding: 5px 9px !important; }
+      .icon-btn { width: 32px !important; height: 32px !important; font-size: 16px !important; }
       /* iOS safe-area */
       @supports (padding-bottom: env(safe-area-inset-bottom)) {
         body { padding-bottom: env(safe-area-inset-bottom); }
@@ -450,23 +459,24 @@
       40%  { opacity: 0.95; transform: scaleX(1); }
       100% { opacity: 0; transform: scaleX(1.2); }
     }
-    /* Mensajero del logo del dashboard: corre de lado a lado y vuelve */
+    /* Mensajero del logo del dashboard: corre lejos y vuelve a su sitio */
+    .app-logo { overflow: visible; }
     @keyframes dashRun {
       0%   { transform: translateX(0) scaleX(1); }
-      25%  { transform: translateX(70px) scaleX(1); }   /* corre a la derecha */
-      50%  { transform: translateX(70px) scaleX(-1); }  /* voltea */
-      75%  { transform: translateX(-8px) scaleX(-1); }  /* corre de vuelta a la izquierda */
-      88%  { transform: translateX(-8px) scaleX(1); }   /* voltea de nuevo */
-      100% { transform: translateX(0) scaleX(1); }      /* vuelve a su sitio */
+      22%  { transform: translateX(40vw) scaleX(1); }    /* corre lejos a la derecha */
+      44%  { transform: translateX(40vw) scaleX(-1); }   /* voltea en la esquina */
+      70%  { transform: translateX(-6px) scaleX(-1); }   /* corre de vuelta */
+      85%  { transform: translateX(-6px) scaleX(1); }    /* voltea */
+      100% { transform: translateX(0) scaleX(1); }       /* vuelve a su sitio */
     }
-    #dash-messenger.run { animation: dashRun 1.6s cubic-bezier(.5,0,.5,1); }
+    #dash-messenger.run { animation: dashRun 2s cubic-bezier(.45,0,.5,1); position: relative; z-index: 5; }
   </style>
 </head>
 <body>
 
 <nav class="nav">
   <div class="nav-inner">
-    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=15" alt="Maxikia Express" style="height:82px;width:auto" /></div>
+    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=16" alt="Maxikia Express" style="height:82px;width:auto" /></div>
     <div class="nav-links">
       <a href="/manual">Cómo funciona</a>
       <a href="/repartidores.html">Gana dinero</a>
@@ -3616,7 +3626,7 @@
     m.classList.remove('run');
     void m.offsetWidth; // reflow para reiniciar
     m.classList.add('run');
-    setTimeout(() => m.classList.remove('run'), 1700);
+    setTimeout(() => m.classList.remove('run'), 2100);
   }
 
   async function showDashboard() {
