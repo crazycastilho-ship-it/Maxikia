@@ -139,7 +139,8 @@ tbody tr:hover{background:var(--surface)}
       <div class="ni on" id="n-dashboard" onclick="sp('dashboard')"><i class="ti ti-dashboard"></i> Dashboard</div>
       <div class="ni" id="n-pedidos" onclick="sp('pedidos')"><i class="ti ti-package"></i> Pedidos</div>
       <div class="ns">Usuarios</div>
-      <div class="ni" id="n-usuarios" onclick="sp('usuarios')"><i class="ti ti-users"></i> Usuarios</div>
+      <div class="ni" id="n-usuarios" onclick="sp('usuarios')"><i class="ti ti-user"></i> Clientes</div>
+      <div class="ni" id="n-repartidores" onclick="sp('repartidores')"><i class="ti ti-motorbike"></i> Repartidores</div>
       <div class="ni" id="n-verificaciones" onclick="sp('verificaciones')"><i class="ti ti-id-badge"></i> Verificaciones <span id="bv" style="margin-left:auto;background:var(--mx);color:white;font-size:10px;padding:2px 6px;border-radius:10px;display:none">0</span></div>
       <div class="ns">Finanzas</div>
       <div class="ni" id="n-recargas" onclick="sp('recargas')"><i class="ti ti-cash"></i> Recargas</div>
@@ -192,23 +193,32 @@ tbody tr:hover{background:var(--surface)}
         </div>
       </div>
 
-      <!-- USUARIOS -->
+      <!-- CLIENTES -->
       <div class="panel" id="p-usuarios">
         <div class="tc">
-          <div class="th"><div class="tt">Todos los usuarios</div></div>
+          <div class="th"><div class="tt">Clientes</div></div>
           <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
-            <select id="filtro-usuarios" onchange="loadUsuarios()" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-family:var(--font);font-size:13px;background:white">
-              <option value="separado">📂 Separados (clientes / repartidores)</option>
-              <option value="clientes">👤 Solo clientes</option>
-              <option value="repartidores">🛵 Solo repartidores</option>
-              <option value="activos">🟢 Activos ahora</option>
-              <option value="pendientes">⏳ Docs pendientes</option>
-              <option value="aprobados">✅ Aprobados</option>
-              <option value="todos">Todos (mezclados)</option>
-            </select>
-            <button class="bsm" onclick="loadUsuarios()" style="padding:6px 14px"><i class="ti ti-refresh"></i> Actualizar</button>
+            <input id="buscar-clientes" placeholder="Buscar por nombre, correo o documento..." oninput="loadClientes()" style="flex:1;min-width:200px;padding:7px 12px;border:1px solid var(--border);border-radius:6px;font-family:var(--font);font-size:13px">
+            <button class="bsm" onclick="loadClientes()" style="padding:6px 14px"><i class="ti ti-refresh"></i> Actualizar</button>
           </div>
-          <div class="tw"><table><thead><tr><th>Usuario</th><th>Teléfono</th><th>Rol</th><th>Estado</th><th>Docs</th><th>Saldo</th><th>Última actividad</th><th>Acciones</th></tr></thead><tbody id="ut"></tbody></table></div>
+          <div class="tw"><table><thead><tr><th>Cliente</th><th>Teléfono</th><th>Documento</th><th>Dirección</th><th>Saldo</th><th>Registrado</th><th>Acciones</th></tr></thead><tbody id="ut"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- REPARTIDORES -->
+      <div class="panel" id="p-repartidores">
+        <div class="tc">
+          <div class="th"><div class="tt">Repartidores y transportistas</div></div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+            <select id="filtro-repartidores" onchange="loadRepartidores()" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-family:var(--font);font-size:13px;background:white">
+              <option value="todos">Todos</option>
+              <option value="activos">🟢 Activos ahora</option>
+              <option value="aprobados">✅ Aprobados</option>
+              <option value="pendientes">⏳ Docs pendientes</option>
+            </select>
+            <button class="bsm" onclick="loadRepartidores()" style="padding:6px 14px"><i class="ti ti-refresh"></i> Actualizar</button>
+          </div>
+          <div class="tw"><table><thead><tr><th>Repartidor</th><th>Teléfono</th><th>Rol</th><th>Estado</th><th>Docs</th><th>Saldo</th><th>Entregas</th><th>Calif.</th><th>Acciones</th></tr></thead><tbody id="rt"></tbody></table></div>
         </div>
       </div>
 
@@ -338,10 +348,11 @@ function sp(id){
   document.getElementById('p-'+id).classList.add('on');
   const ni = document.getElementById('n-'+id);
   if(ni) ni.classList.add('on');
-  const titles={dashboard:'Dashboard',pedidos:'Pedidos',usuarios:'Usuarios',verificaciones:'Verificaciones',recargas:'Recargas',retiros:'Retiros',ingresos:'Ingresos'};
+  const titles={dashboard:'Dashboard',pedidos:'Pedidos',usuarios:'Clientes',repartidores:'Repartidores',verificaciones:'Verificaciones',recargas:'Recargas',retiros:'Retiros',ingresos:'Ingresos'};
   document.getElementById('tt').textContent = titles[id]||id;
   if(id==='pedidos') loadPedidos();
-  if(id==='usuarios') loadUsuarios();
+  if(id==='usuarios') loadClientes();
+  if(id==='repartidores') loadRepartidores();
   if(id==='verificaciones') loadVerif();
   if(id==='retiros') loadRetiros();
   if(id==='ingresos') loadIngresos();
@@ -537,78 +548,78 @@ async function cambiaE(id,est){
   loadPedidos(); loadMetrics();
 }
 
-async function loadUsuarios(){
-  const filtro = document.getElementById('filtro-usuarios')?.value || 'separado';
-  let q = sb.from('perfiles').select('*').order('created_at',{ascending:false});
-  if (filtro === 'activos')      q = q.eq('disponible', true);
-  if (filtro === 'pendientes')   q = q.in('docs_estado',['en_revision','pendiente']);
-  if (filtro === 'aprobados')    q = q.eq('docs_estado','aprobado');
-  const {data} = await q;
+// Alias por compatibilidad (el dashboard llama loadUsuarios)
+async function loadUsuarios(){ loadClientes(); }
+
+async function loadClientes(){
+  const {data} = await sb.from('perfiles').select('*').order('created_at',{ascending:false});
   const tb = document.getElementById('ut');
-  if(!data||!data.length){tb.innerHTML='<tr><td colspan="8"><div class="es"><i class="ti ti-users"></i>Sin usuarios</div></td></tr>';return;}
+  if(!tb) return;
+  const esRep = (r) => ['repartidor','transportista','both','ambos'].includes(r || '');
+  let clientes = (data||[]).filter(u => !esRep(u.rol) && u.rol !== 'admin');
 
-  // Clasificar por tipo
-  const esRepartidorRol = (r) => ['repartidor','transportista','both','ambos'].includes(r || '');
-  const clientes = data.filter(u => !esRepartidorRol(u.rol));
-  const repartidores = data.filter(u => esRepartidorRol(u.rol));
-
-  // Fila de encabezado de grupo
-  const grupoHeader = (titulo, icono, count) =>
-    `<tr><td colspan="8" style="background:var(--surface);padding:10px 14px;font-weight:700;font-size:13px;color:var(--text);border-top:2px solid var(--border)">
-      <i class="ti ${icono}"></i> ${titulo} <span style="color:var(--muted);font-weight:500">(${count})</span>
-    </td></tr>`;
-
-  let html = '';
-  if (filtro === 'clientes') {
-    html = clientes.map(filaUsuario).join('') || filaVacia('clientes');
-  } else if (filtro === 'repartidores') {
-    html = repartidores.map(filaUsuario).join('') || filaVacia('repartidores');
-  } else if (filtro === 'separado') {
-    html = grupoHeader('Clientes', 'ti-user', clientes.length)
-         + (clientes.map(filaUsuario).join('') || filaVacia('clientes'))
-         + grupoHeader('Repartidores y transportistas', 'ti-motorbike', repartidores.length)
-         + (repartidores.map(filaUsuario).join('') || filaVacia('repartidores'));
-  } else {
-    // activos / pendientes / aprobados / todos: lista plana
-    html = data.map(filaUsuario).join('');
+  // Búsqueda
+  const buscar = (document.getElementById('buscar-clientes')?.value || '').toLowerCase().trim();
+  if (buscar) {
+    clientes = clientes.filter(u =>
+      (u.nombre||'').toLowerCase().includes(buscar) ||
+      (u.email||'').toLowerCase().includes(buscar) ||
+      (u.numero_documento||'').toLowerCase().includes(buscar));
   }
-  tb.innerHTML = html;
+
+  if(!clientes.length){tb.innerHTML='<tr><td colspan="7"><div class="es"><i class="ti ti-user"></i>Sin clientes</div></td></tr>';return;}
+
+  tb.innerHTML = clientes.map(u=>{
+    const doc = (u.tipo_documento||'CC') + ' ' + (u.numero_documento||'—');
+    const reg = u.created_at ? new Date(u.created_at).toLocaleDateString('es-CO',{dateStyle:'short'}) : '—';
+    return `<tr>
+      <td><div style="font-weight:600;font-size:13px">${u.nombre||'—'}</div><div style="font-size:11px;color:var(--muted)">${u.email||'—'}</div></td>
+      <td style="font-size:12px">${u.telefono||'—'}</td>
+      <td style="font-size:12px">${doc}</td>
+      <td style="font-size:12px;color:var(--muted)">${u.direccion||'—'}</td>
+      <td style="font-weight:600">$${(u.saldo||0).toLocaleString('es-CO')}</td>
+      <td style="font-size:11px;color:var(--muted)">${reg}</td>
+      <td><button class="ab" onclick='verU(${JSON.stringify(u).replace(/"/g,"&quot;")})'>Ver</button></td>
+    </tr>`;
+  }).join('');
 }
 
-function filaVacia(tipo){
-  return `<tr><td colspan="8" style="text-align:center;padding:1rem;color:var(--muted);font-size:13px">Sin ${tipo}</td></tr>`;
-}
+async function loadRepartidores(){
+  const filtro = document.getElementById('filtro-repartidores')?.value || 'todos';
+  const {data} = await sb.from('perfiles').select('*').order('created_at',{ascending:false});
+  const tb = document.getElementById('rt');
+  if(!tb) return;
+  const esRep = (r) => ['repartidor','transportista','both','ambos'].includes(r || '');
+  let reps = (data||[]).filter(u => esRep(u.rol));
+  if (filtro === 'activos')    reps = reps.filter(u => u.disponible);
+  if (filtro === 'aprobados')  reps = reps.filter(u => u.docs_estado === 'aprobado');
+  if (filtro === 'pendientes') reps = reps.filter(u => ['en_revision','pendiente'].includes(u.docs_estado));
 
-function filaUsuario(u){
-  const activo = u.disponible;
-  const activoHtml = activo
-    ? '<span style="display:inline-flex;align-items:center;gap:4px;background:#E1F5EE;color:#0F6E56;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:600"><span style="width:7px;height:7px;border-radius:50%;background:#1D9E75;animation:pulse 2s infinite;display:inline-block"></span>Activo</span>'
-    : '<span style="background:#F4F3F0;color:#888;padding:3px 9px;border-radius:10px;font-size:11px">Inactivo</span>';
+  if(!reps.length){tb.innerHTML='<tr><td colspan="9"><div class="es"><i class="ti ti-motorbike"></i>Sin repartidores</div></td></tr>';return;}
 
-  let rol = u.rol || 'cliente';
-  if (rol === 'client') rol = 'cliente';
-  if (rol === 'both') rol = 'ambos';
-  const rolColors = { repartidor:'#0EA5E9', transportista:'#8B5CF6', ambos:'#F59E0B', cliente:'#888' };
-  const rolHtml = `<span style="background:${rolColors[rol] || '#888'}22;color:${rolColors[rol]||'#888'};padding:2px 8px;border-radius:8px;font-size:11px;font-weight:600">${rol}</span>`;
-
-  const ultima = u.updated_at ? new Date(u.updated_at).toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'}) : '—';
-
-  return `<tr style="${activo ? 'background:#F8FFFB' : ''}">
-    <td>
-      <div style="font-weight:600;font-size:13px">${u.nombre||'—'}</div>
-      <div style="font-size:11px;color:var(--muted)">${u.email||'—'}</div>
-    </td>
-    <td style="font-size:12px">${u.telefono||'—'}</td>
-    <td>${rolHtml}</td>
-    <td>${activoHtml}</td>
-    <td><span class="pill p-${u.docs_estado||'pendiente'}">${u.docs_estado||'pendiente'}</span></td>
-    <td style="font-weight:600">$${(u.saldo||0).toLocaleString('es-CO')}</td>
-    <td style="font-size:11px;color:var(--muted)">${ultima}</td>
-    <td>
-      <button class="ab" onclick='verU(${JSON.stringify(u).replace(/"/g,"&quot;")})'>Ver</button>
-      ${u.docs_estado!=='aprobado' && ['repartidor','transportista','both','ambos'].includes(u.rol) ?`<button class="ab ok" onclick="aprobarU('${u.id}','${u.nombre||u.email}')">✓</button>`:''}
-    </td>
-  </tr>`;
+  tb.innerHTML = reps.map(u=>{
+    const activoHtml = u.disponible
+      ? '<span style="display:inline-flex;align-items:center;gap:4px;background:#E1F5EE;color:#0F6E56;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:600"><span style="width:7px;height:7px;border-radius:50%;background:#1D9E75;animation:pulse 2s infinite;display:inline-block"></span>Activo</span>'
+      : '<span style="background:#F4F3F0;color:#888;padding:3px 9px;border-radius:10px;font-size:11px">Inactivo</span>';
+    let rol = u.rol==='both'?'ambos':u.rol;
+    const rolColors = { repartidor:'#0EA5E9', transportista:'#8B5CF6', ambos:'#F59E0B' };
+    const rolHtml = `<span style="background:${rolColors[rol]||'#888'}22;color:${rolColors[rol]||'#888'};padding:2px 8px;border-radius:8px;font-size:11px;font-weight:600">${rol}</span>`;
+    const cal = u.calificacion ? '⭐ ' + Number(u.calificacion).toFixed(1) : '—';
+    return `<tr style="${u.disponible ? 'background:#F8FFFB' : ''}">
+      <td><div style="font-weight:600;font-size:13px">${u.nombre||'—'}</div><div style="font-size:11px;color:var(--muted)">${u.email||'—'}</div></td>
+      <td style="font-size:12px">${u.telefono||'—'}</td>
+      <td>${rolHtml}</td>
+      <td>${activoHtml}</td>
+      <td><span class="pill p-${u.docs_estado||'pendiente'}">${u.docs_estado||'pendiente'}</span></td>
+      <td style="font-weight:600">$${(u.saldo||0).toLocaleString('es-CO')}</td>
+      <td style="text-align:center">${u.entregas_completadas||0}</td>
+      <td style="font-size:12px">${cal}</td>
+      <td>
+        <button class="ab" onclick='verU(${JSON.stringify(u).replace(/"/g,"&quot;")})'>Ver</button>
+        ${u.docs_estado!=='aprobado'?`<button class="ab ok" onclick="aprobarU('${u.id}','${u.nombre||u.email}')">✓</button>`:''}
+      </td>
+    </tr>`;
+  }).join('');
 }
 
 async function verU(u){
