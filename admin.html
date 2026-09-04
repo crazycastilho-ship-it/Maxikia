@@ -198,10 +198,13 @@ tbody tr:hover{background:var(--surface)}
           <div class="th"><div class="tt">Todos los usuarios</div></div>
           <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
             <select id="filtro-usuarios" onchange="loadUsuarios()" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-family:var(--font);font-size:13px;background:white">
-              <option value="todos">Todos los usuarios</option>
+              <option value="separado">📂 Separados (clientes / repartidores)</option>
+              <option value="clientes">👤 Solo clientes</option>
+              <option value="repartidores">🛵 Solo repartidores</option>
               <option value="activos">🟢 Activos ahora</option>
               <option value="pendientes">⏳ Docs pendientes</option>
               <option value="aprobados">✅ Aprobados</option>
+              <option value="todos">Todos (mezclados)</option>
             </select>
             <button class="bsm" onclick="loadUsuarios()" style="padding:6px 14px"><i class="ti ti-refresh"></i> Actualizar</button>
           </div>
@@ -535,56 +538,77 @@ async function cambiaE(id,est){
 }
 
 async function loadUsuarios(){
-  const filtro = document.getElementById('filtro-usuarios')?.value || 'todos';
+  const filtro = document.getElementById('filtro-usuarios')?.value || 'separado';
   let q = sb.from('perfiles').select('*').order('created_at',{ascending:false});
-  if (filtro === 'activos')    q = q.eq('disponible', true);
-  if (filtro === 'repartidores') q = q.eq('disponible', true);
-  if (filtro === 'pendientes') q = q.in('docs_estado',['en_revision','pendiente']);
-  if (filtro === 'aprobados')  q = q.eq('docs_estado','aprobado');
+  if (filtro === 'activos')      q = q.eq('disponible', true);
+  if (filtro === 'pendientes')   q = q.in('docs_estado',['en_revision','pendiente']);
+  if (filtro === 'aprobados')    q = q.eq('docs_estado','aprobado');
   const {data} = await q;
   const tb = document.getElementById('ut');
   if(!data||!data.length){tb.innerHTML='<tr><td colspan="8"><div class="es"><i class="ti ti-users"></i>Sin usuarios</div></td></tr>';return;}
 
-  tb.innerHTML=data.map(u=>{
-    // Estado activo
-    const activo = u.disponible;
-    const activoHtml = activo
-      ? '<span style="display:inline-flex;align-items:center;gap:4px;background:#E1F5EE;color:#0F6E56;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:600"><span style="width:7px;height:7px;border-radius:50%;background:#1D9E75;animation:pulse 2s infinite;display:inline-block"></span>Activo</span>'
-      : '<span style="background:#F4F3F0;color:#888;padding:3px 9px;border-radius:10px;font-size:11px">Inactivo</span>';
+  // Clasificar por tipo
+  const esRepartidorRol = (r) => ['repartidor','transportista','both','ambos'].includes(r || '');
+  const clientes = data.filter(u => !esRepartidorRol(u.rol));
+  const repartidores = data.filter(u => esRepartidorRol(u.rol));
 
-    // Rol badge (normaliza client→cliente)
-    let rol = u.rol || 'cliente';
-    if (rol === 'client') rol = 'cliente';
-    if (rol === 'both') rol = 'ambos';
-    const rolColors = { repartidor:'#0EA5E9', transportista:'#8B5CF6', ambos:'#F59E0B', cliente:'#888' };
-    const rolHtml = `<span style="background:${rolColors[rol] || '#888'}22;color:${rolColors[rol]||'#888'};padding:2px 8px;border-radius:8px;font-size:11px;font-weight:600">${rol}</span>`;
+  // Fila de encabezado de grupo
+  const grupoHeader = (titulo, icono, count) =>
+    `<tr><td colspan="8" style="background:var(--surface);padding:10px 14px;font-weight:700;font-size:13px;color:var(--text);border-top:2px solid var(--border)">
+      <i class="ti ${icono}"></i> ${titulo} <span style="color:var(--muted);font-weight:500">(${count})</span>
+    </td></tr>`;
 
-    // Última conexión
-    const ultima = u.updated_at ? new Date(u.updated_at).toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'}) : '—';
+  let html = '';
+  if (filtro === 'clientes') {
+    html = clientes.map(filaUsuario).join('') || filaVacia('clientes');
+  } else if (filtro === 'repartidores') {
+    html = repartidores.map(filaUsuario).join('') || filaVacia('repartidores');
+  } else if (filtro === 'separado') {
+    html = grupoHeader('Clientes', 'ti-user', clientes.length)
+         + (clientes.map(filaUsuario).join('') || filaVacia('clientes'))
+         + grupoHeader('Repartidores y transportistas', 'ti-motorbike', repartidores.length)
+         + (repartidores.map(filaUsuario).join('') || filaVacia('repartidores'));
+  } else {
+    // activos / pendientes / aprobados / todos: lista plana
+    html = data.map(filaUsuario).join('');
+  }
+  tb.innerHTML = html;
+}
 
-    // Entregas completadas
-    const entregas = u.entregas_completadas || 0;
+function filaVacia(tipo){
+  return `<tr><td colspan="8" style="text-align:center;padding:1rem;color:var(--muted);font-size:13px">Sin ${tipo}</td></tr>`;
+}
 
-    // Calificación
-    const cal = u.calificacion ? '⭐ ' + Number(u.calificacion).toFixed(1) : '—';
+function filaUsuario(u){
+  const activo = u.disponible;
+  const activoHtml = activo
+    ? '<span style="display:inline-flex;align-items:center;gap:4px;background:#E1F5EE;color:#0F6E56;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:600"><span style="width:7px;height:7px;border-radius:50%;background:#1D9E75;animation:pulse 2s infinite;display:inline-block"></span>Activo</span>'
+    : '<span style="background:#F4F3F0;color:#888;padding:3px 9px;border-radius:10px;font-size:11px">Inactivo</span>';
 
-    return `<tr style="${activo ? 'background:#F8FFFB' : ''}">
-      <td>
-        <div style="font-weight:600;font-size:13px">${u.nombre||'—'}</div>
-        <div style="font-size:11px;color:var(--muted)">${u.email||'—'}</div>
-      </td>
-      <td style="font-size:12px">${u.telefono||'—'}</td>
-      <td>${rolHtml}</td>
-      <td>${activoHtml}</td>
-      <td><span class="pill p-${u.docs_estado||'pendiente'}">${u.docs_estado||'pendiente'}</span></td>
-      <td style="font-weight:600">$${(u.saldo||0).toLocaleString('es-CO')}</td>
-      <td style="font-size:11px;color:var(--muted)">${ultima}</td>
-      <td>
-        <button class="ab" onclick='verU(${JSON.stringify(u).replace(/"/g,"&quot;")})'>Ver</button>
-        ${u.docs_estado!=='aprobado'?`<button class="ab ok" onclick="aprobarU('${u.id}','${u.nombre||u.email}')">✓</button>`:''}
-      </td>
-    </tr>`;
-  }).join('');
+  let rol = u.rol || 'cliente';
+  if (rol === 'client') rol = 'cliente';
+  if (rol === 'both') rol = 'ambos';
+  const rolColors = { repartidor:'#0EA5E9', transportista:'#8B5CF6', ambos:'#F59E0B', cliente:'#888' };
+  const rolHtml = `<span style="background:${rolColors[rol] || '#888'}22;color:${rolColors[rol]||'#888'};padding:2px 8px;border-radius:8px;font-size:11px;font-weight:600">${rol}</span>`;
+
+  const ultima = u.updated_at ? new Date(u.updated_at).toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'}) : '—';
+
+  return `<tr style="${activo ? 'background:#F8FFFB' : ''}">
+    <td>
+      <div style="font-weight:600;font-size:13px">${u.nombre||'—'}</div>
+      <div style="font-size:11px;color:var(--muted)">${u.email||'—'}</div>
+    </td>
+    <td style="font-size:12px">${u.telefono||'—'}</td>
+    <td>${rolHtml}</td>
+    <td>${activoHtml}</td>
+    <td><span class="pill p-${u.docs_estado||'pendiente'}">${u.docs_estado||'pendiente'}</span></td>
+    <td style="font-weight:600">$${(u.saldo||0).toLocaleString('es-CO')}</td>
+    <td style="font-size:11px;color:var(--muted)">${ultima}</td>
+    <td>
+      <button class="ab" onclick='verU(${JSON.stringify(u).replace(/"/g,"&quot;")})'>Ver</button>
+      ${u.docs_estado!=='aprobado' && ['repartidor','transportista','both','ambos'].includes(u.rol) ?`<button class="ab ok" onclick="aprobarU('${u.id}','${u.nombre||u.email}')">✓</button>`:''}
+    </td>
+  </tr>`;
 }
 
 async function verU(u){
