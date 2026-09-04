@@ -164,9 +164,9 @@ tbody tr:hover{background:var(--surface)}
       <div class="panel on" id="p-dashboard">
         <div class="mg">
           <div class="mc"><div class="mi r"><i class="ti ti-package"></i></div><div class="ml">Pedidos hoy</div><div class="mv" id="m1">—</div><div class="ms" id="m1s">—</div></div>
-          <div class="mc"><div class="mi g"><i class="ti ti-users"></i></div><div class="ml">Usuarios</div><div class="mv" id="m2">—</div><div class="ms" id="m2s">registrados</div></div>
+          <div class="mc"><div class="mi g"><i class="ti ti-users"></i></div><div class="ml">Clientes</div><div class="mv" id="m2">—</div><div class="ms" id="m2s">registrados</div></div>
           <div class="mc"><div class="mi b"><i class="ti ti-coin"></i></div><div class="ml">Ingresos hoy</div><div class="mv" id="m3">—</div><div class="ms">25% comisión</div></div>
-          <div class="mc"><div class="mi a"><i class="ti ti-motorbike"></i></div><div class="ml">Repartidores</div><div class="mv" id="m4">—</div><div class="ms">activos ahora</div></div>
+          <div class="mc"><div class="mi a"><i class="ti ti-motorbike"></i></div><div class="ml">Repartidores</div><div class="mv" id="m4">—</div><div class="ms" id="m4s">activos ahora</div></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
           <div class="tc" style="grid-column:1/-1"><div class="th" style="display:flex;justify-content:space-between;align-items:center"><div class="tt">🟢 Repartidores activos ahora</div><button class="bsm" onclick="loadRepartidoresActivos()" style="padding:4px 10px;font-size:12px"><i class="ti ti-refresh"></i></button></div><div id="panel-activos"></div></div>
@@ -369,19 +369,27 @@ async function reload(){ await Promise.all([loadMetrics(),loadDashP(),loadDashU(
 
 async function loadMetrics(){
   const hoy = new Date(); hoy.setHours(0,0,0,0);
-  const [{count:tp},{data:ph},{count:tu},{count:ra},{data:ent}] = await Promise.all([
+  const [{count:tp},{data:ph},{data:perfilesAll},{data:ent}] = await Promise.all([
     sb.from('pedidos').select('*',{count:'exact',head:true}),
     sb.from('pedidos').select('id,precio,estado').gte('created_at',hoy.toISOString()),
-    sb.from('perfiles').select('*',{count:'exact',head:true}),
-    sb.from('perfiles').select('*',{count:'exact',head:true}).eq('disponible',true),
+    sb.from('perfiles').select('rol,disponible'),
     sb.from('pedidos').select('precio').eq('estado','entregado').gte('created_at',hoy.toISOString())
   ]);
+  // Clasificar perfiles
+  const esRep = (r) => ['repartidor','transportista','both','ambos'].includes(r || '');
+  const todos = perfilesAll || [];
+  const clientes = todos.filter(u => !esRep(u.rol) && (u.rol||'') !== 'admin');
+  const repartidores = todos.filter(u => esRep(u.rol));
+  const repActivos = repartidores.filter(u => u.disponible);
+
   const ing = (ent||[]).reduce((s,p)=>s+(p.precio*COM),0);
   document.getElementById('m1').textContent = (ph||[]).length;
   document.getElementById('m1s').textContent = (tp||0)+' en total';
-  document.getElementById('m2').textContent = tu||0;
+  document.getElementById('m2').textContent = clientes.length;   // solo clientes
   document.getElementById('m3').textContent = '$'+(Math.round(ing)||0).toLocaleString('es-CO');
-  document.getElementById('m4').textContent = ra||0;
+  document.getElementById('m4').textContent = repActivos.length; // repartidores activos
+  const m4s = document.getElementById('m4s');
+  if (m4s) m4s.textContent = 'activos de ' + repartidores.length + ' registrados';
   const {count:pv} = await sb.from('perfiles').select('*',{count:'exact',head:true}).eq('docs_estado','en_revision').not('rol','in','("cliente","client")');
   const bv = document.getElementById('bv');
   if(pv>0){bv.textContent=pv;bv.style.display='inline';}else bv.style.display='none';
