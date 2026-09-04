@@ -476,7 +476,7 @@
 
 <nav class="nav">
   <div class="nav-inner">
-    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=17" alt="Maxikia Express" style="height:82px;width:auto" /></div>
+    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=18" alt="Maxikia Express" style="height:82px;width:auto" /></div>
     <div class="nav-links">
       <a href="/manual">Cómo funciona</a>
       <a href="/repartidores.html">Gana dinero</a>
@@ -1363,6 +1363,10 @@
     if (path === '/register' || path === '/registro' || p.get('registro') === '1') {
       window._abrirRegistro = true;
     }
+    // Deep link para completar documentos: ?docs=1 (desde el recordatorio de WhatsApp)
+    if (p.get('docs') === '1') {
+      window._abrirDocs = true;
+    }
   })();
 
   // ── NAV SCROLL GLASSMORPHISM ──
@@ -1412,9 +1416,16 @@
       //  biometría/PIN, no cerrando la sesión de Supabase.)
       localStorage.setItem('mx_last_auth', Date.now().toString());
       await showDashboard();
+      // Si llegó desde el recordatorio de documentos, llevarlo a subir docs
+      if (window._abrirDocs) {
+        setTimeout(() => { dTab('repartir'); }, 800);
+      }
     } else if (window._abrirRegistro) {
       // Llegó escaneando el QR del panfleto — abrir registro directamente
       setTimeout(() => goPage('register'), 300);
+    } else if (window._abrirDocs) {
+      // No hay sesión pero quiere subir docs → mandarlo a login
+      setTimeout(() => goPage('login'), 300);
     }
 
     sb.auth.onAuthStateChange((event, session) => {

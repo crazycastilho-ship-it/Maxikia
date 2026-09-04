@@ -217,6 +217,7 @@ tbody tr:hover{background:var(--surface)}
               <option value="pendientes">⏳ Docs pendientes</option>
             </select>
             <button class="bsm" onclick="loadRepartidores()" style="padding:6px 14px"><i class="ti ti-refresh"></i> Actualizar</button>
+            <button class="bsm" onclick="filtrarPendientesRecordar()" style="padding:6px 14px;background:#25D366;color:white;border-color:#25D366"><i class="ti ti-brand-whatsapp"></i> Ver pendientes por recordar</button>
           </div>
           <div class="tw"><table><thead><tr><th>Repartidor</th><th>Teléfono</th><th>Rol</th><th>Estado</th><th>Docs</th><th>Saldo</th><th>Entregas</th><th>Calif.</th><th>Acciones</th></tr></thead><tbody id="rt"></tbody></table></div>
         </div>
@@ -617,9 +618,43 @@ async function loadRepartidores(){
       <td>
         <button class="ab" onclick='verU(${JSON.stringify(u).replace(/"/g,"&quot;")})'>Ver</button>
         ${u.docs_estado!=='aprobado'?`<button class="ab ok" onclick="aprobarU('${u.id}','${u.nombre||u.email}')">✓</button>`:''}
+        ${u.docs_estado!=='aprobado' && u.telefono ?`<button class="ab" style="background:#25D366;color:white;border-color:#25D366" onclick="recordarDocs('${u.telefono}','${(u.nombre||'').replace(/'/g,'')}')" title="Recordar cargar documentos"><i class="ti ti-brand-whatsapp"></i></button>`:''}
       </td>
     </tr>`;
   }).join('');
+}
+
+// Filtrar la lista a solo repartidores con docs pendientes (para recordarles)
+function filtrarPendientesRecordar(){
+  const sel = document.getElementById('filtro-repartidores');
+  if (sel) { sel.value = 'pendientes'; }
+  loadRepartidores();
+}
+
+// Enviar recordatorio de documentos por WhatsApp
+function recordarDocs(telefono, nombre){
+  const tel = telefono.replace(/\D/g,'');
+  const numero = tel.length === 10 ? '57' + tel : tel;
+  const primerNombre = (nombre || '').split(' ')[0] || '';
+  const msg =
+`¡Hola ${primerNombre}! 👋 Te saludamos de *Maxikia Express* 🛵
+
+Vimos que te registraste como repartidor, ¡qué bueno tenerte! 🎉 Pero notamos que aún te falta un paso para empezar a ganar dinero con nosotros:
+
+📄 *Subir tus documentos de verificación:*
+1. Cédula (o PPT/PEP) por el frente
+2. Documento por el reverso
+3. Una selfie tuya
+
+Es rápido, solo toma un minuto. Entra directo aquí 👇
+🔗 https://maxikia.com/?docs=1
+
+(Inicia sesión y te llevaremos directo a subir tus documentos.)
+
+Apenas los aprobemos, ya podrás recibir pedidos y ganar dinero en tu tiempo libre. 💪
+
+¿Tienes alguna duda? Escríbenos, estamos para ayudarte. 🙌`;
+  window.open('https://wa.me/' + numero + '?text=' + encodeURIComponent(msg), '_blank');
 }
 
 async function verU(u){
