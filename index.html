@@ -476,7 +476,7 @@
 
 <nav class="nav">
   <div class="nav-inner">
-    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=19" alt="Maxikia Express" style="height:82px;width:auto" /></div>
+    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=20" alt="Maxikia Express" style="height:82px;width:auto" /></div>
     <div class="nav-links">
       <a href="/manual">Cómo funciona</a>
       <a href="/repartidores.html">Gana dinero</a>
@@ -838,46 +838,54 @@
 
       <!-- NUEVO ENVÍO -->
       <div class="dp" id="dp-envio">
-        <div class="br"><button onclick="dTab('home')"><i class="ti ti-arrow-left" style="font-size:22px;color:var(--text)"></i></button><h3>Nuevo envío</h3></div>
+        <div class="br"><button onclick="volverSelectorEnvio()"><i class="ti ti-arrow-left" style="font-size:22px;color:var(--text)"></i></button><h3 id="envio-header-title">Nuevo envío</h3></div>
 
-        <!-- TIPO DE ENVÍO -->
-        <div class="field-group">
-          <label class="field-label">¿Qué tipo de envío necesitas?</label>
-          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+        <!-- PANTALLA 1: SELECTOR DE TIPO (tarjetas grandes) -->
+        <div id="envio-selector">
+          <div style="font-size:14px;color:var(--muted);margin-bottom:14px">¿Qué necesitas enviar hoy?</div>
 
-            <div class="tipo-envio-btn active" id="tipo-express" onclick="selTipoEnvio('express')">
-              <i class="ti ti-bolt" style="font-size:22px;color:var(--mx)"></i>
-              <div style="font-weight:700;font-size:13px;margin-top:4px">Express</div>
-              <div style="font-size:10px;color:var(--muted);margin-top:2px">Cualquier distancia</div>
-              <div style="font-size:10px;color:var(--mx);margin-top:4px;font-weight:600">Desde $6.000</div>
-            </div>
-
-            <div class="tipo-envio-btn" id="tipo-especial" onclick="selTipoEnvio('especial')">
-              <i class="ti ti-sofa" style="font-size:22px;color:#8B5CF6"></i>
-              <div style="font-weight:700;font-size:13px;margin-top:4px">Acólitamos</div>
-              <div style="font-size:10px;color:var(--muted);margin-top:2px">Hasta 500m · Máx 10 prod.</div>
-              <div style="font-size:10px;color:#8B5CF6;margin-top:4px;font-weight:600">Desde $1.000</div>
-            </div>
-
-            <div class="tipo-envio-btn" id="tipo-comercial" onclick="selTipoEnvio('comercial')">
-              <i class="ti ti-building-store" style="font-size:22px;color:#F59E0B"></i>
-              <div style="font-weight:700;font-size:13px;margin-top:4px">Comercial</div>
-              <div style="font-size:10px;color:var(--muted);margin-top:2px">Local a domicilio</div>
-              <div style="font-size:10px;color:#F59E0B;margin-top:4px;font-weight:600">Desde $1.000</div>
-            </div>
-
-            <div class="tipo-envio-btn" id="tipo-mudanza" onclick="selTipoEnvio('mudanza')">
-              <i class="ti ti-truck" style="font-size:22px;color:#0EA5E9"></i>
-              <div style="font-weight:700;font-size:13px;margin-top:4px">Mudanza</div>
-              <div style="font-size:10px;color:var(--muted);margin-top:2px">Acarreo · Flete</div>
-              <div style="font-size:10px;color:#0EA5E9;margin-top:4px;font-weight:600">Cotización gratis</div>
-            </div>
-
+          <div class="tipo-card" onclick="abrirTipoEnvio('express')" style="border:1.5px solid var(--border);background:white;border-radius:14px;padding:16px;margin-bottom:11px;cursor:pointer;display:flex;align-items:center;gap:13px;transition:all .15s" onmouseover="this.style.borderColor='#E85C1A'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="width:48px;height:48px;border-radius:12px;background:#E85C1A;display:flex;align-items:center;justify-content:center;color:white;font-size:24px;flex-shrink:0"><i class="ti ti-bolt"></i></div>
+            <div style="flex:1"><div style="font-weight:700;font-size:15px;color:var(--text)">Express</div><div style="font-size:12px;color:var(--muted);margin-top:1px">Envío rápido de paquetes · Bogotá completa</div><div style="font-size:12px;color:#E85C1A;font-weight:600;margin-top:3px">Desde $6.000</div></div>
+            <i class="ti ti-chevron-right" style="color:var(--muted)"></i>
           </div>
 
-          <!-- Descripción del tipo seleccionado -->
-          <div id="tipo-desc" style="margin-top:10px;padding:10px 12px;border-radius:var(--radius-sm);font-size:12px;background:var(--mx-light);color:var(--mx);border:1px solid rgba(212,0,26,.15)">
-            <i class="ti ti-bolt"></i> <strong>Envío Express</strong> — Documentos urgentes, cosas olvidadas, medicamentos. Bogotá completa.
+          <div class="tipo-card" onclick="abrirTipoEnvio('especial')" style="border:1.5px solid var(--border);background:white;border-radius:14px;padding:16px;margin-bottom:11px;cursor:pointer;display:flex;align-items:center;gap:13px;transition:all .15s" onmouseover="this.style.borderColor='#8B5CF6'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="width:48px;height:48px;border-radius:12px;background:#8B5CF6;display:flex;align-items:center;justify-content:center;color:white;font-size:24px;flex-shrink:0"><i class="ti ti-run"></i></div>
+            <div style="flex:1"><div style="font-weight:700;font-size:15px;color:var(--text)">Acólitamos</div><div style="font-size:12px;color:var(--muted);margin-top:1px">Mandados en tu edificio o barrio · Hasta 500m</div><div style="font-size:12px;color:#8B5CF6;font-weight:600;margin-top:3px">Desde $1.000</div></div>
+            <i class="ti ti-chevron-right" style="color:var(--muted)"></i>
+          </div>
+
+          <div class="tipo-card" onclick="abrirTipoEnvio('comercial')" style="border:1.5px solid var(--border);background:white;border-radius:14px;padding:16px;margin-bottom:11px;cursor:pointer;display:flex;align-items:center;gap:13px;transition:all .15s" onmouseover="this.style.borderColor='#F59E0B'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="width:48px;height:48px;border-radius:12px;background:#F59E0B;display:flex;align-items:center;justify-content:center;color:white;font-size:24px;flex-shrink:0"><i class="ti ti-building-store"></i></div>
+            <div style="flex:1"><div style="font-weight:700;font-size:15px;color:var(--text)">Comercial</div><div style="font-size:12px;color:var(--muted);margin-top:1px">Tu negocio envía a sus clientes</div><div style="font-size:12px;color:#F59E0B;font-weight:600;margin-top:3px">Desde $1.000</div></div>
+            <i class="ti ti-chevron-right" style="color:var(--muted)"></i>
+          </div>
+
+          <div class="tipo-card" onclick="abrirTipoEnvio('mudanza')" style="border:1.5px solid var(--border);background:white;border-radius:14px;padding:16px;cursor:pointer;display:flex;align-items:center;gap:13px;transition:all .15s" onmouseover="this.style.borderColor='#0EA5E9'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="width:48px;height:48px;border-radius:12px;background:#0EA5E9;display:flex;align-items:center;justify-content:center;color:white;font-size:24px;flex-shrink:0"><i class="ti ti-truck"></i></div>
+            <div style="flex:1"><div style="font-weight:700;font-size:15px;color:var(--text)">Mudanza</div><div style="font-size:12px;color:var(--muted);margin-top:1px">Acarreo y fletes</div><div style="font-size:12px;color:#0EA5E9;font-weight:600;margin-top:3px">Cotización gratis</div></div>
+            <i class="ti ti-chevron-right" style="color:var(--muted)"></i>
+          </div>
+        </div>
+
+        <!-- PANTALLA 2: FORMULARIO DEL TIPO ELEGIDO -->
+        <div id="envio-formulario" style="display:none">
+          <!-- Encabezado de color según el tipo -->
+          <div id="envio-tipo-header" style="border-radius:14px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;background:#E85C1A">
+            <div style="width:42px;height:42px;border-radius:10px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;color:white;font-size:22px"><i id="envio-tipo-icono" class="ti ti-bolt"></i></div>
+            <div style="flex:1"><div id="envio-tipo-nombre" style="font-weight:700;font-size:16px;color:white">Envío Express</div><div id="envio-tipo-desc2" style="font-size:12px;color:rgba(255,255,255,0.85)">Rápido en la ciudad</div></div>
+          </div>
+
+          <!-- Descripción/aviso del tipo -->
+          <div id="tipo-desc" style="display:none">&nbsp;</div>
+
+          <!-- Botones antiguos ocultos (mantienen la lógica) -->
+          <div style="display:none">
+            <div class="tipo-envio-btn active" id="tipo-express" onclick="selTipoEnvio('express')"></div>
+            <div class="tipo-envio-btn" id="tipo-especial" onclick="selTipoEnvio('especial')"></div>
+            <div class="tipo-envio-btn" id="tipo-comercial" onclick="selTipoEnvio('comercial')"></div>
+            <div class="tipo-envio-btn" id="tipo-mudanza" onclick="selTipoEnvio('mudanza')"></div>
           </div>
 
           <!-- Tarifas por distancia para especial/comercial -->
@@ -891,7 +899,6 @@
               <div style="padding:8px 12px;border-right:1px solid var(--border);color:var(--muted)">250 – 500 metros</div><div style="padding:8px 12px;font-weight:600">$7.000</div>
             </div>
           </div>
-        </div>
 
         <!-- CAMPOS DINÁMICOS -->
         <div id="map-envio"></div>
@@ -1076,6 +1083,7 @@
           Buscar repartidor <i class="ti ti-run"></i>
         </button>
         <div id="resultado-busqueda" style="margin-top:1rem"></div>
+        </div><!-- fin envio-formulario -->
       </div>
 
       <!-- REPARTIR -->
@@ -2339,6 +2347,51 @@
     { max: 0.50,  precio: 7000 }   // 250-500m
   ];
 
+  // Config visual de cada tipo de envío
+  const TIPOS_ENVIO_CFG = {
+    express:   { nombre: 'Envío Express', desc: 'Rápido en la ciudad', color: '#E85C1A', icono: 'ti-bolt' },
+    especial:  { nombre: 'Acólitamos', desc: 'Mandado en tu barrio', color: '#8B5CF6', icono: 'ti-run' },
+    comercial: { nombre: 'Envío Comercial', desc: 'Tu negocio entrega', color: '#F59E0B', icono: 'ti-building-store' },
+    mudanza:   { nombre: 'Mudanza', desc: 'Acarreo y fletes', color: '#0EA5E9', icono: 'ti-truck' },
+  };
+
+  // Abre la vista del tipo elegido (muestra el formulario con encabezado de color)
+  function abrirTipoEnvio(tipo) {
+    const cfg = TIPOS_ENVIO_CFG[tipo] || TIPOS_ENVIO_CFG.express;
+    // Ocultar selector, mostrar formulario
+    document.getElementById('envio-selector').style.display = 'none';
+    document.getElementById('envio-formulario').style.display = 'block';
+    // Encabezado de color
+    const hd = document.getElementById('envio-tipo-header');
+    if (hd) hd.style.background = cfg.color;
+    document.getElementById('envio-tipo-icono').className = 'ti ' + cfg.icono;
+    document.getElementById('envio-tipo-nombre').textContent = cfg.nombre;
+    document.getElementById('envio-tipo-desc2').textContent = cfg.desc;
+    document.getElementById('envio-header-title').textContent = cfg.nombre;
+    // Aplicar toda la lógica existente del tipo
+    selTipoEnvio(tipo);
+    window.scrollTo(0, 0);
+  }
+
+  // Vuelve al selector de tipo (o al inicio si ya está en el selector)
+  function volverSelectorEnvio() {
+    const form = document.getElementById('envio-formulario');
+    const sel = document.getElementById('envio-selector');
+    if (form && form.style.display !== 'none') {
+      // Estamos en un formulario → volver al selector
+      form.style.display = 'none';
+      sel.style.display = 'block';
+      document.getElementById('envio-header-title').textContent = 'Nuevo envío';
+      // Limpiar resultado/alertas
+      const rb = document.getElementById('resultado-busqueda'); if (rb) rb.innerHTML = '';
+      const al = document.getElementById('envio-alert'); if (al) al.innerHTML = '';
+      window.scrollTo(0, 0);
+    } else {
+      // Ya en el selector → volver al inicio
+      dTab('home');
+    }
+  }
+
   function selTipoEnvio(tipo) {
     tipoEnvio = tipo;
 
@@ -3095,11 +3148,24 @@
     if (t === 'home') setTimeout(animarMensajeroLogo, 550);
     if (t === 'envio') {
       limpiarFormularioEnvio();
+      // Mostrar el selector de tipo primero
+      const selEl = document.getElementById('envio-selector');
+      const formEl = document.getElementById('envio-formulario');
+      if (window._widgetParams) {
+        // Viene de un widget con tipo → abrir directo ese formulario
+        if (selEl) selEl.style.display = 'none';
+        if (formEl) formEl.style.display = 'block';
+        abrirTipoEnvio(window._widgetParams.tipo || 'comercial');
+      } else {
+        // Normal → mostrar el selector de tarjetas
+        if (selEl) selEl.style.display = 'block';
+        if (formEl) formEl.style.display = 'none';
+        document.getElementById('envio-header-title').textContent = 'Nuevo envío';
+      }
       initMapEnvio();
       // Auto-rellenar si viene de widget
       if (window._widgetParams) {
         const wp = window._widgetParams;
-        if (wp.tipo) selTipoEnvio(wp.tipo);
         setTimeout(() => {
           if (wp.origen) document.getElementById('env-origen').value = wp.origen;
           if (wp.local) {
