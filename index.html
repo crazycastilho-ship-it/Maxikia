@@ -476,7 +476,7 @@
 
 <nav class="nav">
   <div class="nav-inner">
-    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=20" alt="Maxikia Express" style="height:82px;width:auto" /></div>
+    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=21" alt="Maxikia Express" style="height:82px;width:auto" /></div>
     <div class="nav-links">
       <a href="/manual">Cómo funciona</a>
       <a href="/repartidores.html">Gana dinero</a>
@@ -2357,20 +2357,21 @@
 
   // Abre la vista del tipo elegido (muestra el formulario con encabezado de color)
   function abrirTipoEnvio(tipo) {
-    const cfg = TIPOS_ENVIO_CFG[tipo] || TIPOS_ENVIO_CFG.express;
-    // Ocultar selector, mostrar formulario
-    document.getElementById('envio-selector').style.display = 'none';
-    document.getElementById('envio-formulario').style.display = 'block';
-    // Encabezado de color
-    const hd = document.getElementById('envio-tipo-header');
-    if (hd) hd.style.background = cfg.color;
-    document.getElementById('envio-tipo-icono').className = 'ti ' + cfg.icono;
-    document.getElementById('envio-tipo-nombre').textContent = cfg.nombre;
-    document.getElementById('envio-tipo-desc2').textContent = cfg.desc;
-    document.getElementById('envio-header-title').textContent = cfg.nombre;
-    // Aplicar toda la lógica existente del tipo
-    selTipoEnvio(tipo);
-    window.scrollTo(0, 0);
+    // Transición del mensajero corriendo (avanzar)
+    if (typeof reproducirTransicion === 'function') reproducirTransicion('forward');
+    setTimeout(() => {
+      const cfg = TIPOS_ENVIO_CFG[tipo] || TIPOS_ENVIO_CFG.express;
+      document.getElementById('envio-selector').style.display = 'none';
+      document.getElementById('envio-formulario').style.display = 'block';
+      const hd = document.getElementById('envio-tipo-header');
+      if (hd) hd.style.background = cfg.color;
+      document.getElementById('envio-tipo-icono').className = 'ti ' + cfg.icono;
+      document.getElementById('envio-tipo-nombre').textContent = cfg.nombre;
+      document.getElementById('envio-tipo-desc2').textContent = cfg.desc;
+      document.getElementById('envio-header-title').textContent = cfg.nombre;
+      selTipoEnvio(tipo);
+      window.scrollTo(0, 0);
+    }, 500);
   }
 
   // Vuelve al selector de tipo (o al inicio si ya está en el selector)
@@ -2378,14 +2379,16 @@
     const form = document.getElementById('envio-formulario');
     const sel = document.getElementById('envio-selector');
     if (form && form.style.display !== 'none') {
-      // Estamos en un formulario → volver al selector
-      form.style.display = 'none';
-      sel.style.display = 'block';
-      document.getElementById('envio-header-title').textContent = 'Nuevo envío';
-      // Limpiar resultado/alertas
-      const rb = document.getElementById('resultado-busqueda'); if (rb) rb.innerHTML = '';
-      const al = document.getElementById('envio-alert'); if (al) al.innerHTML = '';
-      window.scrollTo(0, 0);
+      // Estamos en un formulario → volver al selector (mensajero corre de vuelta)
+      if (typeof reproducirTransicion === 'function') reproducirTransicion('back');
+      setTimeout(() => {
+        form.style.display = 'none';
+        sel.style.display = 'block';
+        document.getElementById('envio-header-title').textContent = 'Nuevo envío';
+        const rb = document.getElementById('resultado-busqueda'); if (rb) rb.innerHTML = '';
+        const al = document.getElementById('envio-alert'); if (al) al.innerHTML = '';
+        window.scrollTo(0, 0);
+      }, 500);
     } else {
       // Ya en el selector → volver al inicio
       dTab('home');
