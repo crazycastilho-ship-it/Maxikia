@@ -476,7 +476,7 @@
 
 <nav class="nav">
   <div class="nav-inner">
-    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=18" alt="Maxikia Express" style="height:82px;width:auto" /></div>
+    <div class="logo" onclick="goPage('landing')" style="display:flex;align-items:center"><img src="/logo-horizontal.png?v=19" alt="Maxikia Express" style="height:82px;width:auto" /></div>
     <div class="nav-links">
       <a href="/manual">Cómo funciona</a>
       <a href="/repartidores.html">Gana dinero</a>
@@ -904,6 +904,17 @@
         <div class="field-group">
           <label class="field-label" id="label-destino">Dirección de entrega</label>
           <input type="text" class="field-input" id="env-destino" placeholder="Escribe la dirección de entrega" oninput="geocodeDebounce('destino')">
+        </div>
+
+        <div class="field-row" style="display:flex;gap:10px">
+          <div class="field-group" style="flex:1">
+            <label class="field-label">Nombre de quien recibe</label>
+            <input type="text" class="field-input" id="env-recibe-nombre" placeholder="Nombre completo">
+          </div>
+          <div class="field-group" style="flex:1">
+            <label class="field-label">Teléfono de quien recibe</label>
+            <input type="tel" class="field-input" id="env-recibe-tel" placeholder="300 000 0000">
+          </div>
         </div>
 
         <!-- Campo especial para Acólitamos -->
@@ -2069,12 +2080,24 @@
       ? '🏪 [Comercial - ' + local0 + '] ' + desc
       : desc;
 
+    // Datos de quién recibe
+    const recibeNombre = document.getElementById('env-recibe-nombre')?.value.trim() || '';
+    const recibeTel = document.getElementById('env-recibe-tel')?.value.trim() || '';
+    const notasBase = document.getElementById('env-notas').value.trim();
+    // Incluir el destinatario en las notas para que el repartidor lo vea
+    let notasCompletas = notasBase;
+    if (recibeNombre || recibeTel) {
+      const linea = '👤 Recibe: ' + (recibeNombre || 'N/D') + (recibeTel ? ' · ☎ ' + recibeTel : '');
+      notasCompletas = linea + (notasBase ? '\n' + notasBase : '');
+    }
+
     window._pedidoPendiente = {
       origen, destino, descripcion: descCompleta, tipoEnvio, precio,
       lat_origen: coordOrigen?.lat ?? null, lng_origen: coordOrigen?.lng ?? null,
       lat_destino: coordDestino?.lat ?? null, lng_destino: coordDestino?.lng ?? null,
       distancia, peso: tipoEnvio === 'express' ? ['liviano','mediano','pesado'][pesoSel] : 'liviano',
-      notas: document.getElementById('env-notas').value,
+      notas: notasCompletas,
+      recibe_nombre: recibeNombre, recibe_telefono: recibeTel,
     };
 
     // Mostrar el selector de método de pago
@@ -2130,7 +2153,7 @@
       p_tipo_envio: p.tipoEnvio, p_precio: p.precio,
       p_lat_origen: p.lat_origen, p_lng_origen: p.lng_origen,
       p_lat_destino: p.lat_destino, p_lng_destino: p.lng_destino,
-      p_distancia_km: p.distancia, p_peso: p.peso, p_notas: p.notas,
+      p_distancia_km: p.distancia, p_peso: p.peso, p_notas: p.notas, p_recibe_nombre: p.recibe_nombre, p_recibe_telefono: p.recibe_telefono,
     });
 
     if (error) {
@@ -2158,7 +2181,7 @@
       p_tipo_envio: p.tipoEnvio, p_precio: p.precio,
       p_lat_origen: p.lat_origen, p_lng_origen: p.lng_origen,
       p_lat_destino: p.lat_destino, p_lng_destino: p.lng_destino,
-      p_distancia_km: p.distancia, p_peso: p.peso, p_notas: p.notas,
+      p_distancia_km: p.distancia, p_peso: p.peso, p_notas: p.notas, p_recibe_nombre: p.recibe_nombre, p_recibe_telefono: p.recibe_telefono,
     });
     if (error || !pedido) {
       alerta.innerHTML = '<div class="alert error">' + (error?.message || 'Error al crear el pedido.') + '</div>';
@@ -2624,10 +2647,14 @@
         ? distanciaEntrePuntos(ubicacionActual.lat, ubicacionActual.lng, p.lat_origen, p.lng_origen).toFixed(1) + ' km de ti · '
         : '';
       const ganancia = Math.round(p.precio * COMISION_REPARTIDOR);
+      const recibeInfo = p.recibe_nombre
+        ? `<div class="aor"><div class="aod" style="background:#3A0CA3"></div><div class="aoi" style="font-size:12px">👤 Recibe: <strong>${p.recibe_nombre}</strong>${p.recibe_telefono ? ' · ☎ ' + p.recibe_telefono : ''}</div></div>`
+        : '';
       return `<div class="ao">
         <div class="aor"><div class="aod o"></div><div class="aoi"><strong>${p.descripcion}</strong></div></div>
         <div class="aor"><div class="aod o" style="background:var(--mx2)"></div><div class="aoi">${p.origen}</div></div>
         <div class="aor"><div class="aod d"></div><div class="aoi">${p.destino}</div></div>
+        ${recibeInfo}
         <div class="aof">
           <div>
             <div class="aoe">$${ganancia.toLocaleString('es-CO')}</div>
