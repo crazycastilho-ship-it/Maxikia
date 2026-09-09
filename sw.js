@@ -1,8 +1,15 @@
-const CACHE = 'maxikia-v6';
+const CACHE = 'maxikia-v7';
 const PRECACHE = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png'];
 
+// Aplicar la nueva versión cuando el usuario toca "Actualizar"
+self.addEventListener('message', e => {
+  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
+
 self.addEventListener('install', e => {
-  self.skipWaiting();
+  // No hacemos skipWaiting automático: esperamos a que el usuario
+  // toque "Actualizar" en el banner (o se aplica al reabrir la app).
   e.waitUntil(
     caches.open(CACHE).then(c => c.addAll(PRECACHE).catch(() => {}))
   );
