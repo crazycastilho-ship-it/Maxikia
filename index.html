@@ -1454,6 +1454,7 @@
             <div style="font-weight:700;font-size:14px;color:var(--text)">Datos de mi tienda</div>
             <label style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;cursor:pointer"><span id="mn-estado-txt" style="color:var(--muted)">—</span><input type="checkbox" id="mn-t-activa" onchange="mnActualizarEstadoTxt()" style="width:38px;height:20px;cursor:pointer"></label>
           </div>
+          <div id="mn-comision-info" style="display:none;font-size:11.5px;color:#8a6d00;background:#FFF8E1;border-radius:7px;padding:7px 10px;margin-bottom:10px"></div>
           <input type="hidden" id="mn-t-logo">
           <div style="display:flex;gap:10px;align-items:center;margin-bottom:9px">
             <img id="mn-t-logo-preview" src="" style="width:54px;height:54px;border-radius:10px;object-fit:cover;background:#f0f0f0;display:none">
@@ -3194,6 +3195,8 @@
     document.getElementById('mn-t-envio').value = t.costo_envio_base ?? 4000;
     document.getElementById('mn-t-min').value = t.pedido_minimo ?? 0;
     document.getElementById('mn-t-activa').checked = t.activa !== false;
+    const ci = document.getElementById('mn-comision-info');
+    if (ci){ const pct = t.comision_pct ?? 12; ci.innerHTML = `Comisión Maxikia: <strong>${pct}%</strong> sobre tus productos. Por cada pedido recibes el ${100-pct}% del valor de los productos.`; ci.style.display='block'; }
     mnActualizarEstadoTxt();
     mnLimpiarForm();
     document.getElementById('modal-mi-negocio').style.display = 'flex';
