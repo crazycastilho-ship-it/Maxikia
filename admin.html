@@ -463,10 +463,16 @@ function abrirFormTienda(t){
   if(t?.logo_url){ tlp.src=t.logo_url; tlp.style.display='block'; document.getElementById('t-logo-txt').textContent='Cambiar imagen'; }
   else { tlp.style.display='none'; document.getElementById('t-logo-txt').textContent='Subir imagen'; }
   document.getElementById('t-dueno').value = '';
-  document.getElementById('t-dueno').placeholder = t?.propietario_id ? 'Ya tiene dueño — escribe un correo para cambiarlo' : 'dueno@correo.com';
+  document.getElementById('t-dueno').placeholder = 'dueno@correo.com';
   document.getElementById('t-activa').checked = t ? !!t.activa : true;
   document.getElementById('t-destacada').checked = t ? !!t.destacada : false;
   document.getElementById('mtienda').classList.add('on');
+  // Mostrar el correo del dueño actual (si tiene), para que se vea que sí quedó asignado
+  if(t?.propietario_id){
+    sb.from('perfiles').select('email').eq('id', t.propietario_id).single().then(({data})=>{
+      if(data?.email) document.getElementById('t-dueno').value = data.email;
+    });
+  }
 }
 
 // Subir imagen al bucket público y devolver su URL
@@ -516,10 +522,20 @@ async function guardarTienda(){
   };
   // Asignar dueño por correo (opcional). Si se deja vacío, no se cambia.
   const correoDueno = document.getElementById('t-dueno').value.trim().toLowerCase();
+  let duenoAsignado = null;
   if(correoDueno){
-    const { data: dp } = await sb.from('perfiles').select('id').ilike('email', correoDueno).limit(1);
-    if(dp && dp.length){ payload.propietario_id = dp[0].id; }
-    else { alert('No se encontró ningún usuario con el correo "'+correoDueno+'". Debe estar registrado en la app primero.'); return; }
+    const { data: dp, error: eBusca } = await sb.from('perfiles').select('id,email,nombre').ilike('email', correoDueno).limit(1);
+    if(eBusca){ alert('Error buscando el usuario: '+eBusca.message); return; }
+    if(dp && dp.length){
+      payload.propietario_id = dp[0].id;
+      duenoAsignado = dp[0];
+    } else {
+      // No encontrado: no bloquear todo el guardado
+      const seguir = confirm('No encontré ningún usuario registrado con el correo "'+correoDueno+'".\n\n' +
+        'Verifica que el comerciante ya se haya registrado en la app con ESE mismo correo (revísalo en Clientes).\n\n' +
+        '¿Guardar la tienda de todas formas, sin asignar dueño por ahora?');
+      if(!seguir) return;
+    }
   }
   let error;
   if(id){ ({ error } = await sb.from('tiendas').update(payload).eq('id', id)); }
@@ -527,8 +543,11 @@ async function guardarTienda(){
     if(!payload.propietario_id) payload.propietario_id = user?.id || null;
     ({ error } = await sb.from('tiendas').insert(payload));
   }
-  if(error){ alert('Error: '+error.message); return; }
+  if(error){ alert('Error al guardar: '+error.message); return; }
   cm('mtienda'); loadTiendas();
+  if(duenoAsignado){
+    alert('✓ Tienda guardada.\nDueño asignado: '+(duenoAsignado.nombre||'')+' ('+duenoAsignado.email+').\n\nEse usuario ya puede entrar a la app → pestaña Tiendas → botón "Gestionar".');
+  }
 }
 
 async function eliminarTienda(id, nombre){
