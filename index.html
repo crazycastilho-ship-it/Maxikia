@@ -1429,6 +1429,7 @@
           <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:14px">
             <div style="display:flex;justify-content:space-between;margin-bottom:6px;color:var(--muted)"><span>Productos</span><span id="checkout-subtotal">$0</span></div>
             <div style="display:flex;justify-content:space-between;margin-bottom:6px;color:var(--muted)"><span>Domicilio</span><span id="checkout-envio">$0</span></div>
+            <div id="checkout-tarifa-row" style="display:none;justify-content:space-between;margin-bottom:6px;color:var(--muted)"><span>Tarifa de servicio</span><span id="checkout-tarifa">$0</span></div>
             <div style="display:flex;justify-content:space-between;font-weight:800;font-size:16px;color:var(--text);border-top:1px solid var(--border);padding-top:8px"><span>Total</span><span id="checkout-total">$0</span></div>
           </div>
           <div id="checkout-saldo-info" style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:10px"></div>
@@ -3068,6 +3069,7 @@
     actualizarCarrito(); renderProductosTienda();
   }
   function carritoSubtotal(){ return _carrito.reduce((s,i)=>s+i.precio*i.cantidad,0); }
+  function tarifaServicioCliente(sub){ const pct = _tiendaActual?.tarifa_servicio_pct ?? 12; return Math.floor(sub * pct / 2 / 100); }
   function carritoCantidad(){ return _carrito.reduce((s,i)=>s+i.cantidad,0); }
   function actualizarCarrito(){
     const fab = document.getElementById('cart-fab'); if (!fab) return;
@@ -3088,11 +3090,16 @@
     }).join('');
     document.getElementById('checkout-subtotal').textContent = '$'+sub.toLocaleString('es-CO');
     document.getElementById('checkout-envio').textContent = '$'+envio.toLocaleString('es-CO');
-    document.getElementById('checkout-total').textContent = '$'+(sub+envio).toLocaleString('es-CO');
+    const tarifa = tarifaServicioCliente(sub);
+    const tr = document.getElementById('checkout-tarifa-row');
+    if (tarifa > 0){ document.getElementById('checkout-tarifa').textContent = '$'+tarifa.toLocaleString('es-CO'); tr.style.display='flex'; }
+    else { tr.style.display='none'; }
+    const total = sub + envio + tarifa;
+    document.getElementById('checkout-total').textContent = '$'+total.toLocaleString('es-CO');
     const mt = document.getElementById('checkout-tarjeta-monto');
-    if (mt && typeof calcularPagoConComision === 'function') mt.textContent = '· $'+calcularPagoConComision(sub+envio).toLocaleString('es-CO');
+    if (mt && typeof calcularPagoConComision === 'function') mt.textContent = '· $'+calcularPagoConComision(total).toLocaleString('es-CO');
     sb.from('perfiles').select('saldo').eq('id', currentUser.id).single().then(({data})=>{
-      const saldo = data?.saldo||0, total = sub+envio;
+      const saldo = data?.saldo||0;
       const el = document.getElementById('checkout-saldo-info'), btn = document.getElementById('checkout-btn-pagar');
       if (saldo >= total) { el.innerHTML = `Saldo disponible: $${saldo.toLocaleString('es-CO')}`; btn.disabled=false; btn.style.opacity='1'; }
       else { el.innerHTML = `⚠ Saldo insuficiente ($${saldo.toLocaleString('es-CO')}). Recarga para completar.`; btn.disabled=true; btn.style.opacity='.5'; }
@@ -3114,7 +3121,8 @@
     const btn = document.getElementById('checkout-btn-tarjeta');
     btn.disabled = true; btn.style.opacity = '.6';
 
-    const neto = carritoSubtotal() + (_tiendaActual.costo_envio_base||0);
+    const subW = carritoSubtotal();
+    const neto = subW + (_tiendaActual.costo_envio_base||0) + tarifaServicioCliente(subW);
     const montoAPagar = calcularPagoConComision(neto);
     const montoEnCentavos = montoAPagar * 100;
     const referencia = 'TND_' + currentUser.id.slice(0,8) + '_' + Date.now();
@@ -3196,7 +3204,7 @@
     document.getElementById('mn-t-min').value = t.pedido_minimo ?? 0;
     document.getElementById('mn-t-activa').checked = t.activa !== false;
     const ci = document.getElementById('mn-comision-info');
-    if (ci){ const pct = t.comision_pct ?? 12; ci.innerHTML = `Comisión Maxikia: <strong>${pct}%</strong> sobre tus productos. Por cada pedido recibes el ${100-pct}% del valor de los productos.`; ci.style.display='block'; }
+    if (ci){ const pct = t.tarifa_servicio_pct ?? 12; const mitad = (pct/2); ci.innerHTML = `Tarifa de servicio: <strong>${pct}%</strong>, repartida mitad y mitad. El cliente paga ${mitad}% y tú solo asumes <strong>${mitad}%</strong>: recibes el ${100-mitad}% del valor de tus productos.`; ci.style.display='block'; }
     mnActualizarEstadoTxt();
     mnLimpiarForm();
     document.getElementById('modal-mi-negocio').style.display = 'flex';
