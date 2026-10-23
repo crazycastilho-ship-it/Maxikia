@@ -284,11 +284,33 @@
     .withdraw-btn { background: rgba(255,255,255,0.18); border: none; color: white; font-family: var(--font-body); font-size: 13px; padding: 8px 14px; border-radius: var(--radius-sm); cursor: pointer; }
     .abody { flex: 1; padding: 1.25rem 1.5rem; max-width: 700px; margin: 0 auto; width: 100%; }
     .dp { display: none; } .dp.active { display: block; }
-    .qa-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 1.5rem; }
-    .qa-item { display: flex; flex-direction: column; align-items: center; padding: 12px 6px; background: white; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; gap: 6px; transition: border-color 0.15s; }
-    .qa-item:hover { border-color: var(--mx); }
-    .qa-item i { font-size: 22px; color: var(--mx); }
-    .qa-item span { font-size: 11px; color: var(--muted); font-weight: 500; text-align: center; }
+    .qa-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; margin-bottom: 1.5rem; }
+    .qa-item { display: flex; flex-direction: column; align-items: center; padding: 13px 4px; background: white; border: 1px solid var(--border); border-radius: 14px; cursor: pointer; gap: 7px; transition: transform .15s, box-shadow .15s; }
+    .qa-item:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.08); }
+    .qa-item:active { transform: scale(.97); }
+    .qa-ico { width: 46px; height: 46px; border-radius: 13px; display: flex; align-items: center; justify-content: center; color: white; font-size: 23px; }
+    .qa-item span { font-size: 11.5px; color: var(--text); font-weight: 600; text-align: center; }
+    /* Carrusel de banners promocionales */
+    .promo-wrap { margin-bottom: 1.4rem; }
+    .promo-track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .promo-track::-webkit-scrollbar { display: none; }
+    .promo { scroll-snap-align: center; flex: 0 0 100%; min-width: 100%; border-radius: 18px; padding: 22px 24px; color: white; position: relative; overflow: hidden; cursor: pointer; min-height: 132px; display: flex; flex-direction: column; justify-content: center; }
+    .promo h4 { font-family: var(--font-head); font-size: 21px; font-weight: 800; line-height: 1.12; margin-bottom: 5px; max-width: 75%; position: relative; z-index: 2; }
+    .promo p { font-size: 13.5px; opacity: .92; max-width: 72%; position: relative; z-index: 2; }
+    .promo .promo-cta { display: inline-flex; align-items: center; gap: 5px; margin-top: 11px; background: rgba(255,255,255,.22); backdrop-filter: blur(4px); padding: 7px 14px; border-radius: 50px; font-size: 12.5px; font-weight: 700; width: fit-content; position: relative; z-index: 2; }
+    .promo .promo-ico { position: absolute; right: -8px; bottom: -14px; font-size: 104px; opacity: .2; z-index: 1; }
+    .promo-dots { display: flex; justify-content: center; gap: 6px; margin-top: 10px; }
+    .promo-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); transition: all .25s; cursor: pointer; }
+    .promo-dot.on { background: var(--mx); width: 20px; border-radius: 4px; }
+    /* Tiendas destacadas (tira horizontal) */
+    .td-scroll { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-bottom: 4px; margin-bottom: 1.4rem; }
+    .td-scroll::-webkit-scrollbar { display: none; }
+    .td-card { flex: 0 0 148px; background: white; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; cursor: pointer; transition: transform .15s, box-shadow .15s; }
+    .td-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.08); }
+    .td-card-img { height: 86px; background: var(--mx-light); display: flex; align-items: center; justify-content: center; color: var(--mx); font-size: 32px; }
+    .td-card-body { padding: 9px 11px; }
+    .td-card-name { font-weight: 700; font-size: 13.5px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .td-card-meta { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
     .sec-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: .75rem; }
     .sec-t { font-family: var(--font-head); font-weight: 700; font-size: 15px; }
     .see-all { background: none; border: none; font-size: 13px; color: var(--mx); cursor: pointer; }
@@ -826,12 +848,57 @@
     <div class="abody">
       <!-- HOME -->
       <div class="dp active" id="dp-home">
-        <div class="qa-grid">
-          <div class="qa-item" onclick="dTab('envio')"><i class="ti ti-plus-circle"></i><span>Nuevo envío</span></div>
-          <div class="qa-item" onclick="dTab('repartir')"><i class="ti ti-motorbike"></i><span>Repartir</span></div>
-          <div class="qa-item" onclick="dTab('transportista')"><i class="ti ti-truck"></i><span>Transportista</span></div>
-          <div class="qa-item" onclick="dTab('billetera')"><i class="ti ti-wallet"></i><span>Billetera</span></div>
+        <!-- Banners promocionales -->
+        <div class="promo-wrap">
+          <div class="promo-track" id="promo-track">
+            <div class="promo" style="background:linear-gradient(135deg,#D4001A,#FF4D62)" onclick="dTab('envio')">
+              <h4>Envía lo que necesites, hoy mismo</h4>
+              <p>Documentos, paquetes, encargos… en minutos.</p>
+              <span class="promo-cta">Pedir ahora <i class="ti ti-arrow-right"></i></span>
+              <i class="ti ti-package promo-ico"></i>
+            </div>
+            <div class="promo" style="background:linear-gradient(135deg,#0B6E4F,#15A86F)" onclick="dTab('tiendas')">
+              <h4>Comida y mercado a domicilio</h4>
+              <p>Pide de tus tiendas favoritas y te lo llevamos.</p>
+              <span class="promo-cta">Ver tiendas <i class="ti ti-arrow-right"></i></span>
+              <i class="ti ti-tools-kitchen-2 promo-ico"></i>
+            </div>
+            <div class="promo" style="background:linear-gradient(135deg,#E85C1A,#F59E0B)" onclick="dTab('repartir')">
+              <h4>Gana dinero repartiendo</h4>
+              <p>Tú decides cuándo. Cobras el 75% de cada envío.</p>
+              <span class="promo-cta">Empezar <i class="ti ti-arrow-right"></i></span>
+              <i class="ti ti-motorbike promo-ico"></i>
+            </div>
+            <div class="promo" style="background:linear-gradient(135deg,#5B21B6,#8B5CF6)" onclick="dTab('billetera')">
+              <h4>Recarga y paga sin complicarte</h4>
+              <p>Con saldo o tarjeta. Rápido y seguro.</p>
+              <span class="promo-cta">Mi billetera <i class="ti ti-arrow-right"></i></span>
+              <i class="ti ti-wallet promo-ico"></i>
+            </div>
+          </div>
+          <div class="promo-dots" id="promo-dots">
+            <div class="promo-dot on" onclick="irPromo(0)"></div>
+            <div class="promo-dot" onclick="irPromo(1)"></div>
+            <div class="promo-dot" onclick="irPromo(2)"></div>
+            <div class="promo-dot" onclick="irPromo(3)"></div>
+          </div>
         </div>
+
+        <!-- Accesos rápidos -->
+        <div class="qa-grid">
+          <div class="qa-item" onclick="dTab('envio')"><div class="qa-ico" style="background:#D4001A"><i class="ti ti-plus"></i></div><span>Nuevo envío</span></div>
+          <div class="qa-item" onclick="dTab('tiendas')"><div class="qa-ico" style="background:#0B6E4F"><i class="ti ti-building-store"></i></div><span>Tiendas</span></div>
+          <div class="qa-item" onclick="dTab('repartir')"><div class="qa-ico" style="background:#E85C1A"><i class="ti ti-motorbike"></i></div><span>Repartir</span></div>
+          <div class="qa-item" onclick="dTab('transportista')"><div class="qa-ico" style="background:#0EA5E9"><i class="ti ti-truck"></i></div><span>Transportista</span></div>
+          <div class="qa-item" onclick="dTab('billetera')"><div class="qa-ico" style="background:#8B5CF6"><i class="ti ti-wallet"></i></div><span>Billetera</span></div>
+        </div>
+
+        <!-- Tiendas destacadas -->
+        <div id="home-tiendas-sec" style="display:none">
+          <div class="sec-row"><div class="sec-t">Tiendas destacadas</div><button class="see-all" onclick="dTab('tiendas')">Ver todas</button></div>
+          <div class="td-scroll" id="home-tiendas"></div>
+        </div>
+
         <div class="sec-row"><div class="sec-t">Mis pedidos</div><button class="see-all" onclick="dTab('historial')">Ver todos</button></div>
         <div id="home-pedidos"><div style="text-align:center;padding:2rem;color:var(--muted);font-size:14px;background:white;border:1px solid var(--border);border-radius:var(--radius)"><i class="ti ti-package" style="font-size:32px;display:block;margin-bottom:8px;opacity:.4"></i>Aún no tienes pedidos.<br>¡Crea tu primer envío!</div></div>
       </div>
@@ -3524,8 +3591,67 @@
       });
   }
 
+  // ── Carrusel de banners promocionales ──
+  let _promoIdx = 0, _promoTimer = null;
+  function initPromos(){
+    const track = document.getElementById('promo-track');
+    if (!track) return;
+    if (_promoTimer) clearInterval(_promoTimer);
+    if (!track._bound){
+      track.addEventListener('scroll', ()=>{
+        const i = Math.round(track.scrollLeft / track.clientWidth);
+        if (i !== _promoIdx){ _promoIdx = i; pintarPromoDots(); }
+      }, { passive:true });
+      track._bound = true;
+    }
+    _promoTimer = setInterval(()=>{
+      const n = track.children.length; if (!n) return;
+      _promoIdx = (_promoIdx + 1) % n;
+      track.scrollTo({ left: _promoIdx * track.clientWidth, behavior:'smooth' });
+      pintarPromoDots();
+    }, 4800);
+  }
+  function irPromo(i){
+    const track = document.getElementById('promo-track'); if (!track) return;
+    _promoIdx = i;
+    track.scrollTo({ left: i * track.clientWidth, behavior:'smooth' });
+    pintarPromoDots();
+  }
+  function pintarPromoDots(){
+    document.querySelectorAll('#promo-dots .promo-dot').forEach((d,i)=>d.classList.toggle('on', i === _promoIdx));
+  }
+
+  // ── Tiendas destacadas en la home ──
+  async function cargarTiendasDestacadas(){
+    const sec = document.getElementById('home-tiendas-sec');
+    const cont = document.getElementById('home-tiendas');
+    if (!cont) return;
+    const { data } = await sb.from('tiendas').select('*').eq('activa', true)
+      .order('destacada', { ascending:false }).order('created_at', { ascending:false }).limit(10);
+    if (!data || !data.length){ if (sec) sec.style.display='none'; return; }
+    if (sec) sec.style.display='block';
+    cont.innerHTML = data.map(t => {
+      const img = t.logo_url
+        ? `<div class="td-card-img" style="padding:0"><img src="${t.logo_url}" onerror="imgErr(this,'tienda')" style="width:100%;height:100%;object-fit:cover"></div>`
+        : `<div class="td-card-img"><i class="ti ti-building-store"></i></div>`;
+      return `<div class="td-card" onclick="abrirTiendaDesde('${t.id}')">
+        ${img}
+        <div class="td-card-body">
+          <div class="td-card-name">${t.nombre}</div>
+          <div class="td-card-meta"><i class="ti ti-clock"></i> ${t.tiempo_entrega_min||30} min · $${(t.costo_envio_base||0).toLocaleString('es-CO')}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  function abrirTiendaDesde(id){
+    dTab('tiendas');
+    setTimeout(()=>abrirTienda(id), 650);
+  }
+
   async function cargarPedidosHome() {
     if (!currentUser) return;
+    initPromos();
+    cargarTiendasDestacadas();
     const { data } = await sb.from('pedidos').select('*')
       .or(`usuario_id.eq.${currentUser.id},repartidor_id.eq.${currentUser.id}`)
       .in('estado', ['buscando','aceptado','recogido','entregado'])
