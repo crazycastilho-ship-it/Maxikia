@@ -321,6 +321,8 @@ tbody tr:hover{background:var(--surface)}
   </div>
   <label style="font-size:12px;font-weight:600;color:var(--muted)">URL del logo (opcional)</label>
   <input id="t-logo" class="fi" placeholder="https://..." style="margin-bottom:10px">
+  <label style="font-size:12px;font-weight:600;color:var(--muted)">Correo del dueño (opcional — para que gestione su menú desde la app)</label>
+  <input id="t-dueno" class="fi" placeholder="dueno@correo.com" style="margin-bottom:10px">
   <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px"><input type="checkbox" id="t-activa" checked> Tienda activa (visible en la app)</label>
   <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:14px"><input type="checkbox" id="t-destacada"> Destacada (aparece primero)</label>
   <button class="bsm" onclick="guardarTienda()" style="width:100%;padding:11px;background:var(--mx);color:white;border:none"><i class="ti ti-check"></i> Guardar tienda</button>
@@ -449,6 +451,8 @@ function abrirFormTienda(t){
   document.getElementById('t-tiempo').value = t?.tiempo_entrega_min ?? 30;
   document.getElementById('t-min').value = t?.pedido_minimo ?? 0;
   document.getElementById('t-logo').value = t?.logo_url || '';
+  document.getElementById('t-dueno').value = '';
+  document.getElementById('t-dueno').placeholder = t?.propietario_id ? 'Ya tiene dueño — escribe un correo para cambiarlo' : 'dueno@correo.com';
   document.getElementById('t-activa').checked = t ? !!t.activa : true;
   document.getElementById('t-destacada').checked = t ? !!t.destacada : false;
   document.getElementById('mtienda').classList.add('on');
@@ -471,9 +475,19 @@ async function guardarTienda(){
     activa: document.getElementById('t-activa').checked,
     destacada: document.getElementById('t-destacada').checked
   };
+  // Asignar dueño por correo (opcional). Si se deja vacío, no se cambia.
+  const correoDueno = document.getElementById('t-dueno').value.trim().toLowerCase();
+  if(correoDueno){
+    const { data: dp } = await sb.from('perfiles').select('id').ilike('email', correoDueno).limit(1);
+    if(dp && dp.length){ payload.propietario_id = dp[0].id; }
+    else { alert('No se encontró ningún usuario con el correo "'+correoDueno+'". Debe estar registrado en la app primero.'); return; }
+  }
   let error;
   if(id){ ({ error } = await sb.from('tiendas').update(payload).eq('id', id)); }
-  else { payload.propietario_id = user?.id || null; ({ error } = await sb.from('tiendas').insert(payload)); }
+  else {
+    if(!payload.propietario_id) payload.propietario_id = user?.id || null;
+    ({ error } = await sb.from('tiendas').insert(payload));
+  }
   if(error){ alert('Error: '+error.message); return; }
   cm('mtienda'); loadTiendas();
 }

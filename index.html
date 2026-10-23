@@ -343,7 +343,7 @@
     .br { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; }
     .br button { background: none; border: none; cursor: pointer; padding: 0; }
     .br h3 { font-family: var(--font-head); font-weight: 700; font-size: 17px; }
-    .bbar { background: white; border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(4,1fr); padding: 8px 0; padding-bottom: max(12px, env(safe-area-inset-bottom)); position: sticky; bottom: 0; z-index: 50; }
+    .bbar { background: white; border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(5,1fr); padding: 8px 0; padding-bottom: max(12px, env(safe-area-inset-bottom)); position: sticky; bottom: 0; z-index: 50; }
     .bitem { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; border: none; background: none; padding: 5px; min-width: 0; }
     .bitem i { font-size: 22px; color: var(--muted); } .bitem span { font-size: 10px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px; }
     .bitem.active i { color: var(--mx); } .bitem.active span { color: var(--mx); font-weight: 500; }
@@ -1316,6 +1316,12 @@
 
         <!-- VISTA 1: LISTA DE TIENDAS -->
         <div id="tiendas-home">
+          <!-- Banner para dueños de tienda -->
+          <div id="mi-negocio-banner" style="display:none;background:var(--dark);border-radius:14px;padding:14px 16px;margin-bottom:14px;align-items:center;gap:12px;color:white">
+            <div style="width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0"><i class="ti ti-building-store"></i></div>
+            <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:14px" id="mi-negocio-nombre">Tu tienda</div><div style="font-size:12px;color:rgba(255,255,255,.7)">Gestiona tu menú y precios</div></div>
+            <button onclick="abrirMiNegocio()" style="background:var(--mx);color:white;border:none;border-radius:50px;padding:9px 15px;font-size:13px;font-weight:700;font-family:var(--font-body);cursor:pointer;flex-shrink:0">Gestionar</button>
+          </div>
           <div style="font-size:14px;color:var(--muted);margin-bottom:12px">Pide comida, mercado y más. Te lo llevamos.</div>
           <div id="tiendas-cats" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;-webkit-overflow-scrolling:touch"></div>
           <div id="tiendas-lista"><div style="text-align:center;padding:2rem;color:var(--muted);font-size:14px"><i class="ti ti-loader-2" style="animation:spin 1s linear infinite;font-size:24px;display:block;margin-bottom:8px"></i>Cargando tiendas...</div></div>
@@ -1360,10 +1366,36 @@
           </div>
           <div id="checkout-saldo-info" style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:10px"></div>
           <button id="checkout-btn-pagar" onclick="confirmarPedidoTienda()" style="width:100%;background:var(--mx);color:white;border:none;border-radius:12px;padding:15px;font-size:16px;font-weight:700;font-family:var(--font-body);cursor:pointer">Pagar con saldo</button>
-          <button onclick="irARecargar()" style="width:100%;background:none;border:none;color:var(--mx);font-size:13px;font-weight:600;cursor:pointer;margin-top:10px">Recargar saldo</button>
+          <div style="display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--muted);font-size:12px"><div style="flex:1;height:1px;background:var(--border)"></div>o<div style="flex:1;height:1px;background:var(--border)"></div></div>
+          <button id="checkout-btn-tarjeta" onclick="pagarPedidoTiendaWompi()" style="width:100%;background:white;color:var(--text);border:1.5px solid var(--border);border-radius:12px;padding:14px;font-size:15px;font-weight:700;font-family:var(--font-body);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><i class="ti ti-credit-card"></i> Pagar con tarjeta <span id="checkout-tarjeta-monto" style="color:var(--muted);font-weight:500;font-size:13px"></span></button>
+          <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px">Con tarjeta se suma la comisión de la pasarela. Con saldo no.</div>
         </div>
       </div>
     </div>
+
+    <!-- Modal: Mi negocio (dueño gestiona su menú) -->
+    <div id="modal-mi-negocio" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.5);align-items:flex-end;justify-content:center">
+      <div style="background:var(--surface);width:100%;max-width:560px;border-radius:18px 18px 0 0;max-height:94vh;overflow-y:auto;padding:18px 18px 28px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <h3 style="font-family:var(--font-head);font-size:19px;color:var(--text)" id="mn-titulo">Mi menú</h3>
+          <button onclick="cerrarMiNegocio()" style="background:none;border:none;font-size:26px;color:var(--muted);cursor:pointer;line-height:1">×</button>
+        </div>
+        <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:14px">
+          <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:9px" id="mn-form-titulo">Agregar producto</div>
+          <input type="hidden" id="mn-prod-id">
+          <input id="mn-nombre" placeholder="Nombre del producto" style="width:100%;border:1.5px solid var(--border);border-radius:9px;padding:10px;font-size:14px;font-family:var(--font-body);margin-bottom:8px">
+          <div style="display:flex;gap:8px">
+            <input id="mn-precio" type="number" inputmode="numeric" placeholder="Precio $" style="flex:1;border:1.5px solid var(--border);border-radius:9px;padding:10px;font-size:14px;font-family:var(--font-body);margin-bottom:8px">
+            <input id="mn-cat" placeholder="Categoría (ej: Bebidas)" style="flex:1;border:1.5px solid var(--border);border-radius:9px;padding:10px;font-size:14px;font-family:var(--font-body);margin-bottom:8px">
+          </div>
+          <input id="mn-desc" placeholder="Descripción (opcional)" style="width:100%;border:1.5px solid var(--border);border-radius:9px;padding:10px;font-size:14px;font-family:var(--font-body);margin-bottom:8px">
+          <input id="mn-img" placeholder="URL de imagen (opcional)" style="width:100%;border:1.5px solid var(--border);border-radius:9px;padding:10px;font-size:14px;font-family:var(--font-body);margin-bottom:10px">
+          <button onclick="mnGuardarProducto()" style="width:100%;background:var(--mx);color:white;border:none;border-radius:9px;padding:11px;font-size:14px;font-weight:700;font-family:var(--font-body);cursor:pointer"><i class="ti ti-plus"></i> <span id="mn-btn-txt">Agregar al menú</span></button>
+        </div>
+        <div id="mn-lista"></div>
+      </div>
+    </div>
+
     <div class="bbar">
       <button class="bitem active" id="bn-home" onclick="dTab('home')"><i class="ti ti-home"></i><span>Inicio</span></button>
       <button class="bitem" id="bn-tiendas" onclick="dTab('tiendas')"><i class="ti ti-building-store"></i><span>Tiendas</span></button>
@@ -2934,6 +2966,8 @@
     document.getElementById('checkout-subtotal').textContent = '$'+sub.toLocaleString('es-CO');
     document.getElementById('checkout-envio').textContent = '$'+envio.toLocaleString('es-CO');
     document.getElementById('checkout-total').textContent = '$'+(sub+envio).toLocaleString('es-CO');
+    const mt = document.getElementById('checkout-tarjeta-monto');
+    if (mt && typeof calcularPagoConComision === 'function') mt.textContent = '· $'+calcularPagoConComision(sub+envio).toLocaleString('es-CO');
     sb.from('perfiles').select('saldo').eq('id', currentUser.id).single().then(({data})=>{
       const saldo = data?.saldo||0, total = sub+envio;
       const el = document.getElementById('checkout-saldo-info'), btn = document.getElementById('checkout-btn-pagar');
@@ -2944,6 +2978,148 @@
   }
   function cerrarCheckoutTienda(){ document.getElementById('modal-checkout-tienda').style.display = 'none'; }
   function irARecargar(){ cerrarCheckoutTienda(); dTab('billetera'); setTimeout(()=>mostrarSeccion('recarga'), 300); }
+
+  // ── Pago directo con tarjeta (Wompi) para pedidos de tienda ──
+  async function pagarPedidoTiendaWompi(){
+    if (!currentUser) { goPage('login'); return; }
+    if (!_carrito.length || !_tiendaActual) return;
+    const destino = document.getElementById('checkout-destino').value.trim();
+    if (!destino) { alert('Escribe la dirección de entrega.'); return; }
+    const recibeNombre = document.getElementById('checkout-recibe-nombre').value.trim();
+    const recibeTel = document.getElementById('checkout-recibe-tel').value.trim();
+    const notas = document.getElementById('checkout-notas').value.trim();
+    const btn = document.getElementById('checkout-btn-tarjeta');
+    btn.disabled = true; btn.style.opacity = '.6';
+
+    const neto = carritoSubtotal() + (_tiendaActual.costo_envio_base||0);
+    const montoAPagar = calcularPagoConComision(neto);
+    const montoEnCentavos = montoAPagar * 100;
+    const referencia = 'TND_' + currentUser.id.slice(0,8) + '_' + Date.now();
+    const items = _carrito.map(i => ({ producto_id:i.producto_id, cantidad:i.cantidad }));
+
+    // 1) Crear pedido en pendiente_pago (no descuenta saldo)
+    const { data: pedido, error } = await sb.rpc('crear_pedido_tienda_pendiente_pago', {
+      p_tienda_id: _tiendaActual.id, p_items: items, p_destino: destino,
+      p_lat_destino: null, p_lng_destino: null,
+      p_recibe_nombre: recibeNombre || null, p_recibe_telefono: recibeTel || null, p_notas: notas || null
+    });
+    if (error || !pedido) { alert('No se pudo crear el pedido: ' + (error?.message||'Error')); btn.disabled=false; btn.style.opacity='1'; return; }
+
+    // 2) Registrar la transacción Wompi ligada al pedido (tipo 'envio' → el webhook lo activa a 'buscando')
+    await sb.rpc('wompi_crear_transaccion', { p_referencia: referencia, p_monto: neto, p_tipo: 'envio', p_pedido_id: pedido.id });
+
+    // 3) Abrir el widget de Wompi
+    const { data: perfilU } = await sb.from('perfiles').select('email, telefono, nombre').eq('id', currentUser.id).single();
+    const firma = await generarFirmaIntegridad(referencia, montoEnCentavos, 'COP');
+    const telLimpio = (perfilU?.telefono || '').replace(/\D/g, '');
+    const customerData = { email: perfilU?.email || currentUser.email || 'cliente@maxikia.com', fullName: perfilU?.nombre || 'Cliente Maxikia' };
+    if (telLimpio.length >= 10) { customerData.phoneNumber = telLimpio.slice(-10); customerData.phoneNumberPrefix = '+57'; }
+
+    const nombreTienda = _tiendaActual.nombre;
+    try {
+      const checkout = new WidgetCheckout({
+        currency: 'COP', amountInCents: montoEnCentavos, reference: referencia,
+        publicKey: WOMPI_PUBLIC_KEY, signature: { integrity: firma },
+        redirectUrl: window.location.origin, customerData
+      });
+      btn.disabled = false; btn.style.opacity = '1';
+      checkout.open(function(result){
+        const tx = result.transaction;
+        if (tx && tx.status === 'APPROVED') {
+          _carrito = []; actualizarCarrito(); cerrarCheckoutTienda();
+          ['checkout-destino','checkout-recibe-nombre','checkout-recibe-tel','checkout-notas'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+          alert('✓ ¡Pago aprobado!\n\nTu pedido en '+nombreTienda+' ya busca repartidor. Síguelo en Inicio.');
+          setTimeout(()=>{ cargarPedidosHome(); dTab('home'); }, 1500);
+        } else {
+          alert('El pago no se completó. El pedido no se publicó.');
+        }
+      });
+    } catch (e) {
+      btn.disabled = false; btn.style.opacity = '1';
+      alert('No se pudo abrir el pago: ' + (e.message||'error'));
+    }
+  }
+
+  // ═══════════ MI NEGOCIO — el dueño gestiona su propio menú ═══════════
+  let _miTienda = null;
+  async function verificarMiNegocio(){
+    const banner = document.getElementById('mi-negocio-banner');
+    if (!banner || !currentUser) return;
+    const { data } = await sb.from('tiendas').select('*').eq('propietario_id', currentUser.id).limit(1);
+    if (data && data.length) {
+      _miTienda = data[0];
+      document.getElementById('mi-negocio-nombre').textContent = _miTienda.nombre;
+      banner.style.display = 'flex';
+    } else {
+      _miTienda = null;
+      banner.style.display = 'none';
+    }
+  }
+  function abrirMiNegocio(){
+    if (!_miTienda) return;
+    document.getElementById('mn-titulo').textContent = 'Menú · ' + _miTienda.nombre;
+    mnLimpiarForm();
+    document.getElementById('modal-mi-negocio').style.display = 'flex';
+    mnCargarProductos();
+  }
+  function cerrarMiNegocio(){ document.getElementById('modal-mi-negocio').style.display = 'none'; }
+  function mnLimpiarForm(){
+    ['mn-prod-id','mn-nombre','mn-precio','mn-cat','mn-desc','mn-img'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+    document.getElementById('mn-btn-txt').textContent = 'Agregar al menú';
+    document.getElementById('mn-form-titulo').textContent = 'Agregar producto';
+  }
+  async function mnCargarProductos(){
+    const cont = document.getElementById('mn-lista');
+    cont.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted)"><i class="ti ti-loader-2" style="animation:spin 1s linear infinite;font-size:22px"></i></div>';
+    const { data } = await sb.from('productos').select('*').eq('tienda_id', _miTienda.id).order('orden').order('nombre');
+    if (!data || !data.length) { cont.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:14px">Aún no tienes productos. Agrega el primero arriba.</div>'; return; }
+    cont.innerHTML = data.map(p => `<div style="display:flex;gap:10px;align-items:center;background:white;border:1px solid var(--border);border-radius:11px;padding:10px;margin-bottom:8px">
+      <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px;color:var(--text)">${p.nombre} ${p.disponible?'':'<span style=\"font-size:11px;color:var(--muted)\">(oculto)</span>'}</div><div style="font-size:13px;color:var(--text);font-weight:700">$${(p.precio||0).toLocaleString('es-CO')}</div>${p.categoria?`<div style="font-size:11px;color:var(--muted)">${p.categoria}</div>`:''}</div>
+      <button onclick='mnEditar(${JSON.stringify(p)})' style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;cursor:pointer;color:var(--text)"><i class="ti ti-edit"></i></button>
+      <button onclick="mnToggle('${p.id}',${!p.disponible})" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0 10px;height:34px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text)">${p.disponible?'Ocultar':'Mostrar'}</button>
+      <button onclick="mnEliminar('${p.id}')" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;cursor:pointer;color:var(--mx)"><i class="ti ti-trash"></i></button>
+    </div>`).join('');
+  }
+  function mnEditar(p){
+    document.getElementById('mn-prod-id').value = p.id;
+    document.getElementById('mn-nombre').value = p.nombre||'';
+    document.getElementById('mn-precio').value = p.precio||'';
+    document.getElementById('mn-cat').value = p.categoria||'';
+    document.getElementById('mn-desc').value = p.descripcion||'';
+    document.getElementById('mn-img').value = p.imagen_url||'';
+    document.getElementById('mn-btn-txt').textContent = 'Guardar cambios';
+    document.getElementById('mn-form-titulo').textContent = 'Editar producto';
+    document.querySelector('#modal-mi-negocio > div').scrollTop = 0;
+  }
+  async function mnGuardarProducto(){
+    if (!_miTienda) return;
+    const nombre = document.getElementById('mn-nombre').value.trim();
+    const precio = parseInt(document.getElementById('mn-precio').value);
+    if (!nombre || isNaN(precio)) { alert('Nombre y precio son obligatorios.'); return; }
+    const id = document.getElementById('mn-prod-id').value;
+    const payload = {
+      tienda_id: _miTienda.id, nombre, precio,
+      categoria: document.getElementById('mn-cat').value.trim() || null,
+      descripcion: document.getElementById('mn-desc').value.trim() || null,
+      imagen_url: document.getElementById('mn-img').value.trim() || null
+    };
+    let error;
+    if (id) ({ error } = await sb.from('productos').update(payload).eq('id', id));
+    else ({ error } = await sb.from('productos').insert(payload));
+    if (error) { alert('Error: ' + error.message); return; }
+    mnLimpiarForm(); mnCargarProductos();
+  }
+  async function mnToggle(id, disponible){
+    const { error } = await sb.from('productos').update({ disponible }).eq('id', id);
+    if (error) { alert('Error: ' + error.message); return; }
+    mnCargarProductos();
+  }
+  async function mnEliminar(id){
+    if (!confirm('¿Eliminar este producto?')) return;
+    const { error } = await sb.from('productos').delete().eq('id', id);
+    if (error) { alert('Error: ' + error.message); return; }
+    mnCargarProductos();
+  }
 
   async function confirmarPedidoTienda(){
     if (!currentUser) { goPage('login'); return; }
@@ -3437,7 +3613,7 @@
     if (t === 'transportista') { verificarDepositoTransportista(); cargarMudanzasDisponibles(); }
     if (t === 'historial') cargarHistorial();
     if (t === 'billetera') cargarWallet();
-    if (t === 'tiendas') { volverTiendas(); cargarTiendas(); }
+    if (t === 'tiendas') { volverTiendas(); cargarTiendas(); verificarMiNegocio(); }
     // El carrito flotante solo se ve dentro de Tiendas
     const fab = document.getElementById('cart-fab');
     if (fab) fab.style.display = (t === 'tiendas' && _carrito.length > 0) ? 'flex' : 'none';
@@ -4887,7 +5063,7 @@
     const bbar = document.querySelector('.bbar');
     if (btnTrans) btnTrans.style.display = 'flex';
     if (btnBill) btnBill.style.display = 'none';
-    if (bbar) bbar.style.gridTemplateColumns = 'repeat(4,1fr)';
+    if (bbar) bbar.style.gridTemplateColumns = 'repeat(5,1fr)';
   }
 
   async function verificarDepositoTransportista() {
