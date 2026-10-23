@@ -814,13 +814,28 @@
         <div id="login-alert"></div>
         <div class="field-group"><label class="field-label">Correo electrónico</label><input type="email" class="field-input" id="login-email" placeholder="tu@correo.com"></div>
         <div class="field-group"><label class="field-label">Contraseña</label><input type="password" class="field-input" id="login-pass" placeholder="••••••••"></div>
-        <div style="text-align:right;margin-bottom:1rem"><a href="#" style="font-size:13px;color:var(--mx);text-decoration:none">¿Olvidaste tu contraseña?</a></div>
+        <div style="text-align:right;margin-bottom:1rem"><a href="#" onclick="recuperarContrasena();return false;" style="font-size:13px;color:var(--mx);text-decoration:none">¿Olvidaste tu contraseña?</a></div>
         <button class="btn-primary btn-full" id="login-btn" onclick="doLogin()">Entrar a mi cuenta</button>
         <div class="divider"><span>o</span></div>
         <button class="btn-outline" onclick="loginConHuella()"><i class="ti ti-fingerprint" style="font-size:20px;color:var(--mx)"></i> Entrar con huella digital</button>
         <div class="alink">¿No tienes cuenta? <span onclick="goPage('register')">Regístrate gratis</span></div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- MODAL: NUEVA CONTRASEÑA (recuperación) -->
+<div id="modal-nueva-pass" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:20px">
+  <div style="background:white;width:100%;max-width:420px;border-radius:16px;padding:24px">
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="width:56px;height:56px;border-radius:50%;background:var(--mx-light);display:flex;align-items:center;justify-content:center;color:var(--mx);font-size:26px;margin:0 auto 12px"><i class="ti ti-lock"></i></div>
+      <h3 style="font-family:var(--font-head);font-size:20px;color:var(--text)">Crea tu nueva contraseña</h3>
+      <p style="font-size:13px;color:var(--muted);margin-top:4px">Escribe una contraseña nueva para tu cuenta.</p>
+    </div>
+    <div id="nueva-pass-alert"></div>
+    <div class="field-group"><label class="field-label">Nueva contraseña</label><input type="password" class="field-input" id="nueva-pass" placeholder="Mínimo 8 caracteres"></div>
+    <div class="field-group"><label class="field-label">Repite la contraseña</label><input type="password" class="field-input" id="nueva-pass2" placeholder="Repite la contraseña"></div>
+    <button class="btn-primary btn-full" id="nueva-pass-btn" onclick="guardarNuevaContrasena()" style="margin-top:8px">Guardar contraseña</button>
   </div>
 </div>
 
@@ -1588,6 +1603,14 @@
     if (p.get('docs') === '1') {
       window._abrirDocs = true;
     }
+    // Recuperación de contraseña: el correo redirige con ?recovery=1 (+ hash type=recovery)
+    const esRecovery = p.get('recovery') === '1' || (window.location.hash || '').includes('type=recovery');
+    if (esRecovery) {
+      // Respaldo por si el evento PASSWORD_RECOVERY no alcanza a mostrar el modal
+      const mostrar = () => { const m = document.getElementById('modal-nueva-pass'); if (m) m.style.display = 'flex'; };
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(mostrar, 400));
+      else setTimeout(mostrar, 400);
+    }
   })();
 
   // ── NAV SCROLL GLASSMORPHISM ──
@@ -1650,7 +1673,11 @@
     }
 
     sb.auth.onAuthStateChange((event, session) => {
-      if (event === 'TOKEN_REFRESHED' && session) {
+      if (event === 'PASSWORD_RECOVERY') {
+        currentUser = session?.user || currentUser;
+        const m = document.getElementById('modal-nueva-pass');
+        if (m) m.style.display = 'flex';
+      } else if (event === 'TOKEN_REFRESHED' && session) {
         currentUser = session.user;
       } else if (event === 'SIGNED_OUT') {
         currentUser = null;
@@ -1671,6 +1698,35 @@
       if (el) el.textContent = name;
       bv.style.display = 'flex';
     }
+  }
+
+  // ── RECUPERAR CONTRASEÑA ──
+  async function recuperarContrasena(){
+    const email = (document.getElementById('login-email').value || '').trim();
+    const alertEl = document.getElementById('login-alert');
+    if(!email || !email.includes('@')){
+      alertEl.innerHTML = '<div class="alert error">Escribe tu correo arriba y vuelve a tocar "¿Olvidaste tu contraseña?".</div>';
+      return;
+    }
+    alertEl.innerHTML = '<div style="font-size:12px;color:var(--muted)">Enviando correo...</div>';
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/?recovery=1' });
+    if(error){ alertEl.innerHTML = '<div class="alert error">' + error.message + '</div>'; return; }
+    alertEl.innerHTML = '<div class="alert success">Te enviamos un correo para restablecer tu contraseña. Revisa tu bandeja (y la carpeta de spam) y abre el enlace.</div>';
+  }
+
+  async function guardarNuevaContrasena(){
+    const p1 = document.getElementById('nueva-pass').value;
+    const p2 = document.getElementById('nueva-pass2').value;
+    const alertEl = document.getElementById('nueva-pass-alert');
+    if(p1.length < 8){ alertEl.innerHTML = '<div class="alert error">La contraseña debe tener mínimo 8 caracteres.</div>'; return; }
+    if(p1 !== p2){ alertEl.innerHTML = '<div class="alert error">Las contraseñas no coinciden.</div>'; return; }
+    const btn = document.getElementById('nueva-pass-btn'); btn.disabled = true; btn.textContent = 'Guardando...';
+    const { error } = await sb.auth.updateUser({ password: p1 });
+    if(error){ alertEl.innerHTML = '<div class="alert error">' + error.message + '</div>'; btn.disabled = false; btn.textContent = 'Guardar contraseña'; return; }
+    document.getElementById('modal-nueva-pass').style.display = 'none';
+    try { history.replaceState(null, '', window.location.origin + '/'); } catch(e){}
+    alert('✓ Tu contraseña fue actualizada. Ya puedes usarla para entrar.');
+    if (currentUser) { showDashboard(); } else { goPage('login'); }
   }
 
   async function entrarConContrasena() {
