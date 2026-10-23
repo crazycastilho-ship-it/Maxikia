@@ -280,8 +280,9 @@ tbody tr:hover{background:var(--surface)}
           <div class="mc"><div class="mi g"><i class="ti ti-calendar-week"></i></div><div class="ml">Esta semana</div><div class="mv" id="is">—</div><div class="ms" id="iss">0 pedidos</div></div>
           <div class="mc"><div class="mi b"><i class="ti ti-calendar"></i></div><div class="ml">Este mes</div><div class="mv" id="im">—</div><div class="ms" id="ims">0 pedidos</div></div>
         </div>
+        <div id="ing-desglose" style="font-size:13px;color:var(--muted);margin-bottom:12px"></div>
         <div class="tc"><div class="th"><div class="tt">Pedidos completados</div></div>
-          <div class="tw"><table><thead><tr><th>Fecha</th><th>Descripción</th><th>Valor</th><th>Tu comisión (25%)</th></tr></thead><tbody id="igt"></tbody></table></div>
+          <div class="tw"><table><thead><tr><th>Fecha</th><th>Descripción</th><th>Valor</th><th>Ingreso Maxikia</th></tr></thead><tbody id="igt"></tbody></table></div>
         </div>
       </div>
 
@@ -1127,6 +1128,15 @@ async function rechazarRetiro(id,uid,monto){
   loadRetiros();
 }
 
+// Ingreso real de Maxikia por pedido:
+//  - Mandado: 25% del precio del envío.
+//  - Tienda: 25% del domicilio + tarifa de servicio (cliente) + mitad del comercio.
+function ingresoPedido(p){
+  if(p.tipo_pedido === 'tienda'){
+    return Math.round((p.costo_envio||0)*COM) + (p.tarifa_servicio||0) + (p.comision_tienda||0);
+  }
+  return Math.round((p.precio||0)*COM);
+}
 async function loadIngresos(){
   const {data} = await sb.from('pedidos').select('*').eq('estado','entregado').order('created_at',{ascending:false});
   const tb=document.getElementById('igt');
@@ -1138,9 +1148,10 @@ async function loadIngresos(){
   const ahora=new Date();
   const sw=new Date(ahora); sw.setDate(ahora.getDate()-7);
   const sm=new Date(ahora.getFullYear(),ahora.getMonth(),1);
-  let tot=0,sem=0,mes=0,ns=0,nm=0;
+  let tot=0,sem=0,mes=0,ns=0,nm=0, totMand=0, totTienda=0;
   data.forEach(p=>{
-    const c=p.precio*COM; tot+=c;
+    const c=ingresoPedido(p); tot+=c;
+    if(p.tipo_pedido==='tienda') totTienda+=c; else totMand+=c;
     const f=new Date(p.entregado_at||p.created_at);
     if(f>=sw){sem+=c;ns++;}
     if(f>=sm){mes+=c;nm++;}
@@ -1150,11 +1161,13 @@ async function loadIngresos(){
   document.getElementById('iss').textContent=ns+' pedidos';
   document.getElementById('im').textContent='$'+Math.round(mes).toLocaleString('es-CO');
   document.getElementById('ims').textContent=nm+' pedidos';
-  tb.innerHTML=data.slice(0,30).map(p=>`<tr>
+  const dm=document.getElementById('ing-desglose');
+  if(dm) dm.innerHTML='Envíos (mandados): <strong>$'+Math.round(totMand).toLocaleString('es-CO')+'</strong> &nbsp;·&nbsp; Tiendas (domicilio + tarifa de servicio): <strong>$'+Math.round(totTienda).toLocaleString('es-CO')+'</strong>';
+  tb.innerHTML=data.slice(0,40).map(p=>`<tr>
     <td style="font-size:12px">${new Date(p.entregado_at||p.created_at).toLocaleString('es-CO')}</td>
-    <td>${p.descripcion}</td>
-    <td>$${p.precio.toLocaleString('es-CO')}</td>
-    <td style="color:var(--green);font-weight:500">$${Math.round(p.precio*COM).toLocaleString('es-CO')}</td>
+    <td>${p.descripcion}${p.tipo_pedido==='tienda'?' <span style="font-size:10px;background:#E1F5EE;color:#0F6E56;padding:1px 6px;border-radius:8px">tienda</span>':''}</td>
+    <td>$${(p.precio||0).toLocaleString('es-CO')}</td>
+    <td style="color:var(--green);font-weight:500">$${ingresoPedido(p).toLocaleString('es-CO')}</td>
   </tr>`).join('');
 }
 </script>
