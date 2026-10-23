@@ -1478,10 +1478,18 @@
           <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:9px" id="mn-form-titulo">Agregar producto</div>
           <input type="hidden" id="mn-prod-id">
           <input id="mn-nombre" placeholder="Nombre del producto" style="width:100%;border:1.5px solid var(--border);border-radius:9px;padding:10px;font-size:14px;font-family:var(--font-body);margin-bottom:8px">
-          <div style="display:flex;gap:8px">
-            <input id="mn-precio" type="number" inputmode="numeric" placeholder="Precio $" style="flex:1;border:1.5px solid var(--border);border-radius:9px;padding:10px;font-size:14px;font-family:var(--font-body);margin-bottom:8px">
-            <input id="mn-cat" placeholder="Categoría (ej: Bebidas)" style="flex:1;border:1.5px solid var(--border);border-radius:9px;padding:10px;font-size:14px;font-family:var(--font-body);margin-bottom:8px">
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <input id="mn-precio" type="number" inputmode="numeric" placeholder="Precio $" style="flex:1.1;border:1.5px solid var(--border);border-radius:9px;padding:10px;font-size:14px;font-family:var(--font-body)">
+            <select id="mn-unidad" style="flex:1;border:1.5px solid var(--border);border-radius:9px;padding:10px;font-size:14px;font-family:var(--font-body);background:white">
+              <option value="unidad">Por unidad</option>
+              <option value="libra">Por libra</option>
+              <option value="media_libra">Por ½ libra</option>
+              <option value="kg">Por kilo</option>
+              <option value="g">Por gramo</option>
+              <option value="litro">Por litro</option>
+            </select>
           </div>
+          <input id="mn-cat" placeholder="Categoría (ej: Bebidas, Carnes, Frutas)" style="width:100%;border:1.5px solid var(--border);border-radius:9px;padding:10px;font-size:14px;font-family:var(--font-body);margin-bottom:8px">
           <input id="mn-desc" placeholder="Descripción (opcional)" style="width:100%;border:1.5px solid var(--border);border-radius:9px;padding:10px;font-size:14px;font-family:var(--font-body);margin-bottom:8px">
           <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
             <img id="mn-img-preview" src="" style="width:46px;height:46px;border-radius:8px;object-fit:cover;background:#f0f0f0;display:none">
@@ -2935,6 +2943,12 @@
 
   function capitalizar(s){ return (s||'').charAt(0).toUpperCase()+(s||'').slice(1); }
 
+  // Unidades de venta (unidad, libra, kilo, gramo, litro)
+  const UNIDADES_CORTA = { unidad:'', libra:' /lb', media_libra:' /½lb', kg:' /kilo', g:' /g', litro:' /L' };
+  const UNIDADES_LARGA = { unidad:'c/u', libra:'por libra', media_libra:'por ½ libra', kg:'por kilo', g:'por gramo', litro:'por litro' };
+  function unidadCorta(u){ return UNIDADES_CORTA[u] || ''; }
+  function unidadLarga(u){ return UNIDADES_LARGA[u] || ''; }
+
   // Si una imagen no carga (URL rota), mostrar un recuadro con ícono
   function imgErr(img, tipo){
     img.onerror = null;
@@ -3022,7 +3036,7 @@
           : `<button onclick="agregarAlCarrito('${p.id}')" style="background:var(--mx);color:white;border:none;border-radius:50px;padding:8px 16px;font-size:13px;font-weight:700;font-family:var(--font-body);cursor:pointer;flex-shrink:0">Agregar</button>`;
         return `<div style="display:flex;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--border)">
           ${img}
-          <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px;color:var(--text)">${p.nombre}</div>${p.descripcion?`<div style="font-size:12px;color:var(--muted);margin-top:2px">${p.descripcion}</div>`:''}<div style="font-weight:700;font-size:14px;color:var(--text);margin-top:4px">$${(p.precio||0).toLocaleString('es-CO')}</div></div>
+          <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px;color:var(--text)">${p.nombre}</div>${p.descripcion?`<div style="font-size:12px;color:var(--muted);margin-top:2px">${p.descripcion}</div>`:''}<div style="font-weight:700;font-size:14px;color:var(--text);margin-top:4px">$${(p.precio||0).toLocaleString('es-CO')}<span style="color:var(--muted);font-weight:500;font-size:12px">${unidadCorta(p.unidad)}</span></div></div>
           ${control}
         </div>`;
       }).join('');
@@ -3043,7 +3057,7 @@
     }
     const ex = _carrito.find(i => i.producto_id === prodId);
     if (ex) ex.cantidad++;
-    else _carrito.push({ producto_id:p.id, nombre:p.nombre, precio:p.precio, cantidad:1, _tienda:_tiendaActual.id });
+    else _carrito.push({ producto_id:p.id, nombre:p.nombre, precio:p.precio, cantidad:1, unidad:p.unidad||'unidad', _tienda:_tiendaActual.id });
     actualizarCarrito(); renderProductosTienda();
   }
   function quitarDelCarrito(prodId){
@@ -3067,9 +3081,10 @@
     if (!_carrito.length || !_tiendaActual) return;
     const envio = _tiendaActual.costo_envio_base||0;
     const sub = carritoSubtotal();
-    document.getElementById('checkout-items').innerHTML = _carrito.map(i =>
-      `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:14px"><span style="color:var(--text)">${i.cantidad}× ${i.nombre}</span><span style="color:var(--text);font-weight:600">$${(i.precio*i.cantidad).toLocaleString('es-CO')}</span></div>`
-    ).join('');
+    document.getElementById('checkout-items').innerHTML = _carrito.map(i => {
+      const detalle = (i.unidad && i.unidad!=='unidad') ? `${i.cantidad} ${unidadLarga(i.unidad).replace('por ','')} de ${i.nombre}` : `${i.cantidad}× ${i.nombre}`;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:14px"><span style="color:var(--text)">${detalle}</span><span style="color:var(--text);font-weight:600">$${(i.precio*i.cantidad).toLocaleString('es-CO')}</span></div>`;
+    }).join('');
     document.getElementById('checkout-subtotal').textContent = '$'+sub.toLocaleString('es-CO');
     document.getElementById('checkout-envio').textContent = '$'+envio.toLocaleString('es-CO');
     document.getElementById('checkout-total').textContent = '$'+(sub+envio).toLocaleString('es-CO');
@@ -3219,6 +3234,7 @@
   function cerrarMiNegocio(){ document.getElementById('modal-mi-negocio').style.display = 'none'; }
   function mnLimpiarForm(){
     ['mn-prod-id','mn-nombre','mn-precio','mn-cat','mn-desc','mn-img'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+    const u=document.getElementById('mn-unidad'); if(u)u.value='unidad';
     const pv=document.getElementById('mn-img-preview'); if(pv){pv.style.display='none';pv.src='';}
     const tx=document.getElementById('mn-img-txt'); if(tx)tx.textContent='Subir foto';
     document.getElementById('mn-btn-txt').textContent = 'Agregar al menú';
@@ -3249,7 +3265,7 @@
     const { data } = await sb.from('productos').select('*').eq('tienda_id', _miTienda.id).order('orden').order('nombre');
     if (!data || !data.length) { cont.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:14px">Aún no tienes productos. Agrega el primero arriba.</div>'; return; }
     cont.innerHTML = data.map(p => `<div style="display:flex;gap:10px;align-items:center;background:white;border:1px solid var(--border);border-radius:11px;padding:10px;margin-bottom:8px">
-      <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px;color:var(--text)">${p.nombre} ${p.disponible?'':'<span style=\"font-size:11px;color:var(--muted)\">(oculto)</span>'}</div><div style="font-size:13px;color:var(--text);font-weight:700">$${(p.precio||0).toLocaleString('es-CO')}</div>${p.categoria?`<div style="font-size:11px;color:var(--muted)">${p.categoria}</div>`:''}</div>
+      <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px;color:var(--text)">${p.nombre} ${p.disponible?'':'<span style=\"font-size:11px;color:var(--muted)\">(oculto)</span>'}</div><div style="font-size:13px;color:var(--text);font-weight:700">$${(p.precio||0).toLocaleString('es-CO')}<span style="color:var(--muted);font-weight:500">${unidadCorta(p.unidad)}</span></div>${p.categoria?`<div style="font-size:11px;color:var(--muted)">${p.categoria}</div>`:''}</div>
       <button onclick='mnEditar(${JSON.stringify(p)})' style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;cursor:pointer;color:var(--text)"><i class="ti ti-edit"></i></button>
       <button onclick="mnToggle('${p.id}',${!p.disponible})" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0 10px;height:34px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text)">${p.disponible?'Ocultar':'Mostrar'}</button>
       <button onclick="mnEliminar('${p.id}')" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;cursor:pointer;color:var(--mx)"><i class="ti ti-trash"></i></button>
@@ -3259,6 +3275,7 @@
     document.getElementById('mn-prod-id').value = p.id;
     document.getElementById('mn-nombre').value = p.nombre||'';
     document.getElementById('mn-precio').value = p.precio||'';
+    document.getElementById('mn-unidad').value = p.unidad||'unidad';
     document.getElementById('mn-cat').value = p.categoria||'';
     document.getElementById('mn-desc').value = p.descripcion||'';
     document.getElementById('mn-img').value = p.imagen_url||'';
@@ -3277,6 +3294,7 @@
     const id = document.getElementById('mn-prod-id').value;
     const payload = {
       tienda_id: _miTienda.id, nombre, precio,
+      unidad: document.getElementById('mn-unidad').value || 'unidad',
       categoria: document.getElementById('mn-cat').value.trim() || null,
       descripcion: document.getElementById('mn-desc').value.trim() || null,
       imagen_url: document.getElementById('mn-img').value.trim() || null
