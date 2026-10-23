@@ -1380,6 +1380,33 @@
           <h3 style="font-family:var(--font-head);font-size:19px;color:var(--text)" id="mn-titulo">Mi menú</h3>
           <button onclick="cerrarMiNegocio()" style="background:none;border:none;font-size:26px;color:var(--muted);cursor:pointer;line-height:1">×</button>
         </div>
+
+        <!-- DATOS DE LA TIENDA -->
+        <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="font-weight:700;font-size:14px;color:var(--text)">Datos de mi tienda</div>
+            <label style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;cursor:pointer"><span id="mn-estado-txt" style="color:var(--muted)">—</span><input type="checkbox" id="mn-t-activa" onchange="mnActualizarEstadoTxt()" style="width:38px;height:20px;cursor:pointer"></label>
+          </div>
+          <input type="hidden" id="mn-t-logo">
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:9px">
+            <img id="mn-t-logo-preview" src="" style="width:54px;height:54px;border-radius:10px;object-fit:cover;background:#f0f0f0;display:none">
+            <label style="flex:1;border:1.5px dashed var(--border);border-radius:9px;padding:10px;text-align:center;font-size:13px;color:var(--mx);cursor:pointer;font-weight:600;font-family:var(--font-body)"><i class="ti ti-upload"></i> <span id="mn-t-logo-txt">Subir logo</span><input type="file" accept="image/*" style="display:none" onchange="mnSubirLogo(this)"></label>
+          </div>
+          <input id="mn-t-desc" placeholder="Descripción corta" style="width:100%;border:1.5px solid var(--border);border-radius:9px;padding:10px;font-size:14px;font-family:var(--font-body);margin-bottom:8px">
+          <input id="mn-t-horario" placeholder="Horario (ej: Lun-Dom 9am-9pm)" style="width:100%;border:1.5px solid var(--border);border-radius:9px;padding:10px;font-size:14px;font-family:var(--font-body);margin-bottom:8px">
+          <div style="display:flex;gap:8px">
+            <input id="mn-t-tel" placeholder="Teléfono" inputmode="tel" style="flex:1;border:1.5px solid var(--border);border-radius:9px;padding:10px;font-size:14px;font-family:var(--font-body);margin-bottom:8px">
+            <input id="mn-t-direccion" placeholder="Dirección de recogida" style="flex:1.4;border:1.5px solid var(--border);border-radius:9px;padding:10px;font-size:14px;font-family:var(--font-body);margin-bottom:8px">
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:10px">
+            <div style="flex:1"><label style="font-size:11px;color:var(--muted);font-weight:600">Tiempo (min)</label><input id="mn-t-tiempo" type="number" inputmode="numeric" style="width:100%;border:1.5px solid var(--border);border-radius:9px;padding:9px;font-size:14px;font-family:var(--font-body)"></div>
+            <div style="flex:1"><label style="font-size:11px;color:var(--muted);font-weight:600">Domicilio $</label><input id="mn-t-envio" type="number" inputmode="numeric" style="width:100%;border:1.5px solid var(--border);border-radius:9px;padding:9px;font-size:14px;font-family:var(--font-body)"></div>
+            <div style="flex:1"><label style="font-size:11px;color:var(--muted);font-weight:600">Pedido mín $</label><input id="mn-t-min" type="number" inputmode="numeric" style="width:100%;border:1.5px solid var(--border);border-radius:9px;padding:9px;font-size:14px;font-family:var(--font-body)"></div>
+          </div>
+          <button onclick="mnGuardarTienda()" style="width:100%;background:var(--dark);color:white;border:none;border-radius:9px;padding:11px;font-size:14px;font-weight:700;font-family:var(--font-body);cursor:pointer"><i class="ti ti-check"></i> Guardar datos de la tienda</button>
+        </div>
+
+        <div style="font-weight:700;font-size:16px;color:var(--text);margin-bottom:10px;font-family:var(--font-head)">Mi menú</div>
         <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:14px">
           <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:9px" id="mn-form-titulo">Agregar producto</div>
           <input type="hidden" id="mn-prod-id">
@@ -3070,10 +3097,57 @@
   }
   function abrirMiNegocio(){
     if (!_miTienda) return;
-    document.getElementById('mn-titulo').textContent = 'Menú · ' + _miTienda.nombre;
+    document.getElementById('mn-titulo').textContent = _miTienda.nombre;
+    // Poblar datos de la tienda
+    const t = _miTienda;
+    document.getElementById('mn-t-logo').value = t.logo_url || '';
+    const lp = document.getElementById('mn-t-logo-preview');
+    if (t.logo_url){ lp.src = t.logo_url; lp.style.display='block'; document.getElementById('mn-t-logo-txt').textContent='Cambiar logo'; }
+    else { lp.style.display='none'; document.getElementById('mn-t-logo-txt').textContent='Subir logo'; }
+    document.getElementById('mn-t-desc').value = t.descripcion || '';
+    document.getElementById('mn-t-horario').value = t.horario || '';
+    document.getElementById('mn-t-tel').value = t.telefono || '';
+    document.getElementById('mn-t-direccion').value = t.direccion || '';
+    document.getElementById('mn-t-tiempo').value = t.tiempo_entrega_min ?? 30;
+    document.getElementById('mn-t-envio').value = t.costo_envio_base ?? 4000;
+    document.getElementById('mn-t-min').value = t.pedido_minimo ?? 0;
+    document.getElementById('mn-t-activa').checked = t.activa !== false;
+    mnActualizarEstadoTxt();
     mnLimpiarForm();
     document.getElementById('modal-mi-negocio').style.display = 'flex';
     mnCargarProductos();
+  }
+  function mnActualizarEstadoTxt(){
+    const on = document.getElementById('mn-t-activa').checked;
+    const el = document.getElementById('mn-estado-txt');
+    el.textContent = on ? 'Abierta' : 'Cerrada';
+    el.style.color = on ? 'var(--green)' : 'var(--muted)';
+  }
+  async function mnSubirLogo(input){
+    const file = input.files[0]; if(!file) return;
+    const tx = document.getElementById('mn-t-logo-txt'); tx.textContent='Subiendo...';
+    const url = await subirImgPublicaApp(file, 'tiendas');
+    tx.textContent = url ? 'Cambiar logo' : 'Subir logo';
+    if(url){ document.getElementById('mn-t-logo').value=url; const pv=document.getElementById('mn-t-logo-preview'); pv.src=url; pv.style.display='block'; }
+  }
+  async function mnGuardarTienda(){
+    if (!_miTienda) return;
+    const payload = {
+      logo_url: document.getElementById('mn-t-logo').value.trim() || null,
+      descripcion: document.getElementById('mn-t-desc').value.trim() || null,
+      horario: document.getElementById('mn-t-horario').value.trim() || null,
+      telefono: document.getElementById('mn-t-tel').value.trim() || null,
+      direccion: document.getElementById('mn-t-direccion').value.trim() || null,
+      tiempo_entrega_min: parseInt(document.getElementById('mn-t-tiempo').value) || 30,
+      costo_envio_base: parseInt(document.getElementById('mn-t-envio').value) || 0,
+      pedido_minimo: parseInt(document.getElementById('mn-t-min').value) || 0,
+      activa: document.getElementById('mn-t-activa').checked
+    };
+    const { error } = await sb.from('tiendas').update(payload).eq('id', _miTienda.id);
+    if (error){ alert('No se pudo guardar: ' + error.message); return; }
+    Object.assign(_miTienda, payload);
+    document.getElementById('mi-negocio-nombre').textContent = _miTienda.nombre;
+    alert('✓ Datos de tu tienda actualizados.');
   }
   function cerrarMiNegocio(){ document.getElementById('modal-mi-negocio').style.display = 'none'; }
   function mnLimpiarForm(){
