@@ -1389,7 +1389,11 @@
             <input id="mn-cat" placeholder="Categoría (ej: Bebidas)" style="flex:1;border:1.5px solid var(--border);border-radius:9px;padding:10px;font-size:14px;font-family:var(--font-body);margin-bottom:8px">
           </div>
           <input id="mn-desc" placeholder="Descripción (opcional)" style="width:100%;border:1.5px solid var(--border);border-radius:9px;padding:10px;font-size:14px;font-family:var(--font-body);margin-bottom:8px">
-          <input id="mn-img" placeholder="URL de imagen (opcional)" style="width:100%;border:1.5px solid var(--border);border-radius:9px;padding:10px;font-size:14px;font-family:var(--font-body);margin-bottom:10px">
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+            <img id="mn-img-preview" src="" style="width:46px;height:46px;border-radius:8px;object-fit:cover;background:#f0f0f0;display:none">
+            <label style="flex:1;border:1.5px dashed var(--border);border-radius:9px;padding:10px;text-align:center;font-size:13px;color:var(--mx);cursor:pointer;font-weight:600;font-family:var(--font-body)"><i class="ti ti-upload"></i> <span id="mn-img-txt">Subir foto</span><input type="file" accept="image/*" style="display:none" onchange="mnSubirFoto(this)"></label>
+          </div>
+          <input id="mn-img" placeholder="…o pega una URL directa (opcional)" style="width:100%;border:1.5px solid var(--border);border-radius:9px;padding:10px;font-size:12px;font-family:var(--font-body);margin-bottom:10px">
           <button onclick="mnGuardarProducto()" style="width:100%;background:var(--mx);color:white;border:none;border-radius:9px;padding:11px;font-size:14px;font-weight:700;font-family:var(--font-body);cursor:pointer"><i class="ti ti-plus"></i> <span id="mn-btn-txt">Agregar al menú</span></button>
         </div>
         <div id="mn-lista"></div>
@@ -2837,6 +2841,15 @@
 
   function capitalizar(s){ return (s||'').charAt(0).toUpperCase()+(s||'').slice(1); }
 
+  // Si una imagen no carga (URL rota), mostrar un recuadro con ícono
+  function imgErr(img, tipo){
+    img.onerror = null;
+    const icon = tipo === 'producto' ? 'ti-tools-kitchen-2' : 'ti-building-store';
+    const w = img.style.width || '58px', h = img.style.height || '58px', r = img.style.borderRadius || '12px';
+    img.insertAdjacentHTML('afterend', `<div style="width:${w};height:${h};border-radius:${r};background:${tipo==='producto'?'var(--surface)':'var(--mx-light)'};display:flex;align-items:center;justify-content:center;color:${tipo==='producto'?'var(--muted)':'var(--mx)'};font-size:24px;flex-shrink:0"><i class="ti ${icon}"></i></div>`);
+    img.remove();
+  }
+
   function renderCatsTienda(){
     const cont = document.getElementById('tiendas-cats'); if (!cont) return;
     cont.innerHTML = CATS_TIENDA.map(c => {
@@ -2859,7 +2872,7 @@
 
   function cardTienda(t){
     const img = t.logo_url
-      ? `<img src="${t.logo_url}" style="width:58px;height:58px;border-radius:12px;object-fit:cover;flex-shrink:0">`
+      ? `<img src="${t.logo_url}" onerror="imgErr(this,'tienda')" style="width:58px;height:58px;border-radius:12px;object-fit:cover;flex-shrink:0">`
       : `<div style="width:58px;height:58px;border-radius:12px;background:var(--mx-light);display:flex;align-items:center;justify-content:center;color:var(--mx);font-size:26px;flex-shrink:0"><i class="ti ti-building-store"></i></div>`;
     return `<div onclick="abrirTienda('${t.id}')" style="border:1.5px solid var(--border);background:white;border-radius:14px;padding:13px;margin-bottom:11px;cursor:pointer;display:flex;align-items:center;gap:13px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--mx)'" onmouseout="this.style.borderColor='var(--border)'">
       ${img}
@@ -2884,7 +2897,7 @@
     document.getElementById('tienda-cabecera').innerHTML = `
       ${portada}
       <div style="display:flex;align-items:center;gap:12px">
-        ${tienda.logo_url?`<img src="${tienda.logo_url}" style="width:54px;height:54px;border-radius:12px;object-fit:cover">`:`<div style="width:54px;height:54px;border-radius:12px;background:var(--mx-light);display:flex;align-items:center;justify-content:center;color:var(--mx);font-size:24px"><i class="ti ti-building-store"></i></div>`}
+        ${tienda.logo_url?`<img src="${tienda.logo_url}" onerror="imgErr(this,'tienda')" style="width:54px;height:54px;border-radius:12px;object-fit:cover">`:`<div style="width:54px;height:54px;border-radius:12px;background:var(--mx-light);display:flex;align-items:center;justify-content:center;color:var(--mx);font-size:24px"><i class="ti ti-building-store"></i></div>`}
         <div style="flex:1"><div style="font-family:var(--font-head);font-weight:700;font-size:20px;color:var(--text)">${tienda.nombre}</div><div style="font-size:13px;color:var(--muted)">${tienda.descripcion||capitalizar(tienda.categoria)}</div></div>
       </div>
       <div style="display:flex;gap:16px;margin-top:10px;font-size:13px;color:var(--text);flex-wrap:wrap">
@@ -2908,7 +2921,7 @@
       html += grupos[g].map(p => {
         const enC = _carrito.find(i => i.producto_id === p.id);
         const img = p.imagen_url
-          ? `<img src="${p.imagen_url}" style="width:66px;height:66px;border-radius:10px;object-fit:cover;flex-shrink:0">`
+          ? `<img src="${p.imagen_url}" onerror="imgErr(this,'producto')" style="width:66px;height:66px;border-radius:10px;object-fit:cover;flex-shrink:0">`
           : `<div style="width:66px;height:66px;border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:24px;flex-shrink:0"><i class="ti ti-tools-kitchen-2"></i></div>`;
         const control = enC
           ? `<div style="display:flex;align-items:center;gap:10px;background:var(--mx);border-radius:50px;padding:4px"><button onclick="event.stopPropagation();quitarDelCarrito('${p.id}')" style="background:white;color:var(--mx);border:none;width:26px;height:26px;border-radius:50%;font-size:18px;font-weight:700;cursor:pointer;line-height:1">−</button><span style="color:white;font-weight:700;min-width:16px;text-align:center">${enC.cantidad}</span><button onclick="event.stopPropagation();agregarAlCarrito('${p.id}')" style="background:white;color:var(--mx);border:none;width:26px;height:26px;border-radius:50%;font-size:18px;font-weight:700;cursor:pointer;line-height:1">+</button></div>`
@@ -3065,8 +3078,29 @@
   function cerrarMiNegocio(){ document.getElementById('modal-mi-negocio').style.display = 'none'; }
   function mnLimpiarForm(){
     ['mn-prod-id','mn-nombre','mn-precio','mn-cat','mn-desc','mn-img'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+    const pv=document.getElementById('mn-img-preview'); if(pv){pv.style.display='none';pv.src='';}
+    const tx=document.getElementById('mn-img-txt'); if(tx)tx.textContent='Subir foto';
     document.getElementById('mn-btn-txt').textContent = 'Agregar al menú';
     document.getElementById('mn-form-titulo').textContent = 'Agregar producto';
+  }
+
+  // Subir imagen al bucket público (comprime antes para que pese poco)
+  async function subirImgPublicaApp(file, carpeta){
+    if(!file) return null;
+    let blob = file;
+    try { blob = await comprimirImagen(file, 900, 0.8); } catch(e){}
+    const ruta = carpeta+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.jpg';
+    const { error } = await sb.storage.from('publico').upload(ruta, blob, { contentType:'image/jpeg', upsert:true });
+    if(error){ alert('No se pudo subir la imagen: '+error.message); return null; }
+    const { data } = sb.storage.from('publico').getPublicUrl(ruta);
+    return data.publicUrl;
+  }
+  async function mnSubirFoto(input){
+    const file = input.files[0]; if(!file) return;
+    const tx=document.getElementById('mn-img-txt'); tx.textContent='Subiendo...';
+    const url = await subirImgPublicaApp(file, 'productos');
+    tx.textContent = url ? 'Cambiar foto' : 'Subir foto';
+    if(url){ document.getElementById('mn-img').value=url; const pv=document.getElementById('mn-img-preview'); pv.src=url; pv.style.display='block'; }
   }
   async function mnCargarProductos(){
     const cont = document.getElementById('mn-lista');
@@ -3087,6 +3121,9 @@
     document.getElementById('mn-cat').value = p.categoria||'';
     document.getElementById('mn-desc').value = p.descripcion||'';
     document.getElementById('mn-img').value = p.imagen_url||'';
+    const pv=document.getElementById('mn-img-preview');
+    if(p.imagen_url){ pv.src=p.imagen_url; pv.style.display='block'; document.getElementById('mn-img-txt').textContent='Cambiar foto'; }
+    else { pv.style.display='none'; document.getElementById('mn-img-txt').textContent='Subir foto'; }
     document.getElementById('mn-btn-txt').textContent = 'Guardar cambios';
     document.getElementById('mn-form-titulo').textContent = 'Editar producto';
     document.querySelector('#modal-mi-negocio > div').scrollTop = 0;

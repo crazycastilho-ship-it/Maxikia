@@ -319,8 +319,12 @@ tbody tr:hover{background:var(--surface)}
     <div style="flex:1"><label style="font-size:12px;font-weight:600;color:var(--muted)">Tiempo (min)</label><input id="t-tiempo" type="number" class="fi" value="30" style="margin-bottom:10px"></div>
     <div style="flex:1"><label style="font-size:12px;font-weight:600;color:var(--muted)">Pedido mín. ($)</label><input id="t-min" type="number" class="fi" value="0" style="margin-bottom:10px"></div>
   </div>
-  <label style="font-size:12px;font-weight:600;color:var(--muted)">URL del logo (opcional)</label>
-  <input id="t-logo" class="fi" placeholder="https://..." style="margin-bottom:10px">
+  <label style="font-size:12px;font-weight:600;color:var(--muted)">Logo de la tienda</label>
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+    <img id="t-logo-preview" src="" style="width:52px;height:52px;border-radius:10px;object-fit:cover;background:#f0f0f0;display:none">
+    <label style="flex:1;border:1.5px dashed var(--border);border-radius:8px;padding:10px;text-align:center;font-size:13px;color:var(--mx);cursor:pointer;font-weight:600"><i class="ti ti-upload"></i> <span id="t-logo-txt">Subir imagen</span><input type="file" accept="image/*" style="display:none" onchange="subirLogoTienda(this)"></label>
+  </div>
+  <input id="t-logo" class="fi" placeholder="…o pega una URL directa (opcional)" style="margin-bottom:10px;font-size:12px">
   <label style="font-size:12px;font-weight:600;color:var(--muted)">Correo del dueño (opcional — para que gestione su menú desde la app)</label>
   <input id="t-dueno" class="fi" placeholder="dueno@correo.com" style="margin-bottom:10px">
   <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px"><input type="checkbox" id="t-activa" checked> Tienda activa (visible en la app)</label>
@@ -340,7 +344,11 @@ tbody tr:hover{background:var(--surface)}
       <input id="pr-cat" class="fi" placeholder="Categoría (ej: Bebidas)" style="flex:1;margin-bottom:8px">
     </div>
     <input id="pr-desc" class="fi" placeholder="Descripción (opcional)" style="margin-bottom:8px">
-    <input id="pr-img" class="fi" placeholder="URL imagen (opcional)" style="margin-bottom:8px">
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+      <img id="pr-img-preview" src="" style="width:46px;height:46px;border-radius:8px;object-fit:cover;background:#f0f0f0;display:none">
+      <label style="flex:1;border:1.5px dashed var(--border);border-radius:8px;padding:9px;text-align:center;font-size:13px;color:var(--mx);cursor:pointer;font-weight:600"><i class="ti ti-upload"></i> <span id="pr-img-txt">Subir foto del producto</span><input type="file" accept="image/*" style="display:none" onchange="subirFotoProducto(this)"></label>
+    </div>
+    <input id="pr-img" class="fi" placeholder="…o pega una URL directa (opcional)" style="margin-bottom:8px;font-size:12px">
     <button class="bsm" onclick="guardarProducto()" style="width:100%;padding:9px;background:var(--mx);color:white;border:none"><i class="ti ti-plus"></i> <span id="pr-btn-txt">Agregar al menú</span></button>
   </div>
   <div class="tw"><table><thead><tr><th>Producto</th><th>Precio</th><th>Disp.</th><th></th></tr></thead><tbody id="pr-lista"></tbody></table></div>
@@ -451,11 +459,42 @@ function abrirFormTienda(t){
   document.getElementById('t-tiempo').value = t?.tiempo_entrega_min ?? 30;
   document.getElementById('t-min').value = t?.pedido_minimo ?? 0;
   document.getElementById('t-logo').value = t?.logo_url || '';
+  const tlp = document.getElementById('t-logo-preview');
+  if(t?.logo_url){ tlp.src=t.logo_url; tlp.style.display='block'; document.getElementById('t-logo-txt').textContent='Cambiar imagen'; }
+  else { tlp.style.display='none'; document.getElementById('t-logo-txt').textContent='Subir imagen'; }
   document.getElementById('t-dueno').value = '';
   document.getElementById('t-dueno').placeholder = t?.propietario_id ? 'Ya tiene dueño — escribe un correo para cambiarlo' : 'dueno@correo.com';
   document.getElementById('t-activa').checked = t ? !!t.activa : true;
   document.getElementById('t-destacada').checked = t ? !!t.destacada : false;
   document.getElementById('mtienda').classList.add('on');
+}
+
+// Subir imagen al bucket público y devolver su URL
+async function subirImgPublica(file, carpeta){
+  if(!file) return null;
+  if(file.size > 5*1024*1024){ alert('La imagen es muy pesada (máx 5MB).'); return null; }
+  const ext = (file.name.split('.').pop()||'jpg').toLowerCase();
+  const ruta = carpeta+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.'+ext;
+  const { error } = await sb.storage.from('publico').upload(ruta, file, { contentType:file.type, upsert:true });
+  if(error){ alert('No se pudo subir la imagen: '+error.message+(error.message.includes('Bucket')?'\n\nCrea el bucket corriendo el SQL 34.':'')); return null; }
+  const { data } = sb.storage.from('publico').getPublicUrl(ruta);
+  return data.publicUrl;
+}
+
+async function subirLogoTienda(input){
+  const file = input.files[0]; if(!file) return;
+  const txt = document.getElementById('t-logo-txt'); txt.textContent='Subiendo...';
+  const url = await subirImgPublica(file, 'tiendas');
+  txt.textContent = url ? 'Cambiar imagen' : 'Subir imagen';
+  if(url){ document.getElementById('t-logo').value=url; const pv=document.getElementById('t-logo-preview'); pv.src=url; pv.style.display='block'; }
+}
+
+async function subirFotoProducto(input){
+  const file = input.files[0]; if(!file) return;
+  const txt = document.getElementById('pr-img-txt'); txt.textContent='Subiendo...';
+  const url = await subirImgPublica(file, 'productos');
+  txt.textContent = url ? 'Cambiar foto' : 'Subir foto del producto';
+  if(url){ document.getElementById('pr-img').value=url; const pv=document.getElementById('pr-img-preview'); pv.src=url; pv.style.display='block'; }
 }
 
 async function guardarTienda(){
@@ -514,6 +553,8 @@ function limpiarFormProducto(){
   document.getElementById('pr-cat').value='';
   document.getElementById('pr-desc').value='';
   document.getElementById('pr-img').value='';
+  const pip=document.getElementById('pr-img-preview'); pip.style.display='none'; pip.src='';
+  document.getElementById('pr-img-txt').textContent='Subir foto del producto';
   document.getElementById('pr-btn-txt').textContent='Agregar al menú';
 }
 
@@ -540,6 +581,9 @@ function editarProducto(p){
   document.getElementById('pr-cat').value=p.categoria||'';
   document.getElementById('pr-desc').value=p.descripcion||'';
   document.getElementById('pr-img').value=p.imagen_url||'';
+  const pip=document.getElementById('pr-img-preview');
+  if(p.imagen_url){ pip.src=p.imagen_url; pip.style.display='block'; document.getElementById('pr-img-txt').textContent='Cambiar foto'; }
+  else { pip.style.display='none'; document.getElementById('pr-img-txt').textContent='Subir foto del producto'; }
   document.getElementById('pr-btn-txt').textContent='Guardar cambios';
   document.querySelector('#mprod .mdb').scrollTop = 0;
 }
