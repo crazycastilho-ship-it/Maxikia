@@ -341,8 +341,16 @@ tbody tr:hover{background:var(--surface)}
     <input id="pr-nombre" class="fi" placeholder="Nombre del producto" style="margin-bottom:8px">
     <div style="display:flex;gap:8px">
       <input id="pr-precio" type="number" class="fi" placeholder="Precio $" style="flex:1;margin-bottom:8px">
-      <input id="pr-cat" class="fi" placeholder="Categoría (ej: Bebidas)" style="flex:1;margin-bottom:8px">
+      <select id="pr-unidad" class="fi" style="flex:1;margin-bottom:8px">
+        <option value="unidad">Por unidad</option>
+        <option value="libra">Por libra</option>
+        <option value="media_libra">Por ½ libra</option>
+        <option value="kg">Por kilo</option>
+        <option value="g">Por gramo</option>
+        <option value="litro">Por litro</option>
+      </select>
     </div>
+    <input id="pr-cat" class="fi" placeholder="Categoría (ej: Bebidas, Carnes, Frutas)" style="margin-bottom:8px">
     <input id="pr-desc" class="fi" placeholder="Descripción (opcional)" style="margin-bottom:8px">
     <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
       <img id="pr-img-preview" src="" style="width:46px;height:46px;border-radius:8px;object-fit:cover;background:#f0f0f0;display:none">
@@ -565,10 +573,14 @@ async function gestionarProductos(tiendaId, nombre){
   await loadProductosAdmin(tiendaId);
 }
 
+const UNID_CORTA = { unidad:'', libra:' /lb', media_libra:' /½lb', kg:' /kilo', g:' /g', litro:' /L' };
+function unidadCorta(u){ return UNID_CORTA[u] || ''; }
+
 function limpiarFormProducto(){
   document.getElementById('pr-id').value='';
   document.getElementById('pr-nombre').value='';
   document.getElementById('pr-precio').value='';
+  document.getElementById('pr-unidad').value='unidad';
   document.getElementById('pr-cat').value='';
   document.getElementById('pr-desc').value='';
   document.getElementById('pr-img').value='';
@@ -584,7 +596,7 @@ async function loadProductosAdmin(tiendaId){
   if(!data || !data.length){ tb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:1rem">Sin productos. Agrega el primero arriba.</td></tr>'; return; }
   tb.innerHTML = data.map(p=>`<tr>
     <td><strong>${p.nombre}</strong>${p.categoria?'<br><span style="font-size:11px;color:var(--muted)">'+p.categoria+'</span>':''}</td>
-    <td>$${(p.precio||0).toLocaleString('es-CO')}</td>
+    <td>$${(p.precio||0).toLocaleString('es-CO')}<span style="color:var(--muted);font-size:11px">${unidadCorta(p.unidad)}</span></td>
     <td>${p.disponible?'✅':'❌'}</td>
     <td style="white-space:nowrap">
       <button class="bsm" onclick='editarProducto(${JSON.stringify(p)})' style="padding:3px 7px;font-size:12px"><i class="ti ti-edit"></i></button>
@@ -597,6 +609,7 @@ function editarProducto(p){
   document.getElementById('pr-id').value=p.id;
   document.getElementById('pr-nombre').value=p.nombre||'';
   document.getElementById('pr-precio').value=p.precio||'';
+  document.getElementById('pr-unidad').value=p.unidad||'unidad';
   document.getElementById('pr-cat').value=p.categoria||'';
   document.getElementById('pr-desc').value=p.descripcion||'';
   document.getElementById('pr-img').value=p.imagen_url||'';
@@ -615,6 +628,7 @@ async function guardarProducto(){
   const id = document.getElementById('pr-id').value;
   const payload = {
     tienda_id: tiendaId, nombre, precio,
+    unidad: document.getElementById('pr-unidad').value || 'unidad',
     categoria: document.getElementById('pr-cat').value.trim() || null,
     descripcion: document.getElementById('pr-desc').value.trim() || null,
     imagen_url: document.getElementById('pr-img').value.trim() || null
