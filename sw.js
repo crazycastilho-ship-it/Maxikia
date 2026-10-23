@@ -1,4 +1,4 @@
-const CACHE = 'maxikia-v13';
+const CACHE = 'maxikia-v15';
 const PRECACHE = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png'];
 
 // Aplicar la nueva versión cuando el usuario toca "Actualizar"
