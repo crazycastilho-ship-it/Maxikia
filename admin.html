@@ -142,6 +142,8 @@ tbody tr:hover{background:var(--surface)}
       <div class="ni" id="n-usuarios" onclick="sp('usuarios')"><i class="ti ti-user"></i> Clientes</div>
       <div class="ni" id="n-repartidores" onclick="sp('repartidores')"><i class="ti ti-motorbike"></i> Repartidores</div>
       <div class="ni" id="n-verificaciones" onclick="sp('verificaciones')"><i class="ti ti-id-badge"></i> Verificaciones <span id="bv" style="margin-left:auto;background:var(--mx);color:white;font-size:10px;padding:2px 6px;border-radius:10px;display:none">0</span></div>
+      <div class="ns">Marketplace</div>
+      <div class="ni" id="n-tiendas" onclick="sp('tiendas')"><i class="ti ti-building-store"></i> Tiendas</div>
       <div class="ns">Finanzas</div>
       <div class="ni" id="n-recargas" onclick="sp('recargas')"><i class="ti ti-cash"></i> Recargas</div>
       <div class="ni" id="n-retiros" onclick="sp('retiros')"><i class="ti ti-arrow-up"></i> Retiros <span id="br" style="margin-left:auto;background:var(--mx);color:white;font-size:10px;padding:2px 6px;border-radius:10px;display:none">0</span></div>
@@ -283,9 +285,64 @@ tbody tr:hover{background:var(--surface)}
         </div>
       </div>
 
+      <!-- TIENDAS (Marketplace) -->
+      <div class="panel" id="p-tiendas">
+        <div class="tc">
+          <div class="th" style="display:flex;justify-content:space-between;align-items:center">
+            <div class="tt">Tiendas del marketplace</div>
+            <button class="bsm" onclick="abrirFormTienda()" style="padding:6px 14px"><i class="ti ti-plus"></i> Nueva tienda</button>
+          </div>
+          <div class="tw"><table><thead><tr><th>Tienda</th><th>Categoría</th><th>Domicilio</th><th>Estado</th><th>Por liquidar</th><th>Acciones</th></tr></thead><tbody id="tt-tiendas"></tbody></table></div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
+
+<!-- MODAL TIENDA (crear/editar) -->
+<div class="mbg" id="mtienda"><div class="md"><div class="mdh"><div class="mdt" id="mtienda-titulo">Nueva tienda</div><button class="mdc" onclick="cm('mtienda')"><i class="ti ti-x"></i></button></div><div class="mdb">
+  <input type="hidden" id="t-id">
+  <label style="font-size:12px;font-weight:600;color:var(--muted)">Nombre</label>
+  <input id="t-nombre" class="fi" placeholder="Ej: Burger House" style="margin-bottom:10px">
+  <label style="font-size:12px;font-weight:600;color:var(--muted)">Categoría</label>
+  <select id="t-categoria" class="fi" style="margin-bottom:10px">
+    <option value="comida">Comida</option><option value="mercado">Mercado</option>
+    <option value="farmacia">Farmacia</option><option value="licores">Licores</option><option value="otros">Otros</option>
+  </select>
+  <label style="font-size:12px;font-weight:600;color:var(--muted)">Descripción</label>
+  <input id="t-desc" class="fi" placeholder="Hamburguesas artesanales" style="margin-bottom:10px">
+  <label style="font-size:12px;font-weight:600;color:var(--muted)">Dirección (de dónde recoge el repartidor)</label>
+  <input id="t-direccion" class="fi" placeholder="Cra 15 #80-20, Bogotá" style="margin-bottom:10px">
+  <div style="display:flex;gap:10px">
+    <div style="flex:1"><label style="font-size:12px;font-weight:600;color:var(--muted)">Domicilio ($)</label><input id="t-envio" type="number" class="fi" value="4000" style="margin-bottom:10px"></div>
+    <div style="flex:1"><label style="font-size:12px;font-weight:600;color:var(--muted)">Tiempo (min)</label><input id="t-tiempo" type="number" class="fi" value="30" style="margin-bottom:10px"></div>
+    <div style="flex:1"><label style="font-size:12px;font-weight:600;color:var(--muted)">Pedido mín. ($)</label><input id="t-min" type="number" class="fi" value="0" style="margin-bottom:10px"></div>
+  </div>
+  <label style="font-size:12px;font-weight:600;color:var(--muted)">URL del logo (opcional)</label>
+  <input id="t-logo" class="fi" placeholder="https://..." style="margin-bottom:10px">
+  <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px"><input type="checkbox" id="t-activa" checked> Tienda activa (visible en la app)</label>
+  <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:14px"><input type="checkbox" id="t-destacada"> Destacada (aparece primero)</label>
+  <button class="bsm" onclick="guardarTienda()" style="width:100%;padding:11px;background:var(--mx);color:white;border:none"><i class="ti ti-check"></i> Guardar tienda</button>
+</div></div></div>
+
+<!-- MODAL PRODUCTOS -->
+<div class="mbg" id="mprod"><div class="md" style="max-width:640px"><div class="mdh"><div class="mdt" id="mprod-titulo">Menú de la tienda</div><button class="mdc" onclick="cm('mprod')"><i class="ti ti-x"></i></button></div><div class="mdb">
+  <input type="hidden" id="pr-tienda-id">
+  <div style="background:var(--bg,#f7f7f5);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:14px">
+    <div style="font-weight:600;font-size:13px;margin-bottom:8px">Agregar producto</div>
+    <input type="hidden" id="pr-id">
+    <input id="pr-nombre" class="fi" placeholder="Nombre del producto" style="margin-bottom:8px">
+    <div style="display:flex;gap:8px">
+      <input id="pr-precio" type="number" class="fi" placeholder="Precio $" style="flex:1;margin-bottom:8px">
+      <input id="pr-cat" class="fi" placeholder="Categoría (ej: Bebidas)" style="flex:1;margin-bottom:8px">
+    </div>
+    <input id="pr-desc" class="fi" placeholder="Descripción (opcional)" style="margin-bottom:8px">
+    <input id="pr-img" class="fi" placeholder="URL imagen (opcional)" style="margin-bottom:8px">
+    <button class="bsm" onclick="guardarProducto()" style="width:100%;padding:9px;background:var(--mx);color:white;border:none"><i class="ti ti-plus"></i> <span id="pr-btn-txt">Agregar al menú</span></button>
+  </div>
+  <div class="tw"><table><thead><tr><th>Producto</th><th>Precio</th><th>Disp.</th><th></th></tr></thead><tbody id="pr-lista"></tbody></table></div>
+</div></div></div>
 
 <!-- MODAL PEDIDO -->
 <div class="mbg" id="mp"><div class="md"><div class="mdh"><div class="mdt">Detalle pedido</div><button class="mdc" onclick="cm('mp')"><i class="ti ti-x"></i></button></div><div class="mdb" id="mpb"></div></div></div>
@@ -349,14 +406,161 @@ function sp(id){
   document.getElementById('p-'+id).classList.add('on');
   const ni = document.getElementById('n-'+id);
   if(ni) ni.classList.add('on');
-  const titles={dashboard:'Dashboard',pedidos:'Pedidos',usuarios:'Clientes',repartidores:'Repartidores',verificaciones:'Verificaciones',recargas:'Recargas',retiros:'Retiros',ingresos:'Ingresos'};
+  const titles={dashboard:'Dashboard',pedidos:'Pedidos',usuarios:'Clientes',repartidores:'Repartidores',verificaciones:'Verificaciones',tiendas:'Tiendas',recargas:'Recargas',retiros:'Retiros',ingresos:'Ingresos'};
   document.getElementById('tt').textContent = titles[id]||id;
   if(id==='pedidos') loadPedidos();
   if(id==='usuarios') loadClientes();
   if(id==='repartidores') loadRepartidores();
   if(id==='verificaciones') loadVerif();
+  if(id==='tiendas') loadTiendas();
   if(id==='retiros') loadRetiros();
   if(id==='ingresos') loadIngresos();
+}
+
+// ═══════════ MARKETPLACE: TIENDAS ═══════════
+async function loadTiendas(){
+  const tb = document.getElementById('tt-tiendas');
+  tb.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:1rem">Cargando...</td></tr>';
+  const { data, error } = await sb.from('tiendas').select('*').order('created_at',{ascending:false});
+  if(error){ tb.innerHTML = '<tr><td colspan="6" style="color:var(--mx);padding:1rem">'+error.message+'</td></tr>'; return; }
+  if(!data || !data.length){ tb.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:1.5rem">No hay tiendas aún. Crea la primera con "Nueva tienda".</td></tr>'; return; }
+  const cats={comida:'🍔 Comida',mercado:'🛒 Mercado',farmacia:'💊 Farmacia',licores:'🍾 Licores',otros:'📦 Otros'};
+  tb.innerHTML = data.map(t=>`<tr>
+    <td><strong>${t.nombre}</strong>${t.destacada?' ⭐':''}</td>
+    <td>${cats[t.categoria]||t.categoria}</td>
+    <td>$${(t.costo_envio_base||0).toLocaleString('es-CO')}</td>
+    <td>${t.activa?'<span style="color:var(--green,#1D9E75);font-weight:600">● Activa</span>':'<span style="color:var(--muted)">○ Inactiva</span>'}</td>
+    <td>$${(t.saldo_por_liquidar||0).toLocaleString('es-CO')}</td>
+    <td style="white-space:nowrap">
+      <button class="bsm" onclick='gestionarProductos(${JSON.stringify(t.id)},${JSON.stringify(t.nombre)})' style="padding:4px 9px;font-size:12px"><i class="ti ti-list"></i> Menú</button>
+      <button class="bsm" onclick='abrirFormTienda(${JSON.stringify(t)})' style="padding:4px 9px;font-size:12px"><i class="ti ti-edit"></i></button>
+      <button class="bsm" onclick='eliminarTienda(${JSON.stringify(t.id)},${JSON.stringify(t.nombre)})' style="padding:4px 9px;font-size:12px;color:var(--mx)"><i class="ti ti-trash"></i></button>
+    </td></tr>`).join('');
+}
+
+function abrirFormTienda(t){
+  document.getElementById('mtienda-titulo').textContent = t ? 'Editar tienda' : 'Nueva tienda';
+  document.getElementById('t-id').value = t?.id || '';
+  document.getElementById('t-nombre').value = t?.nombre || '';
+  document.getElementById('t-categoria').value = t?.categoria || 'comida';
+  document.getElementById('t-desc').value = t?.descripcion || '';
+  document.getElementById('t-direccion').value = t?.direccion || '';
+  document.getElementById('t-envio').value = t?.costo_envio_base ?? 4000;
+  document.getElementById('t-tiempo').value = t?.tiempo_entrega_min ?? 30;
+  document.getElementById('t-min').value = t?.pedido_minimo ?? 0;
+  document.getElementById('t-logo').value = t?.logo_url || '';
+  document.getElementById('t-activa').checked = t ? !!t.activa : true;
+  document.getElementById('t-destacada').checked = t ? !!t.destacada : false;
+  document.getElementById('mtienda').classList.add('on');
+}
+
+async function guardarTienda(){
+  const id = document.getElementById('t-id').value;
+  const nombre = document.getElementById('t-nombre').value.trim();
+  if(!nombre){ alert('Escribe el nombre de la tienda.'); return; }
+  const { data:{ user } } = await sb.auth.getUser();
+  const payload = {
+    nombre,
+    categoria: document.getElementById('t-categoria').value,
+    descripcion: document.getElementById('t-desc').value.trim() || null,
+    direccion: document.getElementById('t-direccion').value.trim() || null,
+    costo_envio_base: parseInt(document.getElementById('t-envio').value)||0,
+    tiempo_entrega_min: parseInt(document.getElementById('t-tiempo').value)||30,
+    pedido_minimo: parseInt(document.getElementById('t-min').value)||0,
+    logo_url: document.getElementById('t-logo').value.trim() || null,
+    activa: document.getElementById('t-activa').checked,
+    destacada: document.getElementById('t-destacada').checked
+  };
+  let error;
+  if(id){ ({ error } = await sb.from('tiendas').update(payload).eq('id', id)); }
+  else { payload.propietario_id = user?.id || null; ({ error } = await sb.from('tiendas').insert(payload)); }
+  if(error){ alert('Error: '+error.message); return; }
+  cm('mtienda'); loadTiendas();
+}
+
+async function eliminarTienda(id, nombre){
+  if(!confirm('¿Eliminar la tienda "'+nombre+'" y todo su menú? Esta acción no se puede deshacer.')) return;
+  const { error } = await sb.from('tiendas').delete().eq('id', id);
+  if(error){ alert('Error: '+error.message); return; }
+  loadTiendas();
+}
+
+async function gestionarProductos(tiendaId, nombre){
+  document.getElementById('mprod-titulo').textContent = 'Menú · '+nombre;
+  document.getElementById('pr-tienda-id').value = tiendaId;
+  limpiarFormProducto();
+  document.getElementById('mprod').classList.add('on');
+  await loadProductosAdmin(tiendaId);
+}
+
+function limpiarFormProducto(){
+  document.getElementById('pr-id').value='';
+  document.getElementById('pr-nombre').value='';
+  document.getElementById('pr-precio').value='';
+  document.getElementById('pr-cat').value='';
+  document.getElementById('pr-desc').value='';
+  document.getElementById('pr-img').value='';
+  document.getElementById('pr-btn-txt').textContent='Agregar al menú';
+}
+
+async function loadProductosAdmin(tiendaId){
+  const tb = document.getElementById('pr-lista');
+  tb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:1rem">Cargando...</td></tr>';
+  const { data } = await sb.from('productos').select('*').eq('tienda_id', tiendaId).order('orden').order('nombre');
+  if(!data || !data.length){ tb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:1rem">Sin productos. Agrega el primero arriba.</td></tr>'; return; }
+  tb.innerHTML = data.map(p=>`<tr>
+    <td><strong>${p.nombre}</strong>${p.categoria?'<br><span style="font-size:11px;color:var(--muted)">'+p.categoria+'</span>':''}</td>
+    <td>$${(p.precio||0).toLocaleString('es-CO')}</td>
+    <td>${p.disponible?'✅':'❌'}</td>
+    <td style="white-space:nowrap">
+      <button class="bsm" onclick='editarProducto(${JSON.stringify(p)})' style="padding:3px 7px;font-size:12px"><i class="ti ti-edit"></i></button>
+      <button class="bsm" onclick='toggleProducto(${JSON.stringify(p.id)},${!p.disponible})' style="padding:3px 7px;font-size:12px">${p.disponible?'Ocultar':'Mostrar'}</button>
+      <button class="bsm" onclick='eliminarProducto(${JSON.stringify(p.id)})' style="padding:3px 7px;font-size:12px;color:var(--mx)"><i class="ti ti-trash"></i></button>
+    </td></tr>`).join('');
+}
+
+function editarProducto(p){
+  document.getElementById('pr-id').value=p.id;
+  document.getElementById('pr-nombre').value=p.nombre||'';
+  document.getElementById('pr-precio').value=p.precio||'';
+  document.getElementById('pr-cat').value=p.categoria||'';
+  document.getElementById('pr-desc').value=p.descripcion||'';
+  document.getElementById('pr-img').value=p.imagen_url||'';
+  document.getElementById('pr-btn-txt').textContent='Guardar cambios';
+  document.querySelector('#mprod .mdb').scrollTop = 0;
+}
+
+async function guardarProducto(){
+  const tiendaId = document.getElementById('pr-tienda-id').value;
+  const nombre = document.getElementById('pr-nombre').value.trim();
+  const precio = parseInt(document.getElementById('pr-precio').value);
+  if(!nombre || isNaN(precio)){ alert('Nombre y precio son obligatorios.'); return; }
+  const id = document.getElementById('pr-id').value;
+  const payload = {
+    tienda_id: tiendaId, nombre, precio,
+    categoria: document.getElementById('pr-cat').value.trim() || null,
+    descripcion: document.getElementById('pr-desc').value.trim() || null,
+    imagen_url: document.getElementById('pr-img').value.trim() || null
+  };
+  let error;
+  if(id){ ({ error } = await sb.from('productos').update(payload).eq('id', id)); }
+  else { ({ error } = await sb.from('productos').insert(payload)); }
+  if(error){ alert('Error: '+error.message); return; }
+  limpiarFormProducto();
+  loadProductosAdmin(tiendaId);
+}
+
+async function toggleProducto(id, disponible){
+  const { error } = await sb.from('productos').update({disponible}).eq('id', id);
+  if(error){ alert('Error: '+error.message); return; }
+  loadProductosAdmin(document.getElementById('pr-tienda-id').value);
+}
+
+async function eliminarProducto(id){
+  if(!confirm('¿Eliminar este producto?')) return;
+  const { error } = await sb.from('productos').delete().eq('id', id);
+  if(error){ alert('Error: '+error.message); return; }
+  loadProductosAdmin(document.getElementById('pr-tienda-id').value);
 }
 
 function mna(el){ document.querySelectorAll('.mni').forEach(b=>b.classList.remove('on')); el.classList.add('on'); }
