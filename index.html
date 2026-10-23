@@ -3215,6 +3215,8 @@
     mnActualizarEstadoTxt();
     mnLimpiarForm();
     document.getElementById('modal-mi-negocio').style.display = 'flex';
+    // Asegurar que el dueño reciba el aviso push de cada pedido
+    if (typeof pedirPermisoNotificaciones === 'function') pedirPermisoNotificaciones();
     mnCargarPedidos();
     mnCargarProductos();
   }
