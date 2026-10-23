@@ -1449,6 +1449,13 @@
           <button onclick="cerrarMiNegocio()" style="background:none;border:none;font-size:26px;color:var(--muted);cursor:pointer;line-height:1">×</button>
         </div>
 
+        <!-- PEDIDOS DE MI TIENDA -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="font-family:var(--font-head);font-weight:700;font-size:16px;color:var(--text)">Pedidos de mi tienda <span id="mn-pedidos-badge" style="display:none;background:var(--mx);color:white;font-size:11px;font-weight:700;padding:1px 8px;border-radius:10px;vertical-align:middle">0</span></div>
+          <button onclick="mnCargarPedidos()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 11px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font-body)"><i class="ti ti-refresh"></i> Actualizar</button>
+        </div>
+        <div id="mn-pedidos-lista" style="margin-bottom:18px"></div>
+
         <!-- DATOS DE LA TIENDA -->
         <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:14px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
@@ -3208,7 +3215,45 @@
     mnActualizarEstadoTxt();
     mnLimpiarForm();
     document.getElementById('modal-mi-negocio').style.display = 'flex';
+    mnCargarPedidos();
     mnCargarProductos();
+  }
+  async function mnCargarPedidos(){
+    if(!_miTienda) return;
+    const cont = document.getElementById('mn-pedidos-lista');
+    cont.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted)"><i class="ti ti-loader-2" style="animation:spin 1s linear infinite;font-size:20px"></i></div>';
+    const { data: pedidos } = await sb.from('pedidos').select('*').eq('tienda_id', _miTienda.id)
+      .in('estado',['buscando','aceptado','recogido','entregado']).order('created_at',{ascending:false}).limit(20);
+    const badge = document.getElementById('mn-pedidos-badge');
+    if(!pedidos || !pedidos.length){
+      cont.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:14px;background:white;border:1px solid var(--border);border-radius:11px"><i class="ti ti-receipt" style="font-size:26px;display:block;margin-bottom:6px;opacity:.4"></i>Aún no hay pedidos para tu tienda.</div>';
+      badge.style.display='none'; return;
+    }
+    const ids = pedidos.map(p=>p.id);
+    const { data: items } = await sb.from('pedido_items').select('*').in('pedido_id', ids);
+    const porPedido = {};
+    (items||[]).forEach(it=>{ (porPedido[it.pedido_id]=porPedido[it.pedido_id]||[]).push(it); });
+    const activos = pedidos.filter(p=>p.estado!=='entregado').length;
+    if(activos>0){ badge.textContent=activos; badge.style.display='inline-block'; } else badge.style.display='none';
+    const EST = { buscando:['#F59E0B','Nuevo · buscando repartidor'], aceptado:['#0EA5E9','Repartidor en camino al local'], recogido:['#8B5CF6','Recogido'], entregado:['#1D9E75','Entregado'] };
+    cont.innerHTML = pedidos.map(p=>{
+      const its = porPedido[p.id]||[];
+      const e = EST[p.estado]||['#8A7F7F',p.estado];
+      const lineas = its.map(it=>{
+        const u = (it.unidad && it.unidad!=='unidad') ? (' '+unidadLarga(it.unidad).replace('por ','')+' de') : '×';
+        return `<div style="display:flex;justify-content:space-between;font-size:13px;padding:2px 0"><span>${it.cantidad}${u} ${it.nombre}${it.nota?' <span style=\"color:var(--muted)\">('+it.nota+')</span>':''}</span><span style="color:var(--muted)">$${(it.subtotal||0).toLocaleString('es-CO')}</span></div>`;
+      }).join('');
+      const hora = new Date(p.created_at).toLocaleString('es-CO',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});
+      return `<div style="background:white;border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:11px;font-weight:700;color:white;background:${e[0]};padding:3px 9px;border-radius:50px">${e[1]}</span>
+          <span style="font-size:11px;color:var(--muted)">${hora}</span>
+        </div>
+        ${lineas || '<div style="font-size:13px;color:var(--muted)">Sin detalle de productos</div>'}
+        <div style="border-top:1px dashed var(--border);margin-top:8px;padding-top:8px;display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Productos</span><span style="font-weight:700">$${(p.subtotal_productos||0).toLocaleString('es-CO')}</span></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px">📍 ${p.destino||''}${p.recibe_nombre?' · Recibe: '+p.recibe_nombre:''}</div>
+      </div>`;
+    }).join('');
   }
   function mnActualizarEstadoTxt(){
     const on = document.getElementById('mn-t-activa').checked;
