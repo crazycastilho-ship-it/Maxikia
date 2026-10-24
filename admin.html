@@ -144,6 +144,7 @@ tbody tr:hover{background:var(--surface)}
       <div class="ni" id="n-verificaciones" onclick="sp('verificaciones')"><i class="ti ti-id-badge"></i> Verificaciones <span id="bv" style="margin-left:auto;background:var(--mx);color:white;font-size:10px;padding:2px 6px;border-radius:10px;display:none">0</span></div>
       <div class="ns">Marketplace</div>
       <div class="ni" id="n-tiendas" onclick="sp('tiendas')"><i class="ti ti-building-store"></i> Tiendas</div>
+      <div class="ni" id="n-banners" onclick="sp('banners')"><i class="ti ti-photo"></i> Publicidad</div>
       <div class="ns">Finanzas</div>
       <div class="ni" id="n-recargas" onclick="sp('recargas')"><i class="ti ti-cash"></i> Recargas</div>
       <div class="ni" id="n-retiros" onclick="sp('retiros')"><i class="ti ti-arrow-up"></i> Retiros <span id="br" style="margin-left:auto;background:var(--mx);color:white;font-size:10px;padding:2px 6px;border-radius:10px;display:none">0</span></div>
@@ -297,9 +298,50 @@ tbody tr:hover{background:var(--surface)}
         </div>
       </div>
 
+      <!-- PUBLICIDAD (Banners) -->
+      <div class="panel" id="p-banners">
+        <div class="tc">
+          <div class="th" style="display:flex;justify-content:space-between;align-items:center">
+            <div class="tt">Banners de publicidad</div>
+            <button class="bsm" onclick="abrirFormBanner()" style="padding:6px 14px"><i class="ti ti-plus"></i> Nuevo banner</button>
+          </div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Los banners activos aparecen en el carrusel de Inicio de la app. Úsalos para la publicidad que te paguen los comercios.</div>
+          <div class="tw"><table><thead><tr><th>Anunciante</th><th>Título</th><th>Enlace</th><th>Vigencia</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="tt-banners"></tbody></table></div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
+
+<!-- MODAL BANNER (crear/editar) -->
+<div class="mbg" id="mbanner"><div class="md"><div class="mdh"><div class="mdt" id="mbanner-titulo">Nuevo banner</div><button class="mdc" onclick="cm('mbanner')"><i class="ti ti-x"></i></button></div><div class="mdb">
+  <input type="hidden" id="b-id">
+  <label style="font-size:12px;font-weight:600;color:var(--muted)">Anunciante (comercio que paga)</label>
+  <input id="b-anunciante" class="fi" placeholder="Ej: Burger House" style="margin-bottom:10px">
+  <label style="font-size:12px;font-weight:600;color:var(--muted)">Imagen del banner (recomendado, horizontal)</label>
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+    <img id="b-img-preview" src="" style="width:80px;height:44px;border-radius:8px;object-fit:cover;background:#f0f0f0;display:none">
+    <label style="flex:1;border:1.5px dashed var(--border);border-radius:8px;padding:10px;text-align:center;font-size:13px;color:var(--mx);cursor:pointer;font-weight:600"><i class="ti ti-upload"></i> <span id="b-img-txt">Subir imagen</span><input type="file" accept="image/*" style="display:none" onchange="subirImagenBanner(this)"></label>
+  </div>
+  <input id="b-img" class="fi" placeholder="…o pega una URL de imagen" style="margin-bottom:10px;font-size:12px">
+  <label style="font-size:12px;font-weight:600;color:var(--muted)">Título (opcional, va sobre la imagen)</label>
+  <input id="b-titulo" class="fi" placeholder="Ej: 2x1 en hamburguesas hoy" style="margin-bottom:10px">
+  <label style="font-size:12px;font-weight:600;color:var(--muted)">Subtítulo (opcional)</label>
+  <input id="b-subtitulo" class="fi" placeholder="Ej: Solo por hoy, pide ya" style="margin-bottom:10px">
+  <label style="font-size:12px;font-weight:600;color:var(--muted)">Texto del botón</label>
+  <input id="b-cta" class="fi" placeholder="Ver más" style="margin-bottom:10px">
+  <label style="font-size:12px;font-weight:600;color:var(--muted)">Al tocar el banner, llevar a…</label>
+  <select id="b-tienda" class="fi" style="margin-bottom:8px"><option value="">— Ninguna tienda —</option></select>
+  <input id="b-url" class="fi" placeholder="…o una URL externa (https://...)" style="margin-bottom:10px;font-size:12px">
+  <div style="display:flex;gap:10px">
+    <div style="flex:1"><label style="font-size:12px;font-weight:600;color:var(--muted)">Desde</label><input id="b-inicio" type="date" class="fi" style="margin-bottom:10px"></div>
+    <div style="flex:1"><label style="font-size:12px;font-weight:600;color:var(--muted)">Hasta</label><input id="b-fin" type="date" class="fi" style="margin-bottom:10px"></div>
+    <div style="flex:1"><label style="font-size:12px;font-weight:600;color:var(--muted)">Orden</label><input id="b-orden" type="number" class="fi" value="0" style="margin-bottom:10px"></div>
+  </div>
+  <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:14px"><input type="checkbox" id="b-activo" checked> Activo (visible en la app)</label>
+  <button class="bsm" onclick="guardarBanner()" style="width:100%;padding:11px;background:var(--mx);color:white;border:none"><i class="ti ti-check"></i> Guardar banner</button>
+</div></div></div>
 
 <!-- MODAL TIENDA (crear/editar) -->
 <div class="mbg" id="mtienda"><div class="md"><div class="mdh"><div class="mdt" id="mtienda-titulo">Nueva tienda</div><button class="mdc" onclick="cm('mtienda')"><i class="ti ti-x"></i></button></div><div class="mdb">
@@ -430,13 +472,14 @@ function sp(id){
   document.getElementById('p-'+id).classList.add('on');
   const ni = document.getElementById('n-'+id);
   if(ni) ni.classList.add('on');
-  const titles={dashboard:'Dashboard',pedidos:'Pedidos',usuarios:'Clientes',repartidores:'Repartidores',verificaciones:'Verificaciones',tiendas:'Tiendas',recargas:'Recargas',retiros:'Retiros',ingresos:'Ingresos'};
+  const titles={dashboard:'Dashboard',pedidos:'Pedidos',usuarios:'Clientes',repartidores:'Repartidores',verificaciones:'Verificaciones',tiendas:'Tiendas',banners:'Publicidad',recargas:'Recargas',retiros:'Retiros',ingresos:'Ingresos'};
   document.getElementById('tt').textContent = titles[id]||id;
   if(id==='pedidos') loadPedidos();
   if(id==='usuarios') loadClientes();
   if(id==='repartidores') loadRepartidores();
   if(id==='verificaciones') loadVerif();
   if(id==='tiendas') loadTiendas();
+  if(id==='banners') loadBanners();
   if(id==='retiros') loadRetiros();
   if(id==='ingresos') loadIngresos();
 }
@@ -461,6 +504,105 @@ async function loadTiendas(){
       <button class="bsm" onclick='abrirFormTienda(${JSON.stringify(t)})' style="padding:4px 9px;font-size:12px"><i class="ti ti-edit"></i></button>
       <button class="bsm" onclick='eliminarTienda(${JSON.stringify(t.id)},${JSON.stringify(t.nombre)})' style="padding:4px 9px;font-size:12px;color:var(--mx)"><i class="ti ti-trash"></i></button>
     </td></tr>`).join('');
+}
+
+// ═══════════ PUBLICIDAD (BANNERS) ═══════════
+async function loadBanners(){
+  const tb = document.getElementById('tt-banners');
+  tb.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:1rem">Cargando...</td></tr>';
+  const { data, error } = await sb.from('banners').select('*, tiendas(nombre)').order('orden').order('created_at',{ascending:false});
+  if(error){ tb.innerHTML = '<tr><td colspan="6" style="color:var(--mx);padding:1rem">'+error.message+'</td></tr>'; return; }
+  if(!data || !data.length){ tb.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:1.5rem">No hay banners. Crea el primero con "Nuevo banner".</td></tr>'; return; }
+  const hoy = new Date().toISOString().slice(0,10);
+  tb.innerHTML = data.map(b=>{
+    const enlace = b.tiendas?.nombre ? ('🏪 '+b.tiendas.nombre) : (b.url ? '🔗 URL' : '—');
+    const vig = (b.fecha_inicio||b.fecha_fin) ? ((b.fecha_inicio||'…')+' → '+(b.fecha_fin||'…')) : 'Siempre';
+    const vigente = (!b.fecha_inicio || b.fecha_inicio<=hoy) && (!b.fecha_fin || b.fecha_fin>=hoy);
+    const estado = !b.activo ? '<span style="color:var(--muted)">○ Inactivo</span>'
+      : (vigente ? '<span style="color:var(--green,#1D9E75);font-weight:600">● Activo</span>' : '<span style="color:#E65100">● Fuera de fecha</span>');
+    return `<tr>
+      <td>${b.anunciante||'—'}</td>
+      <td>${b.titulo||(b.imagen_url?'(solo imagen)':'—')}</td>
+      <td>${enlace}</td>
+      <td style="font-size:12px">${vig}</td>
+      <td>${estado}</td>
+      <td style="white-space:nowrap">
+        <button class="bsm" onclick='abrirFormBanner(${JSON.stringify(b)})' style="padding:4px 9px;font-size:12px"><i class="ti ti-edit"></i></button>
+        <button class="bsm" onclick='toggleBanner(${JSON.stringify(b.id)},${!b.activo})' style="padding:4px 9px;font-size:12px">${b.activo?'Ocultar':'Mostrar'}</button>
+        <button class="bsm" onclick='eliminarBanner(${JSON.stringify(b.id)})' style="padding:4px 9px;font-size:12px;color:var(--mx)"><i class="ti ti-trash"></i></button>
+      </td></tr>`;
+  }).join('');
+}
+
+async function cargarTiendasEnSelect(seleccion){
+  const sel = document.getElementById('b-tienda');
+  const { data } = await sb.from('tiendas').select('id,nombre').order('nombre');
+  sel.innerHTML = '<option value="">— Ninguna tienda —</option>' +
+    (data||[]).map(t=>`<option value="${t.id}">${t.nombre}</option>`).join('');
+  if(seleccion) sel.value = seleccion;
+}
+
+async function abrirFormBanner(b){
+  document.getElementById('mbanner-titulo').textContent = b ? 'Editar banner' : 'Nuevo banner';
+  document.getElementById('b-id').value = b?.id || '';
+  document.getElementById('b-anunciante').value = b?.anunciante || '';
+  document.getElementById('b-img').value = b?.imagen_url || '';
+  document.getElementById('b-titulo').value = b?.titulo || '';
+  document.getElementById('b-subtitulo').value = b?.subtitulo || '';
+  document.getElementById('b-cta').value = b?.cta_texto || 'Ver más';
+  document.getElementById('b-url').value = b?.url || '';
+  document.getElementById('b-inicio').value = b?.fecha_inicio || '';
+  document.getElementById('b-fin').value = b?.fecha_fin || '';
+  document.getElementById('b-orden').value = b?.orden ?? 0;
+  document.getElementById('b-activo').checked = b ? !!b.activo : true;
+  const pv = document.getElementById('b-img-preview');
+  if(b?.imagen_url){ pv.src=b.imagen_url; pv.style.display='block'; document.getElementById('b-img-txt').textContent='Cambiar imagen'; }
+  else { pv.style.display='none'; document.getElementById('b-img-txt').textContent='Subir imagen'; }
+  await cargarTiendasEnSelect(b?.tienda_id || '');
+  document.getElementById('mbanner').classList.add('on');
+}
+
+async function subirImagenBanner(input){
+  const file = input.files[0]; if(!file) return;
+  const txt = document.getElementById('b-img-txt'); txt.textContent='Subiendo...';
+  const url = await subirImgPublica(file, 'banners');
+  txt.textContent = url ? 'Cambiar imagen' : 'Subir imagen';
+  if(url){ document.getElementById('b-img').value=url; const pv=document.getElementById('b-img-preview'); pv.src=url; pv.style.display='block'; }
+}
+
+async function guardarBanner(){
+  const payload = {
+    anunciante: document.getElementById('b-anunciante').value.trim() || null,
+    imagen_url: document.getElementById('b-img').value.trim() || null,
+    titulo: document.getElementById('b-titulo').value.trim() || null,
+    subtitulo: document.getElementById('b-subtitulo').value.trim() || null,
+    cta_texto: document.getElementById('b-cta').value.trim() || 'Ver más',
+    tienda_id: document.getElementById('b-tienda').value || null,
+    url: document.getElementById('b-url').value.trim() || null,
+    fecha_inicio: document.getElementById('b-inicio').value || null,
+    fecha_fin: document.getElementById('b-fin').value || null,
+    orden: parseInt(document.getElementById('b-orden').value)||0,
+    activo: document.getElementById('b-activo').checked
+  };
+  if(!payload.imagen_url && !payload.titulo){ alert('Pon al menos una imagen o un título para el banner.'); return; }
+  const id = document.getElementById('b-id').value;
+  let error;
+  if(id){ ({ error } = await sb.from('banners').update(payload).eq('id', id)); }
+  else { ({ error } = await sb.from('banners').insert(payload)); }
+  if(error){ alert('Error: '+error.message); return; }
+  cm('mbanner'); loadBanners();
+}
+
+async function toggleBanner(id, activo){
+  const { error } = await sb.from('banners').update({activo}).eq('id', id);
+  if(error){ alert('Error: '+error.message); return; }
+  loadBanners();
+}
+async function eliminarBanner(id){
+  if(!confirm('¿Eliminar este banner?')) return;
+  const { error } = await sb.from('banners').delete().eq('id', id);
+  if(error){ alert('Error: '+error.message); return; }
+  loadBanners();
 }
 
 function abrirFormTienda(t){
