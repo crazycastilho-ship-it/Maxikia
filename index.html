@@ -865,38 +865,8 @@
       <div class="dp active" id="dp-home">
         <!-- Banners promocionales -->
         <div class="promo-wrap">
-          <div class="promo-track" id="promo-track">
-            <div class="promo" style="background:linear-gradient(135deg,#D4001A,#FF4D62)" onclick="dTab('envio')">
-              <h4>Envía lo que necesites, hoy mismo</h4>
-              <p>Documentos, paquetes, encargos… en minutos.</p>
-              <span class="promo-cta">Pedir ahora <i class="ti ti-arrow-right"></i></span>
-              <i class="ti ti-package promo-ico"></i>
-            </div>
-            <div class="promo" style="background:linear-gradient(135deg,#0B6E4F,#15A86F)" onclick="dTab('tiendas')">
-              <h4>Comida y mercado a domicilio</h4>
-              <p>Pide de tus tiendas favoritas y te lo llevamos.</p>
-              <span class="promo-cta">Ver tiendas <i class="ti ti-arrow-right"></i></span>
-              <i class="ti ti-tools-kitchen-2 promo-ico"></i>
-            </div>
-            <div class="promo" style="background:linear-gradient(135deg,#E85C1A,#F59E0B)" onclick="dTab('repartir')">
-              <h4>Gana dinero repartiendo</h4>
-              <p>Tú decides cuándo. Cobras el 75% de cada envío.</p>
-              <span class="promo-cta">Empezar <i class="ti ti-arrow-right"></i></span>
-              <i class="ti ti-motorbike promo-ico"></i>
-            </div>
-            <div class="promo" style="background:linear-gradient(135deg,#5B21B6,#8B5CF6)" onclick="dTab('billetera')">
-              <h4>Recarga y paga sin complicarte</h4>
-              <p>Con saldo o tarjeta. Rápido y seguro.</p>
-              <span class="promo-cta">Mi billetera <i class="ti ti-arrow-right"></i></span>
-              <i class="ti ti-wallet promo-ico"></i>
-            </div>
-          </div>
-          <div class="promo-dots" id="promo-dots">
-            <div class="promo-dot on" onclick="irPromo(0)"></div>
-            <div class="promo-dot" onclick="irPromo(1)"></div>
-            <div class="promo-dot" onclick="irPromo(2)"></div>
-            <div class="promo-dot" onclick="irPromo(3)"></div>
-          </div>
+          <div class="promo-track" id="promo-track"></div>
+          <div class="promo-dots" id="promo-dots"></div>
         </div>
 
         <!-- Accesos rápidos -->
@@ -3769,6 +3739,47 @@
       });
   }
 
+  // ── Carrusel de banners (publicidad pagada + banners de la casa) ──
+  const BANNERS_CASA = [
+    { color:'linear-gradient(135deg,#D4001A,#FF4D62)', titulo:'Envía lo que necesites, hoy mismo', subtitulo:'Documentos, paquetes, encargos… en minutos.', cta:'Pedir ahora', icono:'ti-package', accion:"dTab('envio')" },
+    { color:'linear-gradient(135deg,#0B6E4F,#15A86F)', titulo:'Comida y mercado a domicilio', subtitulo:'Pide de tus tiendas favoritas y te lo llevamos.', cta:'Ver tiendas', icono:'ti-tools-kitchen-2', accion:"dTab('tiendas')" },
+    { color:'linear-gradient(135deg,#E85C1A,#F59E0B)', titulo:'Gana dinero repartiendo', subtitulo:'Tú decides cuándo. Cobras el 75% de cada envío.', cta:'Empezar', icono:'ti-motorbike', accion:"dTab('repartir')" },
+    { color:'linear-gradient(135deg,#5B21B6,#8B5CF6)', titulo:'Recarga y paga sin complicarte', subtitulo:'Con saldo o tarjeta. Rápido y seguro.', cta:'Mi billetera', icono:'ti-wallet', accion:"dTab('billetera')" }
+  ];
+  function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function bannerCasaHTML(b){
+    return `<div class="promo" style="background:${b.color}" onclick="${b.accion}"><h4>${b.titulo}</h4><p>${b.subtitulo}</p><span class="promo-cta">${b.cta} <i class="ti ti-arrow-right"></i></span><i class="ti ${b.icono} promo-ico"></i></div>`;
+  }
+  function abrirUrlBanner(u){ try{ window.open(u,'_blank'); }catch(e){} }
+  function bannerPagadoHTML(b){
+    const accion = b.tienda_id ? `abrirTiendaDesde('${b.tienda_id}')` : (b.url ? `abrirUrlBanner('${encodeURI(b.url)}')` : '');
+    const onclick = accion ? ` onclick="${accion}"` : '';
+    if (b.imagen_url){
+      const overlay = (b.titulo || b.subtitulo || b.cta_texto)
+        ? `<div style="position:relative;z-index:2;background:linear-gradient(90deg,rgba(0,0,0,.55),rgba(0,0,0,0));height:100%;display:flex;flex-direction:column;justify-content:center;padding:22px 24px;border-radius:18px">${b.titulo?`<h4>${escHtml(b.titulo)}</h4>`:''}${b.subtitulo?`<p>${escHtml(b.subtitulo)}</p>`:''}${b.cta_texto?`<span class="promo-cta">${escHtml(b.cta_texto)} <i class="ti ti-arrow-right"></i></span>`:''}</div>`
+        : '';
+      return `<div class="promo" style="background:url('${encodeURI(b.imagen_url)}') center/cover;padding:0"${onclick}>${overlay}</div>`;
+    }
+    return `<div class="promo" style="background:${b.color||'linear-gradient(135deg,#D4001A,#FF4D62)'}"${onclick}><h4>${escHtml(b.titulo||'')}</h4>${b.subtitulo?`<p>${escHtml(b.subtitulo)}</p>`:''}${b.cta_texto?`<span class="promo-cta">${escHtml(b.cta_texto)} <i class="ti ti-arrow-right"></i></span>`:''}</div>`;
+  }
+  async function cargarBanners(){
+    const track = document.getElementById('promo-track');
+    const dots = document.getElementById('promo-dots');
+    if (!track || !dots) return;
+    let pagados = [];
+    try {
+      const { data } = await sb.from('banners').select('*').eq('activo', true)
+        .order('orden', { ascending:true }).order('created_at', { ascending:false });
+      pagados = data || [];
+    } catch(e){}
+    const html = pagados.map(bannerPagadoHTML).concat(BANNERS_CASA.map(bannerCasaHTML)).join('');
+    track.innerHTML = html;
+    const total = track.children.length;
+    dots.innerHTML = Array.from({length: total}, (_,i)=>`<div class="promo-dot${i===0?' on':''}" onclick="irPromo(${i})"></div>`).join('');
+    _promoIdx = 0;
+    initPromos();
+  }
+
   // ── Carrusel de banners promocionales ──
   let _promoIdx = 0, _promoTimer = null;
   function initPromos(){
@@ -3828,7 +3839,7 @@
 
   async function cargarPedidosHome() {
     if (!currentUser) return;
-    initPromos();
+    cargarBanners();
     cargarTiendasDestacadas();
     const { data } = await sb.from('pedidos').select('*')
       .or(`usuario_id.eq.${currentUser.id},repartidor_id.eq.${currentUser.id}`)
