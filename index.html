@@ -1613,6 +1613,52 @@
     }
   })();
 
+  // ── BOTÓN ATRÁS DEL CELULAR → navegación interna (no salir de la app) ──
+  (function(){
+    const MODALES = ['modal-nueva-pass','modal-checkout-tienda','modal-mi-negocio','modal-calificacion','modal-chat','modal-entrega','modal-doc'];
+    function abierto(el){ try { return el && getComputedStyle(el).display !== 'none'; } catch(e){ return false; } }
+    function modalAbierto(){
+      for (const id of MODALES){ const m = document.getElementById(id); if (abierto(m)) return m; }
+      return null;
+    }
+    function manejarAtras(){
+      // 1) Hay un modal abierto → cerrarlo
+      const m = modalAbierto();
+      if (m){ m.style.display = 'none'; return true; }
+      // 2) Detalle de tienda abierto → volver a la lista de tiendas
+      const det = document.getElementById('tienda-detalle');
+      if (abierto(det) && document.getElementById('dp-tiendas')?.classList.contains('active')){
+        if (typeof volverTiendas === 'function') volverTiendas(); else det.style.display = 'none';
+        return true;
+      }
+      // 3) Formulario de envío abierto → volver al selector de tipo
+      const dpEnvio = document.getElementById('dp-envio');
+      const formEnvio = document.getElementById('envio-formulario');
+      if (dpEnvio?.classList.contains('active') && abierto(formEnvio) && typeof volverSelectorEnvio === 'function'){
+        volverSelectorEnvio(); return true;
+      }
+      // 4) En el dashboard, si no estamos en Inicio → ir a Inicio
+      if (document.getElementById('page-dashboard')?.classList.contains('active')){
+        const home = document.getElementById('dp-home');
+        if (home && !home.classList.contains('active')){ if (typeof cambiarTab === 'function') cambiarTab('home'); return true; }
+        return false; // en Inicio → permitir salir
+      }
+      // 5) En login o registro → volver al inicio (landing)
+      const activa = document.querySelector('.page.active');
+      if (activa && (activa.id === 'page-login' || activa.id === 'page-register')){
+        if (typeof goPage === 'function') goPage('landing'); return true;
+      }
+      return false;
+    }
+    function semilla(){ try { history.pushState({ mx:true }, ''); } catch(e){} }
+    window.addEventListener('popstate', function(){
+      const manejado = manejarAtras();
+      if (manejado) semilla(); // mantener un estado de respaldo para el próximo "atrás"
+    });
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', semilla);
+    else semilla();
+  })();
+
   // ── NAV SCROLL GLASSMORPHISM ──
   const navEl = document.querySelector('.nav');
   let lastScroll = 0;
